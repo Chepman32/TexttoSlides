@@ -6,9 +6,13 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import ImageService from '../services/ImageService';
+import FeedbackService from '../services/FeedbackService';
+import { smartSplit, getOptimalSlideCount, optimizeForSlides } from '../utils/textUtils';
 
 type RootStackParamList = {
   Home: undefined;
@@ -28,42 +32,58 @@ const ImageSelectionScreen: React.FC = () => {
   // In a real app, we would integrate with image picker libraries
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   
-  // Split text into slides (simplified logic)
-  const splitTextIntoSlides = (inputText: string): string[] => {
-    // Simple split by paragraphs or sentences
-    const paragraphs = inputText.split('\n\n').filter(p => p.trim().length > 0);
-    return paragraphs.length > 0 ? paragraphs : [inputText];
-  };
-  
-  const slides = splitTextIntoSlides(text);
+  // Optimize text for slides and split using advanced algorithms
+  const optimizedText = optimizeForSlides(text);
+  const optimalSlideCount = getOptimalSlideCount(optimizedText);
+  const slides = smartSplit(optimizedText, optimalSlideCount);
   const requiredImages = slides.length;
 
-  const handleSelectImage = (index: number) => {
-    // In a real app, this would open the image picker
-    Alert.alert(
-      'Image Selection',
-      'In a complete implementation, this would open the image picker to select a background image for this slide.',
-      [{ text: 'OK' }]
-    );
+  const handleSelectImage = async (index: number) => {
+    FeedbackService.buttonTap();
     
-    // For demo purposes, we'll just add a placeholder
-    const newImages = [...selectedImages];
-    newImages[index] = `https://picsum.photos/400/400?random=${index}`;
-    setSelectedImages(newImages);
+    try {
+      const imageUri = await ImageService.showImagePickerOptions();
+      
+      if (imageUri) {
+        // Process the image to ensure it's optimized for slides
+        const processedUri = await ImageService.processImage(imageUri, {
+          width: 1080,
+          height: 1080,
+          quality: 0.8,
+        });
+        
+        if (processedUri) {
+          const newImages = [...selectedImages];
+          newImages[index] = processedUri;
+          setSelectedImages(newImages);
+          FeedbackService.success();
+        }
+      }
+    } catch (error) {
+      console.error('Error selecting image:', error);
+      FeedbackService.error();
+      Alert.alert('Error', 'Failed to select image. Please try again.');
+    }
   };
 
   const handleUsePlainBackground = (index: number) => {
+    FeedbackService.buttonTap();
     const newImages = [...selectedImages];
     newImages[index] = ''; // Empty string for plain background
     setSelectedImages(newImages);
+    FeedbackService.success();
   };
 
   const handleContinue = () => {
+    FeedbackService.buttonTap();
+    
     if (selectedImages.length < requiredImages) {
+      FeedbackService.error();
       Alert.alert('Error', `Please select ${requiredImages} images for your slides`);
       return;
     }
     
+    FeedbackService.success();
     // Navigate to editor with text and selected images
     navigation.navigate('Editor', { text, images: selectedImages });
   };
@@ -98,9 +118,19 @@ const ImageSelectionScreen: React.FC = () => {
             </View>
             
             {selectedImages[index] ? (
-              <Text style={styles.selectedText}>
-                {selectedImages[index] ? 'Image selected' : 'Plain background selected'}
-              </Text>
+              <View style={styles.imagePreview}>
+                {selectedImages[index] ? (
+                  <Image 
+                    source={{ uri: selectedImages[index] }} 
+                    style={styles.previewImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.plainBackgroundPreview}>
+                    <Text style={styles.plainBackgroundText}>Plain Background</Text>
+                  </View>
+                )}
+              </View>
             ) : null}
           </View>
         ))}
@@ -181,6 +211,32 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#007AFF',
     fontWeight: 'bold',
+  },
+  imagePreview: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  previewImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+  },
+  plainBackgroundPreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#007AFF',
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  plainBackgroundText: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
   },
   continueButton: {
     backgroundColor: '#ccc',

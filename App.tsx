@@ -10,6 +10,7 @@ import { StatusBar, StyleSheet, View } from 'react-native';
 import {
   SafeAreaProvider,
 } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/context/LanguageContext';
@@ -27,16 +28,18 @@ function App() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <LanguageProvider>
-          <View style={styles.container}>
-            <StatusBar barStyle="dark-content" />
-            <AppNavigator />
-          </View>
-        </LanguageProvider>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={styles.container}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <LanguageProvider>
+            <View style={styles.container}>
+              <StatusBar barStyle="dark-content" />
+              <AppNavigator />
+            </View>
+          </LanguageProvider>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 

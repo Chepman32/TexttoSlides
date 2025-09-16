@@ -7,9 +7,15 @@ import {
   FlatList,
   Alert,
   Animated,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { captureRef } from 'react-native-view-shot';
+import RNFS from 'react-native-fs';
+import ImageService from '../services/ImageService';
+import FeedbackService from '../services/FeedbackService';
 
 type RootStackParamList = {
   Home: undefined;
@@ -26,27 +32,70 @@ const PreviewScreen: React.FC = () => {
   const { slides } = route.params;
   
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [isExporting, setIsExporting] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
+  const slideRefs = useRef<View[]>([]);
+  const { width: screenWidth } = Dimensions.get('window');
+  const slideSize = Math.min(screenWidth - 40, 350);
   
-  const handleExport = () => {
-    Alert.alert(
-      'Export Slides',
-      'In a complete implementation, this would export your slides to your device gallery.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Export', onPress: () => {
-            Alert.alert('Success', 'Slides exported successfully!');
-            navigation.navigate('Home');
-          }
+  const handleExport = async () => {
+    if (isExporting) return;
+    
+    FeedbackService.buttonTap();
+    setIsExporting(true);
+    
+    try {
+      const exportedImages: string[] = [];
+      
+      for (let i = 0; i < slides.length; i++) {
+        const slideRef = slideRefs.current[i];
+        if (slideRef) {
+          const uri = await captureRef(slideRef, {
+            format: 'jpg',
+            quality: 0.9,
+            result: 'tmpfile',
+          });
+          
+          // Move to permanent location
+          const timestamp = Date.now();
+          const fileName = `slide_${i + 1}_${timestamp}.jpg`;
+          const permanentPath = `${RNFS.PicturesDirectoryPath}/${fileName}`;
+          
+          await RNFS.moveFile(uri, permanentPath);
+          exportedImages.push(permanentPath);
         }
-      ]
-    );
+      }
+      
+      FeedbackService.success();
+      Alert.alert(
+        'Export Complete',
+        `Successfully exported ${exportedImages.length} slides to your photo library!`,
+        [
+          { text: 'OK', onPress: () => navigation.navigate('Home') }
+        ]
+      );
+      
+    } catch (error) {
+      console.error('Export error:', error);
+      FeedbackService.error();
+      Alert.alert('Export Failed', 'Failed to export slides. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
   };
 
-  const renderSlide = ({ item }: { item: any; index: number }) => (
-    <View style={styles.slideContainer}>
+  const renderSlide = ({ item, index }: { item: any; index: number }) => (
+    <View 
+      ref={(ref) => {
+        if (ref) slideRefs.current[index] = ref;
+      }}
+      style={[styles.slideContainer, { width: slideSize, height: slideSize }]}>
       {item.image ? (
-        <View style={styles.imageBackground} />
+        <Image 
+          source={{ uri: item.image }} 
+          style={styles.imageBackground}
+          resizeMode="cover"
+        />
       ) : (
         <View style={styles.plainBackground} />
       )}
@@ -57,9 +106,18 @@ const PreviewScreen: React.FC = () => {
           {
             left: item.position?.x || 50,
             top: item.position?.y || 50,
+            backgroundColor: item.backgroundColor || 'rgba(0,0,0,0.5)',
           }
         ]}>
-        <Text style={[styles.slideText, { fontSize: item.fontSize || 24 }]}>
+        <Text style={[
+          styles.slideText, 
+          { 
+            fontSize: item.fontSize || 24,
+            color: item.color || '#FFFFFF',
+            textAlign: item.textAlign || 'center',
+            fontWeight: item.fontWeight || 'bold',
+          }
+        ]}>
           {item.text}
         </Text>
       </View>
@@ -124,8 +182,13 @@ const PreviewScreen: React.FC = () => {
       </View>
       
       {/* Export button */}
-      <TouchableOpacity style={styles.exportButton} onPress={handleExport}>
-        <Text style={styles.exportButtonText}>Export Slides</Text>
+      <TouchableOpacity 
+        style={[styles.exportButton, isExporting && styles.exportButtonDisabled]} 
+        onPress={handleExport}
+        disabled={isExporting}>
+        <Text style={styles.exportButtonText}>
+          {isExporting ? 'Exporting...' : 'Export Slides'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -158,8 +221,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   slideContainer: {
-    width: 300,
-    height: 300,
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
     overflow: 'hidden',
@@ -169,7 +230,6 @@ const styles = StyleSheet.create({
   imageBackground: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#ddd',
   },
   plainBackground: {
     width: '100%',
@@ -179,8 +239,8 @@ const styles = StyleSheet.create({
   textOverlay: {
     position: 'absolute',
     padding: 10,
-    backgroundColor: 'rgba(0,0,0,0.3)',
     borderRadius: 5,
+    maxWidth: '80%',
   },
   slideText: {
     color: '#fff',
@@ -207,6 +267,9 @@ const styles = StyleSheet.create({
     margin: 20,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  exportButtonDisabled: {
+    backgroundColor: '#ccc',
   },
   exportButtonText: {
     color: '#fff',

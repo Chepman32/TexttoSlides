@@ -30,41 +30,297 @@ export const splitIntoSentences = (text: string): string[] => {
 };
 
 /**
- * Split text into chunks of approximately equal length
+ * Advanced text processing algorithms for better slide splitting
+ */
+
+/**
+ * Split text into chunks using advanced algorithms
  * @param text The input text to split
  * @param maxChars Maximum characters per chunk
+ * @param options Advanced splitting options
  * @returns Array of text chunks
  */
-export const splitIntoChunks = (text: string, maxChars: number = 200): string[] => {
-  const paragraphs = splitIntoParagraphs(text);
+export const splitIntoAdvancedChunks = (
+  text: string, 
+  maxChars: number = 200,
+  options: {
+    preserveParagraphs?: boolean;
+    respectSentences?: boolean;
+    respectWords?: boolean;
+    minChunkSize?: number;
+    maxChunkSize?: number;
+  } = {}
+): string[] => {
+  const {
+    preserveParagraphs = true,
+    respectSentences = true,
+    respectWords = true,
+    minChunkSize = 50,
+    maxChunkSize = maxChars,
+  } = options;
+
+  // Clean and normalize text
+  const cleanText = text.replace(/\s+/g, ' ').trim();
   
-  if (paragraphs.length === 0) {
-    return [text];
+  if (cleanText.length <= maxChunkSize) {
+    return [cleanText];
   }
-  
+
   const chunks: string[] = [];
   let currentChunk = '';
-  
+  let currentLength = 0;
+
+  // Split by paragraphs first if preserveParagraphs is true
+  const paragraphs = preserveParagraphs 
+    ? cleanText.split('\n\n').filter(p => p.trim().length > 0)
+    : [cleanText];
+
   for (const paragraph of paragraphs) {
-    // If adding this paragraph would exceed the max chars, start a new chunk
-    if (currentChunk.length + paragraph.length > maxChars && currentChunk.length > 0) {
-      chunks.push(currentChunk.trim());
-      currentChunk = paragraph;
-    } else {
-      // Otherwise, add to current chunk
-      if (currentChunk.length > 0) {
+    const trimmedParagraph = paragraph.trim();
+    
+    // If paragraph fits in current chunk, add it
+    if (currentLength + trimmedParagraph.length <= maxChunkSize) {
+      if (currentChunk) {
         currentChunk += '\n\n';
       }
-      currentChunk += paragraph;
+      currentChunk += trimmedParagraph;
+      currentLength += trimmedParagraph.length;
+    } else {
+      // Paragraph doesn't fit, need to split it
+      if (currentChunk) {
+        chunks.push(currentChunk.trim());
+        currentChunk = '';
+        currentLength = 0;
+      }
+
+      // Split paragraph into sentences or words
+      if (respectSentences && trimmedParagraph.length > maxChunkSize) {
+        const sentenceChunks = splitBySentences(trimmedParagraph, maxChunkSize, minChunkSize);
+        chunks.push(...sentenceChunks);
+      } else if (respectWords && trimmedParagraph.length > maxChunkSize) {
+        const wordChunks = splitByWords(trimmedParagraph, maxChunkSize, minChunkSize);
+        chunks.push(...wordChunks);
+      } else {
+        chunks.push(trimmedParagraph);
+      }
     }
   }
-  
+
   // Don't forget the last chunk
-  if (currentChunk.length > 0) {
+  if (currentChunk.trim()) {
     chunks.push(currentChunk.trim());
   }
-  
+
+  return chunks.filter(chunk => chunk.length >= minChunkSize);
+};
+
+/**
+ * Split text by sentences while respecting chunk size limits
+ */
+const splitBySentences = (text: string, maxSize: number, minSize: number): string[] => {
+  const sentences = splitIntoSentences(text);
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const sentence of sentences) {
+    const trimmedSentence = sentence.trim();
+    
+    if (currentChunk.length + trimmedSentence.length <= maxSize) {
+      if (currentChunk) {
+        currentChunk += ' ';
+      }
+      currentChunk += trimmedSentence;
+    } else {
+      if (currentChunk && currentChunk.length >= minSize) {
+        chunks.push(currentChunk.trim());
+      }
+      currentChunk = trimmedSentence;
+    }
+  }
+
+  if (currentChunk && currentChunk.length >= minSize) {
+    chunks.push(currentChunk.trim());
+  }
+
   return chunks;
+};
+
+/**
+ * Split text by words while respecting chunk size limits
+ */
+const splitByWords = (text: string, maxSize: number, minSize: number): string[] => {
+  const words = text.split(/\s+/);
+  const chunks: string[] = [];
+  let currentChunk = '';
+
+  for (const word of words) {
+    if (currentChunk.length + word.length + 1 <= maxSize) {
+      if (currentChunk) {
+        currentChunk += ' ';
+      }
+      currentChunk += word;
+    } else {
+      if (currentChunk && currentChunk.length >= minSize) {
+        chunks.push(currentChunk.trim());
+      }
+      currentChunk = word;
+    }
+  }
+
+  if (currentChunk && currentChunk.length >= minSize) {
+    chunks.push(currentChunk.trim());
+  }
+
+  return chunks;
+};
+
+/**
+ * Basic chunking helper used by legacy screens.
+ * Falls back to the advanced splitter but keeps the simpler signature that
+ * other parts of the app expect.
+ */
+export const splitIntoChunks = (text: string, maxChars: number = 200): string[] => {
+  return splitIntoAdvancedChunks(text, maxChars, {
+    preserveParagraphs: true,
+    respectSentences: true,
+    respectWords: true,
+    minChunkSize: Math.max(50, Math.floor(maxChars * 0.5)),
+    maxChunkSize: maxChars,
+  });
+};
+
+/**
+ * Smart text splitting that adapts to content type
+ */
+export const smartSplit = (text: string, targetSlides: number = 3): string[] => {
+  const textLength = text.length;
+  const idealChunkSize = Math.ceil(textLength / targetSlides);
+  
+  // Detect content type
+  const contentType = detectContentType(text);
+  
+  let options = {
+    preserveParagraphs: true,
+    respectSentences: true,
+    respectWords: true,
+    minChunkSize: Math.max(30, idealChunkSize * 0.3),
+    maxChunkSize: Math.min(idealChunkSize * 1.5, textLength),
+  };
+
+  // Adjust options based on content type
+  switch (contentType) {
+    case 'list':
+      options.preserveParagraphs = true;
+      options.respectSentences = false;
+      break;
+    case 'story':
+      options.respectSentences = true;
+      options.respectWords = false;
+      break;
+    case 'technical':
+      options.respectWords = true;
+      options.minChunkSize = Math.max(50, idealChunkSize * 0.4);
+      break;
+    case 'quote':
+      options.preserveParagraphs = true;
+      options.respectSentences = true;
+      options.maxChunkSize = idealChunkSize * 1.2;
+      break;
+  }
+
+  return splitIntoAdvancedChunks(text, idealChunkSize, options);
+};
+
+/**
+ * Detect the type of content for better splitting
+ */
+const detectContentType = (text: string): 'list' | 'story' | 'technical' | 'quote' | 'general' => {
+  const lines = text.split('\n');
+  const sentences = splitIntoSentences(text);
+  
+  // Check for list format
+  if (lines.some(line => /^[\s]*[-*•]\s/.test(line)) || 
+      lines.some(line => /^\d+\.\s/.test(line))) {
+    return 'list';
+  }
+  
+  // Check for quote format
+  if (text.includes('"') && sentences.length <= 3) {
+    return 'quote';
+  }
+  
+  // Check for technical content
+  if (text.includes('function') || text.includes('class') || 
+      text.includes('API') || text.includes('code')) {
+    return 'technical';
+  }
+  
+  // Check for story format
+  if (sentences.length > 5 && text.includes('.')) {
+    return 'story';
+  }
+  
+  return 'general';
+};
+
+/**
+ * Optimize text for slide readability
+ */
+export const optimizeForSlides = (text: string): string => {
+  return text
+    // Remove excessive whitespace
+    .replace(/\s+/g, ' ')
+    // Remove excessive punctuation
+    .replace(/[.]{3,}/g, '...')
+    // Normalize quotes
+    .replace(/[""]/g, '"')
+    .replace(/['']/g, "'")
+    // Remove excessive line breaks
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
+/**
+ * Get reading time estimate for text
+ */
+export const getReadingTime = (text: string, wordsPerMinute: number = 200): number => {
+  const words = text.split(/\s+/).length;
+  return Math.ceil(words / wordsPerMinute);
+};
+
+/**
+ * Get optimal slide count based on text characteristics
+ */
+export const getOptimalSlideCount = (text: string): number => {
+  const textLength = text.length;
+  const contentType = detectContentType(text);
+  const readingTime = getReadingTime(text);
+  
+  let optimalCount = 3; // Default
+  
+  switch (contentType) {
+    case 'list':
+      optimalCount = Math.min(5, Math.max(2, Math.ceil(textLength / 150)));
+      break;
+    case 'story':
+      optimalCount = Math.min(6, Math.max(3, Math.ceil(textLength / 200)));
+      break;
+    case 'technical':
+      optimalCount = Math.min(8, Math.max(2, Math.ceil(textLength / 100)));
+      break;
+    case 'quote':
+      optimalCount = 1;
+      break;
+    default:
+      optimalCount = Math.min(5, Math.max(2, Math.ceil(textLength / 180)));
+  }
+  
+  // Adjust based on reading time
+  if (readingTime > 2) {
+    optimalCount = Math.min(optimalCount + 1, 8);
+  }
+  
+  return optimalCount;
 };
 
 /**
@@ -97,6 +353,8 @@ export default {
   splitIntoParagraphs,
   splitIntoSentences,
   splitIntoChunks,
+  splitIntoAdvancedChunks,
+  smartSplit,
   estimateSlideCount,
   truncateText,
 };
