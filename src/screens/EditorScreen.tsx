@@ -6,16 +6,20 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
+  ScrollView,
 } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { PanGestureHandler, State, Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  runOnJS,
 } from 'react-native-reanimated';
+
+// Create animated ScrollView component
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 import { smartSplit, optimizeForSlides } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
 import TemplateService from '../services/TemplateService';
@@ -54,17 +58,29 @@ const EditorScreen: React.FC = () => {
   const textSlides = smartSplit(optimizedText, 3); // Default to 3 slides
   
   // Create slides with enhanced properties
-  const initialSlides: Slide[] = textSlides.map((slideText, index) => ({
-    id: index,
-    text: slideText,
-    image: images[index] || '',
-    position: { x: 50, y: 100 },
-    fontSize: 24,
-    color: '#FFFFFF',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  }));
+  const initialSlides: Slide[] = textSlides.length > 0 
+    ? textSlides.map((slideText, index) => ({
+        id: index,
+        text: slideText,
+        image: images[index] || '',
+        position: { x: 50, y: 100 },
+        fontSize: 24,
+        color: '#FFFFFF',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        textAlign: 'center',
+        fontWeight: 'bold',
+      }))
+    : [{
+        id: 0,
+        text: 'No text provided',
+        image: '',
+        position: { x: 50, y: 100 },
+        fontSize: 24,
+        color: '#FFFFFF',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        textAlign: 'center',
+        fontWeight: 'bold',
+      }];
   
   const [slides, setSlides] = useState<Slide[]>(initialSlides);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -76,6 +92,16 @@ const EditorScreen: React.FC = () => {
   const { width: screenWidth } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth - 40, 350);
 
+  // Safety check for currentSlide
+  if (!currentSlide) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>No slides available</Text>
+        <Text style={[styles.title, { fontSize: 16, marginTop: 10 }]}>Please check your input text.</Text>
+      </View>
+    );
+  }
+
   // Animated values for drag and drop
   const translateX = useSharedValue(currentSlide.position.x);
   const translateY = useSharedValue(currentSlide.position.y);
@@ -86,16 +112,31 @@ const EditorScreen: React.FC = () => {
     translateY.value = withSpring(currentSlide.position.y);
   }, [currentSlideIndex, currentSlide.position.x, currentSlide.position.y]);
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: (_, context: any) => {
-      context.startX = translateX.value;
-      context.startY = translateY.value;
-      // Remove the worklet call that was causing issues
-      // FeedbackService.textDrag();
-    },
-    onActive: (event, context) => {
-      const newX = context.startX + event.translationX;
-      const newY = context.startY + event.translationY;
+  // Function to update slide position (needs to be called from JS thread)
+  const updateSlidePosition = (x: number, y: number) => {
+    setSlides(prevSlides => {
+      const newSlides = [...prevSlides];
+      const slide = newSlides[currentSlideIndex];
+      slide.position = { x, y };
+      newSlides[currentSlideIndex] = slide;
+      return newSlides;
+    });
+  };
+
+  // Create shared values to store the initial position
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
+
+  const panGesture = Gesture.Pan()
+    .onStart((event) => {
+      // Store the current position as starting point
+      startX.value = translateX.value;
+      startY.value = translateY.value;
+    })
+    .onUpdate((event) => {
+      // Calculate new position based on translation from start
+      const newX = startX.value + event.translationX;
+      const newY = startY.value + event.translationY;
       
       // Constrain to slide bounds
       const maxX = slideSize - 200; // Approximate text width
@@ -103,23 +144,13 @@ const EditorScreen: React.FC = () => {
       
       translateX.value = Math.max(0, Math.min(maxX, newX));
       translateY.value = Math.max(0, Math.min(maxY, newY));
-    },
-    onEnd: () => {
-      // Update slide position
-      setSlides(prevSlides => {
-        const newSlides = [...prevSlides];
-        const slide = newSlides[currentSlideIndex];
-        slide.position = {
-          x: translateX.value,
-          y: translateY.value,
-        };
-        newSlides[currentSlideIndex] = slide;
-        return newSlides;
-      });
-      // Remove the worklet call that was causing issues
-      // FeedbackService.success();
-    },
-  });
+    })
+    .onEnd(() => {
+      // Update slide position using runOnJS
+      runOnJS(updateSlidePosition)(translateX.value, translateY.value);
+    });
+
+  const gestureHandler = panGesture;
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -260,7 +291,7 @@ const EditorScreen: React.FC = () => {
               <View style={styles.plainBackground} />
             )}
             
-            <PanGestureHandler onGestureEvent={gestureHandler}>
+            <GestureDetector gesture={gestureHandler}>
               <Animated.View 
                 style={[
                   styles.textOverlay, 
@@ -281,7 +312,7 @@ const EditorScreen: React.FC = () => {
                   {currentSlide.text}
                 </Text>
               </Animated.View>
-            </PanGestureHandler>
+            </GestureDetector>
           </View>
         )}
       </View>
@@ -354,7 +385,7 @@ const EditorScreen: React.FC = () => {
       {showTemplates && (
         <View style={styles.templateSelector}>
           <Text style={styles.controlsTitle}>Choose Template</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <AnimatedScrollView horizontal showsHorizontalScrollIndicator={false}>
             {TemplateService.getTemplates().map((template) => (
               <TouchableOpacity
                 key={template.id}
@@ -364,12 +395,12 @@ const EditorScreen: React.FC = () => {
                 <Text style={styles.templateOptionDesc}>{template.description}</Text>
               </TouchableOpacity>
             ))}
-          </ScrollView>
+          </AnimatedScrollView>
         </View>
       )}
 
       {/* Text controls */}
-      <ScrollView style={styles.controlsContainer} showsVerticalScrollIndicator={false}>
+      <AnimatedScrollView style={styles.controlsContainer} showsVerticalScrollIndicator={false}>
         <Text style={styles.controlsTitle}>Text Size</Text>
         <View style={styles.sizeControls}>
           <TouchableOpacity 
@@ -427,7 +458,7 @@ const EditorScreen: React.FC = () => {
             />
           ))}
         </View>
-      </ScrollView>
+      </AnimatedScrollView>
       
       {/* Preview button */}
       <TouchableOpacity style={styles.previewButton} onPress={handlePreview}>

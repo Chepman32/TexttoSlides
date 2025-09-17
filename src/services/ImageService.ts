@@ -4,7 +4,7 @@
  */
 
 import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import { manipulateAsync, SaveFormat, ImageManipulatorResult } from 'react-native-image-manipulator';
+import RNImageManipulator, { RNImageManipulatorResult } from 'react-native-image-manipulator';
 import { check, request, PERMISSIONS, RESULTS, Permission } from 'react-native-permissions';
 import { Platform, Alert } from 'react-native';
 
@@ -19,7 +19,7 @@ export interface ImagePickerOptions {
 export interface ImageProcessingOptions {
   width?: number;
   height?: number;
-  format?: SaveFormat;
+  format?: 'jpeg' | 'png';
   quality?: number;
   compress?: number;
 }
@@ -192,12 +192,12 @@ class ImageService {
       const {
         width = 1080,
         height = 1080,
-        format = SaveFormat.JPEG,
+        format = 'jpeg',
         quality = 0.8,
         compress = 0.8,
       } = options;
 
-      const result: ImageManipulatorResult = await manipulateAsync(
+      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
         imageUri,
         [
           { resize: { width, height } },
@@ -220,14 +220,14 @@ class ImageService {
    */
   public async cropToSquare(imageUri: string): Promise<string | null> {
     try {
-      const result: ImageManipulatorResult = await manipulateAsync(
+      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
         imageUri,
         [
           { crop: { originX: 0, originY: 0, width: 1080, height: 1080 } },
         ],
         {
           compress: 0.8,
-          format: SaveFormat.JPEG,
+          format: 'jpeg',
         }
       );
 
@@ -271,12 +271,12 @@ class ImageService {
           actions = [];
       }
 
-      const result: ImageManipulatorResult = await manipulateAsync(
+      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
         imageUri,
         actions,
         {
           compress: 0.8,
-          format: SaveFormat.JPEG,
+          format: 'jpeg',
         }
       );
 
@@ -317,12 +317,12 @@ class ImageService {
         return imageUri;
       }
 
-      const result: ImageManipulatorResult = await manipulateAsync(
+      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
         imageUri,
         actions,
         {
           compress: 0.8,
-          format: SaveFormat.JPEG,
+          format: 'jpeg',
         }
       );
 
@@ -346,7 +346,7 @@ class ImageService {
     }
   ): Promise<string | null> {
     try {
-      const result: ImageManipulatorResult = await manipulateAsync(
+      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
         imageUri,
         [
           { 
@@ -360,7 +360,7 @@ class ImageService {
         ],
         {
           compress: 0.8,
-          format: SaveFormat.JPEG,
+          format: 'jpeg',
         }
       );
 
@@ -376,12 +376,12 @@ class ImageService {
    */
   public async rotateImage(imageUri: string, degrees: number): Promise<string | null> {
     try {
-      const result: ImageManipulatorResult = await manipulateAsync(
+      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
         imageUri,
         [{ rotate: degrees }],
         {
           compress: 0.8,
-          format: SaveFormat.JPEG,
+          format: 'jpeg',
         }
       );
 
@@ -397,12 +397,12 @@ class ImageService {
    */
   public async flipImage(imageUri: string, direction: 'horizontal' | 'vertical'): Promise<string | null> {
     try {
-      const result: ImageManipulatorResult = await manipulateAsync(
+      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
         imageUri,
         [{ flip: direction }],
         {
           compress: 0.8,
-          format: SaveFormat.JPEG,
+          format: 'jpeg',
         }
       );
 

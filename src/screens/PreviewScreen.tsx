@@ -9,11 +9,17 @@ import {
   Animated,
   Image,
   Dimensions,
+  Platform,
 } from 'react-native';
+
+// Create animated FlatList component
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { captureRef } from 'react-native-view-shot';
 import RNFS from 'react-native-fs';
+import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
 import ImageService from '../services/ImageService';
 import FeedbackService from '../services/FeedbackService';
 
@@ -45,31 +51,74 @@ const PreviewScreen: React.FC = () => {
     setIsExporting(true);
     
     try {
+      // Check and request photo library permissions
+      const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY : PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE;
+      const permissionStatus = await check(permission);
+      
+      if (permissionStatus !== RESULTS.GRANTED) {
+        const requestResult = await request(permission);
+        if (requestResult !== RESULTS.GRANTED) {
+          Alert.alert(
+            'Permission Required',
+            'Please grant photo library access to save your slides.',
+            [{ text: 'OK' }]
+          );
+          setIsExporting(false);
+          return;
+        }
+      }
       const exportedImages: string[] = [];
       
       for (let i = 0; i < slides.length; i++) {
         const slideRef = slideRefs.current[i];
         if (slideRef) {
-          const uri = await captureRef(slideRef, {
-            format: 'jpg',
-            quality: 0.9,
-            result: 'tmpfile',
-          });
-          
-          // Move to permanent location
-          const timestamp = Date.now();
-          const fileName = `slide_${i + 1}_${timestamp}.jpg`;
-          const permanentPath = `${RNFS.PicturesDirectoryPath}/${fileName}`;
-          
-          await RNFS.moveFile(uri, permanentPath);
-          exportedImages.push(permanentPath);
+          try {
+            // Try using tmpfile approach with better error handling
+            const uri = await captureRef(slideRef, {
+              format: 'jpg',
+              quality: 0.9,
+              result: 'tmpfile',
+            });
+            
+            console.log('Captured slide', i + 1, 'at:', uri);
+            
+            // Wait a moment for file system to catch up
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Check if file exists
+            const fileExists = await RNFS.exists(uri);
+            console.log('File exists:', fileExists, 'at path:', uri);
+            
+            if (!fileExists) {
+              console.error('Captured file does not exist:', uri);
+              continue;
+            }
+            
+            // Get file stats to verify it's not empty
+            const stats = await RNFS.stat(uri);
+            console.log('File stats:', stats);
+            
+            if (stats.size === 0) {
+              console.error('Captured file is empty:', uri);
+              continue;
+            }
+            
+            // Save to Photos using CameraRoll
+            const savedImage = await CameraRoll.save(uri, { type: 'photo' });
+            console.log('Saved to Photos:', savedImage);
+            exportedImages.push(savedImage);
+            
+          } catch (captureError) {
+            console.error('Error capturing slide', i + 1, ':', captureError);
+            // Continue with other slides even if one fails
+          }
         }
       }
       
       FeedbackService.success();
       Alert.alert(
         'Export Complete',
-        `Successfully exported ${exportedImages.length} slides to your photo library!`,
+        `Successfully exported ${exportedImages.length} slides to your Photos app!`,
         [
           { text: 'OK', onPress: () => navigation.navigate('Home') }
         ]
@@ -145,7 +194,7 @@ const PreviewScreen: React.FC = () => {
       
       <View style={styles.previewContainer}>
         {slides.length > 0 ? (
-          <FlatList
+          <AnimatedFlatList
             data={slides}
             renderItem={renderSlide}
             keyExtractor={(item, index) => index.toString()}
