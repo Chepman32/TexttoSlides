@@ -40,7 +40,13 @@ const ImageSelectionScreen: React.FC = () => {
   // Optimize text for slides and split using advanced algorithms
   const optimizedText = optimizeForSlides(text);
   const optimalSlideCount = getOptimalSlideCount(optimizedText);
-  const slides = smartSplit(optimizedText, optimalSlideCount);
+  let slides = smartSplit(optimizedText, optimalSlideCount);
+
+  // Ensure we always have at least one slide
+  if (!slides || slides.length === 0) {
+    slides = [optimizedText || text || 'No content'];
+  }
+
   const requiredImages = slides.length;
 
   const handleSelectImage = async (index: number) => {

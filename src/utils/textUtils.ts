@@ -193,17 +193,35 @@ export const splitIntoChunks = (text: string, maxChars: number = 200): string[] 
  * Smart text splitting that adapts to content type
  */
 export const smartSplit = (text: string, targetSlides: number = 3): string[] => {
-  const textLength = text.length;
+  // Handle empty or very short text
+  if (!text || text.trim().length === 0) {
+    return ['No content provided'];
+  }
+
+  const trimmedText = text.trim();
+  const textLength = trimmedText.length;
+
+  // For very short text, just return it as a single slide
+  if (textLength < 20) {
+    return [trimmedText];
+  }
+
+  // If text is short but we want multiple slides, duplicate or split artificially
+  if (textLength < 50 && targetSlides > 1) {
+    // For very short text, just use one slide
+    targetSlides = 1;
+  }
+
   const idealChunkSize = Math.ceil(textLength / targetSlides);
-  
+
   // Detect content type
-  const contentType = detectContentType(text);
-  
+  const contentType = detectContentType(trimmedText);
+
   let options = {
     preserveParagraphs: true,
     respectSentences: true,
     respectWords: true,
-    minChunkSize: Math.max(30, idealChunkSize * 0.3),
+    minChunkSize: Math.min(10, idealChunkSize * 0.3), // Lower minimum for short texts
     maxChunkSize: Math.min(idealChunkSize * 1.5, textLength),
   };
 
@@ -228,7 +246,7 @@ export const smartSplit = (text: string, targetSlides: number = 3): string[] => 
       break;
   }
 
-  const chunks = splitIntoAdvancedChunks(text, idealChunkSize, options);
+  const chunks = splitIntoAdvancedChunks(trimmedText, idealChunkSize, options);
 
   // Ensure we have at least the target number of slides
   if (chunks.length < targetSlides) {
@@ -334,10 +352,16 @@ export const getReadingTime = (text: string, wordsPerMinute: number = 200): numb
  * Get optimal slide count based on text characteristics
  */
 export const getOptimalSlideCount = (text: string): number => {
-  const textLength = text.length;
+  const textLength = text.trim().length;
+
+  // For very short text, always return 1
+  if (textLength < 50) {
+    return 1;
+  }
+
   const contentType = detectContentType(text);
   const readingTime = getReadingTime(text);
-  
+
   let optimalCount = 3; // Default
   
   switch (contentType) {

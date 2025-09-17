@@ -375,7 +375,8 @@ const EditorScreen: React.FC = () => {
       
       if (template.position) slide.position = template.position;
       if (template.fontSize) slide.fontSize = template.fontSize;
-      if (template.color) slide.color = template.color;
+      // Don't override the user's chosen color
+      // if (template.color) slide.color = template.color;
       if (template.backgroundColor) slide.backgroundColor = template.backgroundColor;
       if (template.textAlign) slide.textAlign = template.textAlign;
       if (template.fontWeight) slide.fontWeight = template.fontWeight;
@@ -383,8 +384,7 @@ const EditorScreen: React.FC = () => {
       newSlides[currentSlideIndex] = slide;
       return newSlides;
     });
-    
-    setShowTemplates(false);
+
     FeedbackService.success();
   };
 
