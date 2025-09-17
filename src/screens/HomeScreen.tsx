@@ -102,9 +102,18 @@ const HomeScreen: React.FC = () => {
         </View>
 
         <TouchableOpacity
-          style={[styles.generateButton, { backgroundColor: themeDefinition.colors.primary }]}
-          onPress={handleGenerateSlides}>
-          <Text style={styles.generateButtonText}>{t('home_generate_button')}</Text>
+          style={[
+            styles.generateButton,
+            text.trim().length > 0
+              ? { backgroundColor: '#007AFF' }
+              : { backgroundColor: '#ccc' }
+          ]}
+          onPress={handleGenerateSlides}
+          disabled={text.trim().length === 0}>
+          <Text style={[
+            styles.generateButtonText,
+            text.trim().length === 0 && { color: '#999' }
+          ]}>{t('home_generate_button')}</Text>
         </TouchableOpacity>
       </View>
       </KeyboardAvoidingView>

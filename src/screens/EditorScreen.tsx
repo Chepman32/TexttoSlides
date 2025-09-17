@@ -22,9 +22,6 @@ import Animated, {
 import StorageService, { ProjectState } from '../services/StorageService';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-
-// Create animated ScrollView component
-const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 import { smartSplit, optimizeForSlides } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
 import TemplateService from '../services/TemplateService';
@@ -94,6 +91,11 @@ const EditorScreen: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [showTemplates, setShowTemplates] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Undo/Redo history management
+  const [history, setHistory] = useState<Slide[][]>([initialSlides]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  const isRestoringFromHistory = useRef(false);
   
   const currentSlide = slides[currentSlideIndex];
   const { width: screenWidth } = Dimensions.get('window');
@@ -210,6 +212,70 @@ const EditorScreen: React.FC = () => {
     setHasUnsavedChanges(true);
   }, [slides]);
 
+  // Add to history function
+  const addToHistory = useCallback((newSlides: Slide[]) => {
+    console.log('addToHistory called, isRestoring:', isRestoringFromHistory.current);
+    if (!isRestoringFromHistory.current) {
+      setHistory(prevHistory => {
+        const currentIndex = historyIndex;
+        const newHistory = prevHistory.slice(0, currentIndex + 1);
+        newHistory.push(newSlides);
+        console.log('History updated, new length:', newHistory.length, 'current index:', currentIndex);
+
+        // Keep history limited to 20 items
+        if (newHistory.length > 20) {
+          newHistory.shift();
+          setHistoryIndex(19);
+        } else {
+          setHistoryIndex(newHistory.length - 1);
+        }
+
+        return newHistory;
+      });
+    }
+  }, []);
+
+  // Undo function
+  const handleUndo = () => {
+    console.log('Undo pressed, current index:', historyIndex, 'history length:', history.length);
+    if (historyIndex > 0) {
+      FeedbackService.buttonTap();
+      const newIndex = historyIndex - 1;
+      console.log('Undoing to index:', newIndex);
+      isRestoringFromHistory.current = true;
+      setHistoryIndex(newIndex);
+      setSlides(history[newIndex]);
+      setTimeout(() => {
+        isRestoringFromHistory.current = false;
+        console.log('Undo complete, restoring flag cleared');
+      }, 0);
+    } else {
+      console.log('Cannot undo, at beginning of history');
+    }
+  };
+
+  // Redo function
+  const handleRedo = () => {
+    console.log('Redo pressed, current index:', historyIndex, 'history length:', history.length);
+    if (historyIndex < history.length - 1) {
+      FeedbackService.buttonTap();
+      const newIndex = historyIndex + 1;
+      console.log('Redoing to index:', newIndex);
+      isRestoringFromHistory.current = true;
+      setHistoryIndex(newIndex);
+      setSlides(history[newIndex]);
+      setTimeout(() => {
+        isRestoringFromHistory.current = false;
+        console.log('Redo complete, restoring flag cleared');
+      }, 0);
+    } else {
+      console.log('Cannot redo, at end of history');
+    }
+  };
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
+
   // Function to update slide position (needs to be called from JS thread)
   const updateSlidePosition = (x: number, y: number) => {
     setSlides(prevSlides => {
@@ -218,6 +284,7 @@ const EditorScreen: React.FC = () => {
       if (slide) {
         slide.position = { x, y };
         newSlides[currentSlideIndex] = slide;
+        addToHistory(newSlides);
       }
       return newSlides;
     });
@@ -328,6 +395,7 @@ const EditorScreen: React.FC = () => {
       // Update the shared value for gesture handling
       currentFontSize.value = slide.fontSize;
       newSlides[currentSlideIndex] = slide;
+      addToHistory(newSlides);
       return newSlides;
     });
   };
@@ -339,19 +407,20 @@ const EditorScreen: React.FC = () => {
       const slide = newSlides[currentSlideIndex];
       slide.textAlign = align;
       newSlides[currentSlideIndex] = slide;
+      addToHistory(newSlides);
       return newSlides;
     });
   };
 
   const handleTextColorChange = (color: string) => {
     FeedbackService.buttonTap();
-    setSlides(prevSlides => {
-      const newSlides = [...prevSlides];
-      const slide = newSlides[currentSlideIndex];
-      slide.color = color;
-      newSlides[currentSlideIndex] = slide;
-      return newSlides;
-    });
+    const newSlides = [...slides];
+    const slide = newSlides[currentSlideIndex];
+    slide.color = color;
+    newSlides[currentSlideIndex] = slide;
+
+    setSlides(newSlides);
+    addToHistory(newSlides);
   };
 
   const handleBackgroundOpacityChange = (opacity: number) => {
@@ -361,6 +430,7 @@ const EditorScreen: React.FC = () => {
       const slide = newSlides[currentSlideIndex];
       slide.backgroundColor = `rgba(0,0,0,${opacity})`;
       newSlides[currentSlideIndex] = slide;
+      addToHistory(newSlides);
       return newSlides;
     });
   };
@@ -368,11 +438,11 @@ const EditorScreen: React.FC = () => {
   const handleApplyTemplate = (templateId: string) => {
     FeedbackService.buttonTap();
     const template = TemplateService.getInstance().applyTemplate(templateId, currentSlide.text);
-    
+
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
       const slide = newSlides[currentSlideIndex];
-      
+
       if (template.position) slide.position = template.position;
       if (template.fontSize) slide.fontSize = template.fontSize;
       // Don't override the user's chosen color
@@ -380,11 +450,13 @@ const EditorScreen: React.FC = () => {
       if (template.backgroundColor) slide.backgroundColor = template.backgroundColor;
       if (template.textAlign) slide.textAlign = template.textAlign;
       if (template.fontWeight) slide.fontWeight = template.fontWeight;
-      
+
       newSlides[currentSlideIndex] = slide;
+      addToHistory(newSlides);
       return newSlides;
     });
 
+    setShowTemplates(false);
     FeedbackService.success();
   };
 
@@ -396,22 +468,24 @@ const EditorScreen: React.FC = () => {
       textLength: currentSlide.text.length,
       imagePresent: !!currentSlide.image,
     });
-    
+
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
       const slide = newSlides[currentSlideIndex];
-      
+
       if (autoLayout.position) slide.position = autoLayout.position;
       if (autoLayout.fontSize) slide.fontSize = autoLayout.fontSize;
-      if (autoLayout.color) slide.color = autoLayout.color;
+      // Don't override the user's chosen color
+      // if (autoLayout.color) slide.color = autoLayout.color;
       if (autoLayout.backgroundColor) slide.backgroundColor = autoLayout.backgroundColor;
       if (autoLayout.textAlign) slide.textAlign = autoLayout.textAlign;
       if (autoLayout.fontWeight) slide.fontWeight = autoLayout.fontWeight;
-      
+
       newSlides[currentSlideIndex] = slide;
+      addToHistory(newSlides);
       return newSlides;
     });
-    
+
     FeedbackService.success();
   };
 
@@ -436,7 +510,7 @@ const EditorScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: themeDefinition.colors.background }]}>
+    <View style={[styles.container, { paddingTop: Math.max(insets.top, 20), backgroundColor: themeDefinition.colors.background }]}>
       {/* Auto-save indicator */}
       {hasUnsavedChanges && (
         <View style={styles.autoSaveIndicator}>
@@ -487,123 +561,116 @@ const EditorScreen: React.FC = () => {
         </View>
       </View>
       
-      {/* Slide navigation */}
-      <View style={styles.slideNavigation}>
-        <TouchableOpacity 
-          style={styles.navButton}
-          onPress={() => {
+      {/* Navigation arrows overlayed on slide */}
+      <TouchableOpacity
+        style={[styles.navArrowLeft, currentSlideIndex === 0 && styles.navArrowDisabled]}
+        onPress={() => {
+          if (currentSlideIndex > 0) {
             FeedbackService.slideTransition();
-            setCurrentSlideIndex(Math.max(0, currentSlideIndex - 1));
-          }}
-          disabled={currentSlideIndex === 0}>
-          <Text style={styles.navButtonText}>Previous</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.navButton}
-          onPress={() => {
+            setCurrentSlideIndex(currentSlideIndex - 1);
+          }
+        }}
+        disabled={currentSlideIndex === 0}>
+        <Text style={styles.navArrowText}>‹</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.navArrowRight, currentSlideIndex === slides.length - 1 && styles.navArrowDisabled]}
+        onPress={() => {
+          if (currentSlideIndex < slides.length - 1) {
             FeedbackService.slideTransition();
-            setCurrentSlideIndex(Math.min(slides.length - 1, currentSlideIndex + 1));
-          }}
-          disabled={currentSlideIndex === slides.length - 1}>
-          <Text style={styles.navButtonText}>Next</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Template and Auto-layout buttons */}
-      <View style={styles.templateControls}>
-        <TouchableOpacity 
-          style={styles.templateButton}
-          onPress={() => setShowTemplates(!showTemplates)}>
-          <Text style={styles.templateButtonText}>Templates</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={styles.templateButton}
-          onPress={handleAutoLayout}>
-          <Text style={styles.templateButtonText}>Auto Layout</Text>
-        </TouchableOpacity>
-      </View>
+            setCurrentSlideIndex(currentSlideIndex + 1);
+          }
+        }}
+        disabled={currentSlideIndex === slides.length - 1}>
+        <Text style={styles.navArrowText}>›</Text>
+      </TouchableOpacity>
 
+      {/* Bottom controls */}
+      <View style={styles.bottomControls}>
+        {/* Template and action buttons */}
+        <View style={styles.templateButtons}>
+          <TouchableOpacity
+            style={[styles.templateButton, !canUndo && styles.disabledButton]}
+            onPress={handleUndo}
+            disabled={!canUndo}>
+            <Text style={styles.templateIcon}>↶</Text>
+            <Text style={styles.templateButtonText}>Undo</Text>
+          </TouchableOpacity>
 
-      {/* Template selection */}
-      {showTemplates && (
-        <View style={styles.templateSelector}>
-          <Text style={styles.controlsTitle}>Choose Template</Text>
-          <AnimatedScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {TemplateService.getInstance().getTemplates().map((template) => (
+          <TouchableOpacity
+            style={[styles.templateButton, !canRedo && styles.disabledButton]}
+            onPress={handleRedo}
+            disabled={!canRedo}>
+            <Text style={styles.templateIcon}>↷</Text>
+            <Text style={styles.templateButtonText}>Redo</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.templateButton}
+            onPress={() => setShowTemplates(!showTemplates)}>
+            <Text style={styles.templateIcon}>📄</Text>
+            <Text style={styles.templateButtonText}>Template</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.templateButton}
+            onPress={handleAutoLayout}>
+            <Text style={styles.templateIcon}>✨</Text>
+            <Text style={styles.templateButtonText}>Auto</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Template selector (shown when template button is pressed) */}
+        {showTemplates && (
+          <ScrollView horizontal style={styles.templateSelector} showsHorizontalScrollIndicator={false}>
+            {['minimal', 'bold', 'elegant', 'playful', 'professional'].map((templateId) => (
               <TouchableOpacity
-                key={template.id}
+                key={templateId}
                 style={styles.templateOption}
-                onPress={() => handleApplyTemplate(template.id)}>
-                <Text style={styles.templateOptionText}>{template.name}</Text>
-                <Text style={styles.templateOptionDesc}>{template.description}</Text>
+                onPress={() => handleApplyTemplate(templateId)}>
+                <Text style={styles.templateOptionText}>{templateId.charAt(0).toUpperCase() + templateId.slice(1)}</Text>
               </TouchableOpacity>
             ))}
-          </AnimatedScrollView>
-        </View>
-      )}
+          </ScrollView>
+        )}
 
-      {/* Text controls */}
-      <AnimatedScrollView style={styles.controlsContainer} showsVerticalScrollIndicator={false}>
-        <Text style={styles.controlsTitle}>Text Size</Text>
-        <View style={styles.sizeControls}>
-          <TouchableOpacity 
-            style={styles.controlButton}
-            onPress={() => handleFontSizeChange(-2)}>
-            <Text style={styles.controlButtonText}>A-</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.controlButton}
-            onPress={() => handleFontSizeChange(2)}>
-            <Text style={styles.controlButtonText}>A+</Text>
-          </TouchableOpacity>
+        {/* Text color selector */}
+        <View style={styles.colorSection}>
+          <Text style={styles.sectionLabel}>Text color</Text>
+          <View style={styles.colorControls}>
+            {['#FFFFFF', '#000000', '#FF0000', '#FFFF00', '#00FF00'].map((color) => (
+              <TouchableOpacity
+                key={color}
+                style={[
+                  styles.colorButton,
+                  { backgroundColor: color },
+                  currentSlide.color === color && styles.activeColorButton
+                ]}
+                onPress={() => handleTextColorChange(color)}
+              />
+            ))}
+          </View>
         </View>
-        
-        <Text style={styles.controlsTitle}>Text Alignment</Text>
-        <View style={styles.alignControls}>
-          <TouchableOpacity 
-            style={[styles.controlButton, currentSlide.textAlign === 'left' && styles.activeControlButton]}
-            onPress={() => handleTextAlignChange('left')}>
-            <Text style={styles.controlButtonText}>L</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.controlButton, currentSlide.textAlign === 'center' && styles.activeControlButton]}
-            onPress={() => handleTextAlignChange('center')}>
-            <Text style={styles.controlButtonText}>C</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.controlButton, currentSlide.textAlign === 'right' && styles.activeControlButton]}
-            onPress={() => handleTextAlignChange('right')}>
-            <Text style={styles.controlButtonText}>R</Text>
-          </TouchableOpacity>
+
+        {/* Background opacity selector */}
+        <View style={styles.opacitySection}>
+          <Text style={styles.sectionLabel}>Background opacity</Text>
+          <View style={styles.opacityControls}>
+            {[0, 0.25, 0.5, 0.75, 1].map((opacity) => (
+              <TouchableOpacity
+                key={opacity}
+                style={[
+                  styles.opacityButton,
+                  { backgroundColor: `rgba(0,0,0,${opacity})` },
+                  currentSlide.backgroundColor === `rgba(0,0,0,${opacity})` && styles.activeOpacityButton
+                ]}
+                onPress={() => handleBackgroundOpacityChange(opacity)}
+              />
+            ))}
+          </View>
         </View>
-        
-        <Text style={styles.controlsTitle}>Text Color</Text>
-        <View style={styles.colorControls}>
-          {['#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00'].map((color) => (
-            <TouchableOpacity
-              key={color}
-              style={[styles.colorButton, { backgroundColor: color }, currentSlide.color === color && styles.activeColorButton]}
-              onPress={() => handleTextColorChange(color)}
-            />
-          ))}
-        </View>
-        
-        <Text style={styles.controlsTitle}>Background Opacity</Text>
-        <View style={styles.opacityControls}>
-          {[0, 0.2, 0.4, 0.6, 0.8].map((opacity) => (
-            <TouchableOpacity
-              key={opacity}
-              style={[styles.opacityButton, { backgroundColor: `rgba(0,0,0,${opacity})` }]}
-              onPress={() => handleBackgroundOpacityChange(opacity)}
-            />
-          ))}
-        </View>
-      </AnimatedScrollView>
+      </View>
       
       {/* Preview button */}
       <TouchableOpacity style={styles.previewButton} onPress={handlePreview}>
@@ -621,8 +688,10 @@ const styles = StyleSheet.create({
   editorContainer: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
+    justifyContent: 'flex-start',
+    paddingTop: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   slidePreview: {
     backgroundColor: '#f0f0f0',
@@ -643,125 +712,126 @@ const styles = StyleSheet.create({
     position: 'absolute',
     padding: 10,
     borderRadius: 5,
-    maxWidth: '90%', // Increased from 80% to 90%
-    // Add these properties to better contain text
+    maxWidth: '90%',
     overflow: 'hidden',
   },
   slideText: {
     color: '#fff',
     fontWeight: 'bold',
-    // Add these properties to better handle text wrapping
     flexWrap: 'wrap',
     flexShrink: 1,
   },
-  slideNavigation: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 20,
+  navArrowLeft: {
+    position: 'absolute',
+    left: 10,
+    top: '50%',
+    marginTop: -30,
+    width: 40,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderTopRightRadius: 30,
+    borderBottomRightRadius: 30,
   },
-  navButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 5,
-    minWidth: 100,
+  navArrowRight: {
+    position: 'absolute',
+    right: 10,
+    top: '50%',
+    marginTop: -30,
+    width: 40,
+    height: 60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderTopLeftRadius: 30,
+    borderBottomLeftRadius: 30,
   },
-  navButtonText: {
+  navArrowDisabled: {
+    opacity: 0.3,
+  },
+  navArrowText: {
+    fontSize: 30,
     color: '#fff',
-    textAlign: 'center',
     fontWeight: 'bold',
   },
-  templateControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  bottomControls: {
+    backgroundColor: '#f8f8f8',
+    paddingVertical: 15,
     paddingHorizontal: 20,
-    marginBottom: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
+  },
+  templateButtons: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    flexWrap: 'wrap',
   },
   templateButton: {
-    backgroundColor: '#007AFF',
-    padding: 10,
-    marginHorizontal: 5,
-    borderRadius: 5,
-    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    marginRight: 10,
+    marginBottom: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  disabledButton: {
+    opacity: 0.4,
+    backgroundColor: '#f5f5f5',
+  },
+  templateIcon: {
+    fontSize: 16,
+    marginRight: 5,
   },
   templateButtonText: {
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-  },
-  activeButton: {
-    backgroundColor: '#34C759',
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
   },
   templateSelector: {
-    backgroundColor: '#f8f8f8',
-    padding: 15,
-    marginHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 15,
+    maxHeight: 50,
   },
   templateOption: {
     backgroundColor: '#fff',
-    padding: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     marginRight: 10,
-    borderRadius: 8,
+    borderRadius: 20,
     borderWidth: 1,
     borderColor: '#ddd',
-    minWidth: 120,
   },
   templateOptionText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333',
   },
-  templateOptionDesc: {
+  colorSection: {
+    marginBottom: 15,
+  },
+  opacitySection: {
+    marginBottom: 10,
+  },
+  sectionLabel: {
     fontSize: 12,
     color: '#666',
-  },
-  controlsContainer: {
-    maxHeight: 200,
-    padding: 20,
-  },
-  controlsTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    marginTop: 10,
-  },
-  sizeControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  alignControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   colorControls: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginBottom: 10,
   },
   opacityControls: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  controlButton: {
-    backgroundColor: '#f0f0f0',
-    padding: 15,
-    margin: 5,
-    borderRadius: 5,
-    minWidth: 50,
-  },
-  activeControlButton: {
-    backgroundColor: '#007AFF',
   },
   colorButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    margin: 5,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 12,
     borderWidth: 2,
     borderColor: '#ddd',
   },
@@ -770,22 +840,22 @@ const styles = StyleSheet.create({
     borderWidth: 3,
   },
   opacityButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    margin: 5,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 12,
     borderWidth: 2,
     borderColor: '#ddd',
   },
-  controlButtonText: {
-    textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold',
+  activeOpacityButton: {
+    borderColor: '#007AFF',
+    borderWidth: 3,
   },
   previewButton: {
     backgroundColor: '#34C759',
-    padding: 15,
-    margin: 20,
+    paddingVertical: 15,
+    marginHorizontal: 20,
+    marginBottom: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
