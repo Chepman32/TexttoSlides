@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,20 @@ import {
   Animated,
   Image,
   Dimensions,
-  Platform,
+  ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Create animated FlatList component
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { captureRef } from 'react-native-view-shot';
-import RNFS from 'react-native-fs';
-import { CameraRoll } from '@react-native-camera-roll/camera-roll';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import ImageService from '../services/ImageService';
+
 import FeedbackService from '../services/FeedbackService';
+import ExportService from '../services/ExportService';
+import IAPService from '../services/IAPService';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 type RootStackParamList = {
   Home: undefined;
@@ -38,122 +38,102 @@ const PreviewScreen: React.FC = () => {
   const navigation = useNavigation<PreviewNavigationProp>();
   const { slides } = route.params;
   const insets = useSafeAreaInsets();
-  
+  const { themeDefinition } = useTheme();
+  const { t } = useLanguage();
+
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
+  const [isProUser, setIsProUser] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
   const slideRefs = useRef<View[]>([]);
   const { width: screenWidth } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth - 40, 350);
+
+  useEffect(() => {
+    IAPService.isPro().then(setIsProUser);
+  }, []);
   
   const handleExport = async () => {
     if (isExporting) return;
-    
+
     FeedbackService.buttonTap();
     setIsExporting(true);
-    
+
     try {
-      // Check and request photo library permissions
-      const permission = Platform.OS === 'ios' ? PERMISSIONS.IOS.PHOTO_LIBRARY_ADD_ONLY : PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE;
-      const permissionStatus = await check(permission);
-      
-      if (permissionStatus !== RESULTS.GRANTED) {
-        const requestResult = await request(permission);
-        if (requestResult !== RESULTS.GRANTED) {
-          Alert.alert(
-            'Permission Required',
-            'Please grant photo library access to save your slides.',
-            [{ text: 'OK' }]
-          );
-          setIsExporting(false);
-          return;
+      // Use the ExportService to handle export with watermark
+      const result = await ExportService.exportSlides(
+        slides,
+        slideRefs.current.map(ref => ({ current: ref })),
+        {
+          addWatermark: !isProUser,
+          watermarkText: 'Made with Text to Slides',
+          watermarkPosition: 'bottomRight',
+          quality: 0.9,
+          format: 'png',
+          resolution: 1080,
         }
-      }
-      const exportedImages: string[] = [];
-      
-      for (let i = 0; i < slides.length; i++) {
-        const slideRef = slideRefs.current[i];
-        if (slideRef) {
-          try {
-            // Try using tmpfile approach with better error handling
-            const uri = await captureRef(slideRef, {
-              format: 'jpg',
-              quality: 0.9,
-              result: 'tmpfile',
-            });
-            
-            console.log('Captured slide', i + 1, 'at:', uri);
-            
-            // Wait a moment for file system to catch up
-            await new Promise(resolve => setTimeout(resolve, 200));
-            
-            // Check if file exists
-            const fileExists = await RNFS.exists(uri);
-            console.log('File exists:', fileExists, 'at path:', uri);
-            
-            if (!fileExists) {
-              console.error('Captured file does not exist:', uri);
-              continue;
-            }
-            
-            // Get file stats to verify it's not empty
-            const stats = await RNFS.stat(uri);
-            console.log('File stats:', stats);
-            
-            if (stats.size === 0) {
-              console.error('Captured file is empty:', uri);
-              continue;
-            }
-            
-            // Save to Photos using CameraRoll
-            const savedImage = await CameraRoll.save(uri, { type: 'photo' });
-            console.log('Saved to Photos:', savedImage);
-            exportedImages.push(savedImage);
-            
-          } catch (captureError) {
-            console.error('Error capturing slide', i + 1, ':', captureError);
-            // Continue with other slides even if one fails
-          }
-        }
-      }
-      
-      FeedbackService.success();
-      Alert.alert(
-        'Export Complete',
-        `Successfully exported ${exportedImages.length} slides to your Photos app!`,
-        [
-          { text: 'OK', onPress: () => navigation.navigate('Home') }
-        ]
       );
-      
+
+      if (result.success && result.savedPaths.length > 0) {
+        FeedbackService.success();
+        ExportService.showExportSuccess(result.savedPaths.length);
+
+        // Show upgrade prompt for free users
+        if (!isProUser && result.savedPaths.length > 0) {
+          setTimeout(() => {
+            Alert.alert(
+              'Upgrade to Pro',
+              'Remove watermarks and unlock all features',
+              [
+                { text: 'Later', style: 'cancel' },
+                {
+                  text: 'Upgrade Now',
+                  onPress: () => navigation.navigate('Upgrade' as any)
+                }
+              ]
+            );
+          }, 1000);
+        }
+      } else {
+        FeedbackService.error();
+        Alert.alert(
+          t('preview_export') + ' Failed',
+          result.error || 'Failed to export slides. Please try again.',
+          [{ text: 'OK' }]
+        );
+      }
     } catch (error) {
       console.error('Export error:', error);
       FeedbackService.error();
-      Alert.alert('Export Failed', 'Failed to export slides. Please try again.');
+      Alert.alert(
+        t('preview_export') + ' Failed',
+        'An unexpected error occurred. Please try again.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setIsExporting(false);
     }
   };
 
   const renderSlide = ({ item, index }: { item: any; index: number }) => (
-    <View 
+    <View
       ref={(ref) => {
         if (ref) slideRefs.current[index] = ref;
       }}
       style={[styles.slideContainer, { width: slideSize, height: slideSize }]}>
       {item.image ? (
-        <Image 
-          source={{ uri: item.image }} 
+        <Image
+          source={{ uri: item.image }}
           style={styles.imageBackground}
           resizeMode="cover"
         />
       ) : (
-        <View style={styles.plainBackground} />
+        <View style={[styles.plainBackground, { backgroundColor: themeDefinition.colors.card }]} />
       )}
-      
-      <View 
+
+      <View
         style={[
-          styles.textOverlay, 
+          styles.textOverlay,
           {
             left: item.position?.x || 50,
             top: item.position?.y || 50,
@@ -161,8 +141,8 @@ const PreviewScreen: React.FC = () => {
           }
         ]}>
         <Text style={[
-          styles.slideText, 
-          { 
+          styles.slideText,
+          {
             fontSize: item.fontSize || 24,
             color: item.color || '#FFFFFF',
             textAlign: item.textAlign || 'center',
@@ -172,6 +152,13 @@ const PreviewScreen: React.FC = () => {
           {item.text}
         </Text>
       </View>
+
+      {/* Watermark preview for free users */}
+      {!isProUser && (
+        <View style={styles.watermarkPreview}>
+          <Text style={styles.watermarkText}>Made with Text to Slides</Text>
+        </View>
+      )}
     </View>
   );
 
@@ -186,7 +173,7 @@ const PreviewScreen: React.FC = () => {
   }).current;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: themeDefinition.colors.background }]}>
       <View style={styles.previewContainer}>
         {slides.length > 0 ? (
           <AnimatedFlatList
@@ -207,7 +194,7 @@ const PreviewScreen: React.FC = () => {
           />
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No slides to preview</Text>
+            <Text style={[styles.emptyText, { color: themeDefinition.colors.text }]}>{t('preview_empty')}</Text>
           </View>
         )}
       </View>
@@ -226,13 +213,29 @@ const PreviewScreen: React.FC = () => {
       </View>
       
       {/* Export button */}
-      <TouchableOpacity 
-        style={[styles.exportButton, isExporting && styles.exportButtonDisabled]} 
+      <TouchableOpacity
+        style={[
+          styles.exportButton,
+          { backgroundColor: isExporting ? themeDefinition.colors.border : '#34C759' },
+          isExporting && styles.exportButtonDisabled
+        ]}
         onPress={handleExport}
         disabled={isExporting}>
-        <Text style={styles.exportButtonText}>
-          {isExporting ? 'Exporting...' : 'Export Slides'}
-        </Text>
+        {isExporting ? (
+          <View style={styles.exportingContainer}>
+            <ActivityIndicator size="small" color="#fff" />
+            <Text style={[styles.exportButtonText, { marginLeft: 10 }]}>Exporting...</Text>
+          </View>
+        ) : (
+          <View>
+            <Text style={styles.exportButtonText}>
+              {t('preview_export')}
+            </Text>
+            {!isProUser && (
+              <Text style={styles.watermarkNotice}>Includes watermark</Text>
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -268,11 +271,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     padding: 10,
     borderRadius: 5,
-    maxWidth: '80%',
+    maxWidth: '90%',
+    overflow: 'hidden',
   },
   slideText: {
     color: '#fff',
     fontWeight: 'bold',
+    flexWrap: 'wrap',
+    flexShrink: 1,
   },
   indicatorsContainer: {
     flexDirection: 'row',
@@ -312,6 +318,31 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     color: '#666',
+  },
+  watermarkPreview: {
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  watermarkText: {
+    fontSize: 10,
+    color: 'rgba(0, 0, 0, 0.5)',
+    fontStyle: 'italic',
+  },
+  exportingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  watermarkNotice: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 2,
+    textAlign: 'center',
   },
 });
 

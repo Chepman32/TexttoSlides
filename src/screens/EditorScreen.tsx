@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,24 +7,27 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  Alert,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { PanGestureHandler, State, Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   runOnJS,
 } from 'react-native-reanimated';
+import StorageService, { ProjectState } from '../services/StorageService';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 // Create animated ScrollView component
 const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 import { smartSplit, optimizeForSlides } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
 import TemplateService from '../services/TemplateService';
-import GraphicsService from '../services/GraphicsService';
 import SkiaSlideRenderer from '../components/SkiaSlideRenderer';
 
 type RootStackParamList = {
@@ -54,6 +57,10 @@ const EditorScreen: React.FC = () => {
   const navigation = useNavigation<EditorNavigationProp>();
   const { text, images } = route.params;
   const insets = useSafeAreaInsets();
+  const { themeDefinition } = useTheme();
+  const { t } = useLanguage();
+  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const projectId = useRef<string>(`project_${Date.now()}`);
   
   // Optimize text and split using advanced algorithms
   const optimizedText = optimizeForSlides(text);
@@ -89,48 +96,138 @@ const EditorScreen: React.FC = () => {
   const [showTemplates, setShowTemplates] = useState(false);
   const [useAdvancedGraphics, setUseAdvancedGraphics] = useState(false);
   const [graphicsStyle, setGraphicsStyle] = useState<'modern' | 'elegant' | 'minimal' | 'dramatic'>('modern');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const currentSlide = slides[currentSlideIndex];
   const { width: screenWidth } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth - 40, 350);
 
-  // Safety check for currentSlide
-  if (!currentSlide) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>No slides available</Text>
-        <Text style={[styles.title, { fontSize: 16, marginTop: 10 }]}>Please check your input text.</Text>
-      </View>
-    );
-  }
+  // Animated values for drag and drop (must be declared at the top level)
+  const translateX = useSharedValue(currentSlide?.position?.x || 50);
+  const translateY = useSharedValue(currentSlide?.position?.y || 100);
+  const startX = useSharedValue(0);
+  const startY = useSharedValue(0);
+  // Store current slide properties in shared values to access in gesture
+  const currentFontSize = useSharedValue(currentSlide?.fontSize || 24);
+  const currentTextLength = useSharedValue(currentSlide?.text?.length || 0);
 
-  // Animated values for drag and drop
-  const translateX = useSharedValue(currentSlide.position.x);
-  const translateY = useSharedValue(currentSlide.position.y);
+  // Pinch and rotate gesture values
+  const scale = useSharedValue(1);
+  const savedScale = useSharedValue(1);
+  const rotation = useSharedValue(0);
+  const savedRotation = useSharedValue(0);
+
+  // Auto-save functionality
+  const saveProject = useCallback(async () => {
+    const projectState: ProjectState = {
+      id: projectId.current,
+      text,
+      slides,
+      images,
+      lastModified: new Date().toISOString(),
+      isCompleted: false,
+    };
+
+    try {
+      await StorageService.saveCurrentProject(projectState);
+      console.log('Project auto-saved');
+      setHasUnsavedChanges(false);
+    } catch (error) {
+      console.error('Failed to auto-save project:', error);
+    }
+  }, [text, slides, images]);
+
+  // Set up auto-save
+  useEffect(() => {
+    // Clear any existing timer
+    if (autoSaveTimer.current) {
+      clearTimeout(autoSaveTimer.current);
+    }
+
+    // Set up new auto-save timer (save after 5 seconds of no changes)
+    if (hasUnsavedChanges) {
+      autoSaveTimer.current = setTimeout(() => {
+        saveProject();
+      }, 5000);
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimer.current) {
+        clearTimeout(autoSaveTimer.current);
+      }
+    };
+  }, [hasUnsavedChanges, saveProject]);
+
+  // Load saved project if exists
+  useEffect(() => {
+    const loadSavedProject = async () => {
+      try {
+        const savedProject = await StorageService.loadCurrentProject();
+        if (savedProject && !savedProject.isCompleted) {
+          Alert.alert(
+            'Resume Project',
+            'Would you like to resume your previous project?',
+            [
+              {
+                text: 'No',
+                onPress: () => StorageService.clearCurrentProject(),
+                style: 'cancel'
+              },
+              {
+                text: 'Yes',
+                onPress: () => {
+                  if (savedProject.slides) {
+                    setSlides(savedProject.slides);
+                  }
+                  projectId.current = savedProject.id;
+                }
+              }
+            ]
+          );
+        }
+      } catch (error) {
+        console.error('Failed to load saved project:', error);
+      }
+    };
+
+    loadSavedProject();
+  }, []);
 
   // Update animated values when slide changes
   useEffect(() => {
-    translateX.value = withSpring(currentSlide.position.x);
-    translateY.value = withSpring(currentSlide.position.y);
-  }, [currentSlideIndex, currentSlide.position.x, currentSlide.position.y]);
+    if (currentSlide) {
+      translateX.value = withSpring(currentSlide.position.x);
+      translateY.value = withSpring(currentSlide.position.y);
+      currentFontSize.value = currentSlide.fontSize;
+      currentTextLength.value = currentSlide.text.length;
+      scale.value = 1;
+      savedScale.value = 1;
+      rotation.value = 0;
+      savedRotation.value = 0;
+    }
+  }, [currentSlideIndex, currentSlide, translateX, translateY, currentFontSize, currentTextLength, scale, savedScale, rotation, savedRotation]);
+
+  // Mark changes for auto-save
+  useEffect(() => {
+    setHasUnsavedChanges(true);
+  }, [slides]);
 
   // Function to update slide position (needs to be called from JS thread)
   const updateSlidePosition = (x: number, y: number) => {
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
       const slide = newSlides[currentSlideIndex];
-      slide.position = { x, y };
-      newSlides[currentSlideIndex] = slide;
+      if (slide) {
+        slide.position = { x, y };
+        newSlides[currentSlideIndex] = slide;
+      }
       return newSlides;
     });
   };
 
-  // Create shared values to store the initial position
-  const startX = useSharedValue(0);
-  const startY = useSharedValue(0);
-
   const panGesture = Gesture.Pan()
-    .onStart((event) => {
+    .onStart((_) => {
       // Store the current position as starting point
       startX.value = translateX.value;
       startY.value = translateY.value;
@@ -139,37 +236,100 @@ const EditorScreen: React.FC = () => {
       // Calculate new position based on translation from start
       const newX = startX.value + event.translationX;
       const newY = startY.value + event.translationY;
-      
-      // Constrain to slide bounds
-      const maxX = slideSize - 200; // Approximate text width
-      const maxY = slideSize - 100; // Approximate text height
-      
-      translateX.value = Math.max(0, Math.min(maxX, newX));
-      translateY.value = Math.max(0, Math.min(maxY, newY));
+
+      // Calculate text dimensions based on font size and text length
+      // More accurate estimation for text bounds
+      const textPadding = 20;
+      const fontSize = currentFontSize.value;
+      const textLength = currentTextLength.value;
+
+      const charsPerLine = Math.max(1, Math.floor((slideSize * 0.9) / (fontSize * 0.6)));
+      const numberOfLines = Math.ceil(textLength / charsPerLine);
+      const estimatedTextWidth = Math.min(
+        slideSize * 0.9, // Max 90% of slide width
+        textLength < charsPerLine
+          ? textLength * fontSize * 0.6
+          : slideSize * 0.9
+      );
+      const estimatedTextHeight = numberOfLines * fontSize * 1.2 + textPadding;
+
+      // Ensure text container stays within slide boundaries
+      const minX = 0;
+      const minY = 0;
+      const maxX = Math.max(0, slideSize - estimatedTextWidth);
+      const maxY = Math.max(0, slideSize - estimatedTextHeight);
+
+      // Apply constraints to keep text fully within bounds
+      const constrainedX = Math.max(minX, Math.min(maxX, newX));
+      const constrainedY = Math.max(minY, Math.min(maxY, newY));
+
+      translateX.value = constrainedX;
+      translateY.value = constrainedY;
     })
     .onEnd(() => {
       // Update slide position using runOnJS
       runOnJS(updateSlidePosition)(translateX.value, translateY.value);
     });
 
-  const gestureHandler = panGesture;
+  // Pinch gesture for scaling
+  const pinchGesture = Gesture.Pinch()
+    .onUpdate((event) => {
+      scale.value = savedScale.value * event.scale;
+    })
+    .onEnd(() => {
+      savedScale.value = scale.value;
+      // Update font size based on scale
+      const newFontSize = Math.max(12, Math.min(48, currentFontSize.value * scale.value));
+      runOnJS(handleFontSizeChange)(newFontSize - currentFontSize.value);
+      scale.value = withSpring(1);
+      savedScale.value = 1;
+    });
+
+  // Rotation gesture
+  const rotationGesture = Gesture.Rotation()
+    .onUpdate((event) => {
+      rotation.value = savedRotation.value + event.rotation;
+    })
+    .onEnd(() => {
+      savedRotation.value = rotation.value;
+    });
+
+  // Compose all gestures
+  const composed = Gesture.Simultaneous(
+    panGesture,
+    Gesture.Simultaneous(pinchGesture, rotationGesture)
+  );
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
         { translateX: translateX.value },
         { translateY: translateY.value },
+        { scale: scale.value },
+        { rotate: `${rotation.value}rad` },
       ],
     };
   });
+
+  // Safety check for currentSlide
+  if (!currentSlide) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.navButtonText}>No slides available</Text>
+        <Text style={[styles.navButtonText, { fontSize: 16, marginTop: 10 }]}>Please check your input text.</Text>
+      </View>
+    );
+  }
 
   const handleFontSizeChange = (change: number) => {
     FeedbackService.textResize();
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
       const slide = newSlides[currentSlideIndex];
-      
+
       slide.fontSize = Math.max(12, Math.min(48, slide.fontSize + change));
+      // Update the shared value for gesture handling
+      currentFontSize.value = slide.fontSize;
       newSlides[currentSlideIndex] = slide;
       return newSlides;
     });
@@ -258,13 +418,37 @@ const EditorScreen: React.FC = () => {
     FeedbackService.success();
   };
 
-  const handlePreview = () => {
+  const handlePreview = async () => {
     FeedbackService.buttonTap();
+
+    // Save before preview
+    await saveProject();
+
+    // Mark project as completed
+    const projectState: ProjectState = {
+      id: projectId.current,
+      text,
+      slides,
+      images,
+      lastModified: new Date().toISOString(),
+      isCompleted: true,
+    };
+    await StorageService.saveCurrentProject(projectState);
+
     navigation.navigate('Preview', { slides });
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: themeDefinition.colors.background }]}>
+      {/* Auto-save indicator */}
+      {hasUnsavedChanges && (
+        <View style={styles.autoSaveIndicator}>
+          <Text style={[styles.autoSaveText, { color: themeDefinition.colors.text }]}>
+            Saving...
+          </Text>
+        </View>
+      )}
+
       {/* Slide preview area */}
       <View style={styles.editorContainer}>
         {useAdvancedGraphics ? (
@@ -286,13 +470,14 @@ const EditorScreen: React.FC = () => {
               <View style={styles.plainBackground} />
             )}
             
-            <GestureDetector gesture={gestureHandler}>
+            <GestureDetector gesture={composed}>
               <Animated.View 
                 style={[
                   styles.textOverlay, 
                   animatedStyle,
                   {
                     backgroundColor: currentSlide.backgroundColor,
+                    maxWidth: slideSize * 0.9, // Limit max width to 90% of slide
                   }
                 ]}>
                 <Text style={[
@@ -302,6 +487,8 @@ const EditorScreen: React.FC = () => {
                     color: currentSlide.color,
                     textAlign: currentSlide.textAlign,
                     fontWeight: currentSlide.fontWeight,
+                    // Add wrapping to prevent text from overflowing
+                    flexWrap: 'wrap',
                   }
                 ]}>
                   {currentSlide.text}
@@ -493,11 +680,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     padding: 10,
     borderRadius: 5,
-    maxWidth: '80%',
+    maxWidth: '90%', // Increased from 80% to 90%
+    // Add these properties to better contain text
+    overflow: 'hidden',
   },
   slideText: {
     color: '#fff',
     fontWeight: 'bold',
+    // Add these properties to better handle text wrapping
+    flexWrap: 'wrap',
+    flexShrink: 1,
   },
   slideNavigation: {
     flexDirection: 'row',
@@ -668,6 +860,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  autoSaveIndicator: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    zIndex: 1000,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 5,
+  },
+  autoSaveText: {
+    fontSize: 12,
+    color: '#fff',
   },
 });
 

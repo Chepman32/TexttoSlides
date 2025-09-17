@@ -1,0 +1,340 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export interface ProjectState {
+  id: string;
+  text: string;
+  slides: Array<{
+    id: number;
+    text: string;
+    image: string;
+    position: { x: number; y: number };
+    fontSize: number;
+    color: string;
+    backgroundColor: string;
+    textAlign: 'left' | 'center' | 'right';
+    fontWeight: 'normal' | 'bold';
+  }>;
+  images: string[];
+  lastModified: string;
+  isCompleted: boolean;
+}
+
+export interface AppState {
+  currentProject?: ProjectState;
+  recentProjects: ProjectState[];
+  preferences: {
+    theme: string;
+    language: string;
+    soundEnabled: boolean;
+    hapticsEnabled: boolean;
+  };
+}
+
+class StorageService {
+  private static instance: StorageService;
+  private readonly STORAGE_KEYS = {
+    CURRENT_PROJECT: '@TextToSlides:currentProject',
+    RECENT_PROJECTS: '@TextToSlides:recentProjects',
+    PREFERENCES: '@TextToSlides:preferences',
+    APP_STATE: '@TextToSlides:appState',
+    PRO_STATUS: '@TextToSlides:proStatus',
+    FIRST_LAUNCH: '@TextToSlides:firstLaunch'
+  };
+
+  private constructor() {}
+
+  static getInstance(): StorageService {
+    if (!StorageService.instance) {
+      StorageService.instance = new StorageService();
+    }
+    return StorageService.instance;
+  }
+
+  // Save current project state
+  async saveCurrentProject(project: ProjectState): Promise<void> {
+    try {
+      project.lastModified = new Date().toISOString();
+      await AsyncStorage.setItem(
+        this.STORAGE_KEYS.CURRENT_PROJECT,
+        JSON.stringify(project)
+      );
+
+      // Also add to recent projects
+      await this.addToRecentProjects(project);
+    } catch (error) {
+      console.error('Error saving current project:', error);
+      // Don't throw error to prevent app crash, just log it
+      // AsyncStorage might fail on first run
+    }
+  }
+
+  // Load current project state
+  async loadCurrentProject(): Promise<ProjectState | null> {
+    try {
+      const projectData = await AsyncStorage.getItem(this.STORAGE_KEYS.CURRENT_PROJECT);
+      if (projectData) {
+        return JSON.parse(projectData);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading current project:', error);
+      return null;
+    }
+  }
+
+  // Clear current project
+  async clearCurrentProject(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(this.STORAGE_KEYS.CURRENT_PROJECT);
+    } catch (error) {
+      console.error('Error clearing current project:', error);
+    }
+  }
+
+  // Add project to recent projects
+  private async addToRecentProjects(project: ProjectState): Promise<void> {
+    try {
+      const recentProjects = await this.getRecentProjects();
+
+      // Remove if already exists
+      const filteredProjects = recentProjects.filter(p => p.id !== project.id);
+
+      // Add to beginning
+      filteredProjects.unshift(project);
+
+      // Keep only last 10 projects
+      const trimmedProjects = filteredProjects.slice(0, 10);
+
+      await AsyncStorage.setItem(
+        this.STORAGE_KEYS.RECENT_PROJECTS,
+        JSON.stringify(trimmedProjects)
+      );
+    } catch (error) {
+      console.error('Error adding to recent projects:', error);
+    }
+  }
+
+  // Get recent projects
+  async getRecentProjects(): Promise<ProjectState[]> {
+    try {
+      const projectsData = await AsyncStorage.getItem(this.STORAGE_KEYS.RECENT_PROJECTS);
+      if (projectsData) {
+        return JSON.parse(projectsData);
+      }
+      return [];
+    } catch (error) {
+      console.error('Error getting recent projects:', error);
+      return [];
+    }
+  }
+
+  // Delete a recent project
+  async deleteRecentProject(projectId: string): Promise<void> {
+    try {
+      const recentProjects = await this.getRecentProjects();
+      const filteredProjects = recentProjects.filter(p => p.id !== projectId);
+
+      await AsyncStorage.setItem(
+        this.STORAGE_KEYS.RECENT_PROJECTS,
+        JSON.stringify(filteredProjects)
+      );
+    } catch (error) {
+      console.error('Error deleting recent project:', error);
+    }
+  }
+
+  // Save preferences
+  async savePreferences(preferences: Partial<AppState['preferences']>): Promise<void> {
+    try {
+      const currentPrefs = await this.getPreferences();
+      const updatedPrefs = { ...currentPrefs, ...preferences };
+
+      await AsyncStorage.setItem(
+        this.STORAGE_KEYS.PREFERENCES,
+        JSON.stringify(updatedPrefs)
+      );
+    } catch (error) {
+      console.error('Error saving preferences:', error);
+      throw error;
+    }
+  }
+
+  // Get preferences
+  async getPreferences(): Promise<AppState['preferences']> {
+    try {
+      const prefsData = await AsyncStorage.getItem(this.STORAGE_KEYS.PREFERENCES);
+      if (prefsData) {
+        return JSON.parse(prefsData);
+      }
+
+      // Return defaults
+      return {
+        theme: 'light',
+        language: 'en',
+        soundEnabled: true,
+        hapticsEnabled: true
+      };
+    } catch (error) {
+      console.error('Error getting preferences:', error);
+      // Return defaults on error
+      return {
+        theme: 'light',
+        language: 'en',
+        soundEnabled: true,
+        hapticsEnabled: true
+      };
+    }
+  }
+
+  // Save entire app state
+  async saveAppState(state: AppState): Promise<void> {
+    try {
+      await AsyncStorage.setItem(
+        this.STORAGE_KEYS.APP_STATE,
+        JSON.stringify(state)
+      );
+    } catch (error) {
+      console.error('Error saving app state:', error);
+      throw error;
+    }
+  }
+
+  // Load entire app state
+  async loadAppState(): Promise<AppState | null> {
+    try {
+      const stateData = await AsyncStorage.getItem(this.STORAGE_KEYS.APP_STATE);
+      if (stateData) {
+        return JSON.parse(stateData);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error loading app state:', error);
+      return null;
+    }
+  }
+
+  // Check if first launch
+  async isFirstLaunch(): Promise<boolean> {
+    try {
+      const firstLaunch = await AsyncStorage.getItem(this.STORAGE_KEYS.FIRST_LAUNCH);
+      if (firstLaunch === null) {
+        // Try to set the first launch flag, but don't fail if it errors
+        try {
+          await AsyncStorage.setItem(this.STORAGE_KEYS.FIRST_LAUNCH, 'false');
+        } catch (setError) {
+          console.log('Could not set first launch flag:', setError);
+        }
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Error checking first launch:', error);
+      return false;
+    }
+  }
+
+  // Clear all storage
+  async clearAllStorage(): Promise<void> {
+    try {
+      const keys = Object.values(this.STORAGE_KEYS);
+      await AsyncStorage.multiRemove(keys);
+    } catch (error) {
+      console.error('Error clearing all storage:', error);
+      throw error;
+    }
+  }
+
+  // Get storage info
+  async getStorageInfo(): Promise<{ totalSize: number; keys: string[] }> {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      let totalSize = 0;
+
+      // Calculate total size (rough estimate)
+      for (const key of keys) {
+        const value = await AsyncStorage.getItem(key);
+        if (value) {
+          totalSize += value.length;
+        }
+      }
+
+      return { totalSize, keys };
+    } catch (error) {
+      console.error('Error getting storage info:', error);
+      return { totalSize: 0, keys: [] };
+    }
+  }
+
+  // Auto-save functionality
+  private autoSaveTimer: NodeJS.Timeout | null = null;
+
+  startAutoSave(project: ProjectState, intervalMs: number = 30000): void {
+    this.stopAutoSave();
+
+    this.autoSaveTimer = setInterval(async () => {
+      try {
+        await this.saveCurrentProject(project);
+        console.log('Auto-save completed');
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      }
+    }, intervalMs);
+  }
+
+  stopAutoSave(): void {
+    if (this.autoSaveTimer) {
+      clearInterval(this.autoSaveTimer);
+      this.autoSaveTimer = null;
+    }
+  }
+
+  // Export/Import functionality for backup
+  async exportData(): Promise<string> {
+    try {
+      const appState = await this.loadAppState();
+      const recentProjects = await this.getRecentProjects();
+      const preferences = await this.getPreferences();
+
+      const exportData = {
+        appState,
+        recentProjects,
+        preferences,
+        exportDate: new Date().toISOString(),
+        version: '1.0.0'
+      };
+
+      return JSON.stringify(exportData, null, 2);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      throw error;
+    }
+  }
+
+  async importData(jsonData: string): Promise<void> {
+    try {
+      const data = JSON.parse(jsonData);
+
+      if (data.appState) {
+        await this.saveAppState(data.appState);
+      }
+
+      if (data.recentProjects) {
+        await AsyncStorage.setItem(
+          this.STORAGE_KEYS.RECENT_PROJECTS,
+          JSON.stringify(data.recentProjects)
+        );
+      }
+
+      if (data.preferences) {
+        await this.savePreferences(data.preferences);
+      }
+
+      console.log('Data imported successfully');
+    } catch (error) {
+      console.error('Error importing data:', error);
+      throw error;
+    }
+  }
+}
+
+export default StorageService.getInstance();

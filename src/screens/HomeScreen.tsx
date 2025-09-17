@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,6 +13,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { estimateSlideCount } from '../utils/textUtils';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import StorageService from '../services/StorageService';
+import FeedbackService from '../services/FeedbackService';
 
 type RootStackParamList = {
   ImageSelection: { text: string };
@@ -24,57 +28,83 @@ type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ImageSe
 const HomeScreen: React.FC = () => {
   const [text, setText] = useState('');
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { themeDefinition } = useTheme();
+  const { t } = useLanguage();
+
+  // Load last saved text if any
+  useEffect(() => {
+    StorageService.loadCurrentProject().then(project => {
+      if (project && !project.isCompleted && project.text) {
+        setText(project.text);
+      }
+    });
+  }, []);
 
   const handleGenerateSlides = () => {
     if (text.trim().length === 0) {
-      Alert.alert('Error', 'Please enter some text to generate slides');
+      FeedbackService.error();
+      Alert.alert(t('home_error_empty'), '');
       return;
     }
 
+    FeedbackService.buttonTap();
     // Navigate to image selection screen with the text
     navigation.navigate('ImageSelection', { text });
   };
 
   const handleSettings = () => {
+    FeedbackService.buttonTap();
     navigation.navigate('Settings');
   };
 
   const estimatedSlides = estimateSlideCount(text);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: themeDefinition.colors.background }]}>
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Text to Slides</Text>
+      <View style={[styles.header, { borderBottomColor: themeDefinition.colors.border }]}>
+        <Text style={[styles.title, { color: themeDefinition.colors.text }]}>{t('app_name')}</Text>
         <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
           <Text style={styles.settingsButtonText}>⚙️</Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.content}>
-        <Text style={styles.subtitle}>Enter your text below to generate slides</Text>
-        
+        <Text style={[styles.subtitle, { color: themeDefinition.colors.text }]}>
+          {t('home_subtitle')}
+        </Text>
+
         <TextInput
-          style={styles.textInput}
+          style={[
+            styles.textInput,
+            {
+              backgroundColor: themeDefinition.colors.card,
+              color: themeDefinition.colors.text,
+              borderColor: themeDefinition.colors.border,
+            }
+          ]}
           multiline
-          placeholder="Enter your text here..."
+          placeholder={t('home_placeholder')}
+          placeholderTextColor={themeDefinition.colors.text + '66'}
           value={text}
           onChangeText={setText}
           textAlignVertical="top"
         />
-        
+
         <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>
-            {text.trim().length > 0 
-              ? `Characters: ${text.trim().length} | Estimated slides: ${estimatedSlides}` 
-              : 'Start typing to see character count and estimated slides'}
+          <Text style={[styles.infoText, { color: themeDefinition.colors.text }]}>
+            {text.trim().length > 0
+              ? `${t('home_character_count', { count: text.trim().length })} | Estimated slides: ${estimatedSlides}`
+              : t('home_start_typing')}
           </Text>
         </View>
-        
-        <TouchableOpacity style={styles.generateButton} onPress={handleGenerateSlides}>
-          <Text style={styles.generateButtonText}>Generate Slides</Text>
+
+        <TouchableOpacity
+          style={[styles.generateButton, { backgroundColor: themeDefinition.colors.primary }]}
+          onPress={handleGenerateSlides}>
+          <Text style={styles.generateButtonText}>{t('home_generate_button')}</Text>
         </TouchableOpacity>
       </View>
       </KeyboardAvoidingView>

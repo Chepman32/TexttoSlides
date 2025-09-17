@@ -14,6 +14,8 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import ImageService from '../services/ImageService';
 import FeedbackService from '../services/FeedbackService';
 import { smartSplit, getOptimalSlideCount, optimizeForSlides } from '../utils/textUtils';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 type RootStackParamList = {
   Home: undefined;
@@ -29,9 +31,10 @@ const ImageSelectionScreen: React.FC = () => {
   const navigation = useNavigation<ImageSelectionNavigationProp>();
   const { text } = route.params;
   const insets = useSafeAreaInsets();
+  const { themeDefinition } = useTheme();
+  const { t } = useLanguage();
   
-  // For now, we'll use placeholder images
-  // In a real app, we would integrate with image picker libraries
+  // Initialize selectedImages array with empty slots for each slide
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   
   // Optimize text for slides and split using advanced algorithms
@@ -42,24 +45,36 @@ const ImageSelectionScreen: React.FC = () => {
 
   const handleSelectImage = async (index: number) => {
     FeedbackService.buttonTap();
-    
+
     try {
-      const imageUri = await ImageService.showImagePickerOptions();
-      
+      // First try to get permission by directly calling pickFromGallery
+      const imageUri = await ImageService.pickFromGallery();
+
       if (imageUri) {
-        // Process the image to ensure it's optimized for slides
-        const processedUri = await ImageService.processImage(imageUri, {
+        console.log('Selected image URI:', imageUri);
+        const newImages = [...selectedImages];
+        newImages[index] = imageUri;
+        setSelectedImages(newImages);
+        FeedbackService.success();
+
+        // Try to process the image in the background (optional)
+        ImageService.processImage(imageUri, {
           width: 1080,
           height: 1080,
           quality: 0.8,
+        }).then(processedUri => {
+          if (processedUri) {
+            console.log('Processed image URI:', processedUri);
+            // Update with processed image if successful
+            const updatedImages = [...selectedImages];
+            if (updatedImages[index] === imageUri) {
+              updatedImages[index] = processedUri;
+              setSelectedImages(updatedImages);
+            }
+          }
+        }).catch(err => {
+          console.log('Image processing failed, using original:', err);
         });
-        
-        if (processedUri) {
-          const newImages = [...selectedImages];
-          newImages[index] = processedUri;
-          setSelectedImages(newImages);
-          FeedbackService.success();
-        }
       }
     } catch (error) {
       console.error('Error selecting image:', error);
@@ -78,10 +93,13 @@ const ImageSelectionScreen: React.FC = () => {
 
   const handleContinue = () => {
     FeedbackService.buttonTap();
-    
-    if (selectedImages.length < requiredImages) {
+
+    // Count how many images have been selected (not undefined)
+    const selectedCount = selectedImages.filter(img => img !== undefined).length;
+
+    if (selectedCount < requiredImages) {
       FeedbackService.error();
-      Alert.alert('Error', `Please select ${requiredImages} images for your slides`);
+      Alert.alert('Error', `Please select ${requiredImages} images for your slides (${selectedCount}/${requiredImages} selected)`);
       return;
     }
     
@@ -118,11 +136,11 @@ const ImageSelectionScreen: React.FC = () => {
               </TouchableOpacity>
             </View>
             
-            {selectedImages[index] ? (
+            {selectedImages[index] !== undefined ? (
               <View style={styles.imagePreview}>
-                {selectedImages[index] ? (
-                  <Image 
-                    source={{ uri: selectedImages[index] }} 
+                {selectedImages[index] !== '' ? (
+                  <Image
+                    source={{ uri: selectedImages[index] }}
                     style={styles.previewImage}
                     resizeMode="cover"
                   />
@@ -132,18 +150,22 @@ const ImageSelectionScreen: React.FC = () => {
                   </View>
                 )}
               </View>
-            ) : null}
+            ) : (
+              <View style={styles.emptyImagePreview}>
+                <Text style={styles.emptyImageText}>No image selected</Text>
+              </View>
+            )}
           </View>
         ))}
       </ScrollView>
       
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[
-          styles.continueButton, 
-          selectedImages.length === requiredImages && styles.continueButtonEnabled
-        ]} 
+          styles.continueButton,
+          selectedImages.filter(img => img !== undefined).length === requiredImages && styles.continueButtonEnabled
+        ]}
         onPress={handleContinue}
-        disabled={selectedImages.length !== requiredImages}>
+        disabled={selectedImages.filter(img => img !== undefined).length !== requiredImages}>
         <Text style={styles.continueButtonText}>Continue to Editor</Text>
       </TouchableOpacity>
     </View>
@@ -196,7 +218,7 @@ const styles = StyleSheet.create({
     flex: 0.48,
   },
   plainButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#666',
   },
   imageButtonText: {
     color: '#fff',
@@ -233,6 +255,23 @@ const styles = StyleSheet.create({
   plainBackgroundText: {
     fontSize: 12,
     color: '#666',
+    textAlign: 'center',
+  },
+  emptyImagePreview: {
+    marginTop: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+    alignSelf: 'center',
+  },
+  emptyImageText: {
+    fontSize: 12,
+    color: '#999',
     textAlign: 'center',
   },
   continueButton: {

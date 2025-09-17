@@ -57,6 +57,23 @@ class ImageService {
   }
 
   /**
+   * Check photo library permission status without requesting
+   */
+  public async checkPhotoLibraryPermissionStatus(): Promise<string> {
+    const permission: Permission = Platform.OS === 'ios' 
+      ? PERMISSIONS.IOS.PHOTO_LIBRARY 
+      : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+
+    try {
+      const result = await check(permission);
+      return result;
+    } catch (error) {
+      console.error('Error checking photo library permission status:', error);
+      return RESULTS.UNAVAILABLE;
+    }
+  }
+
+  /**
    * Check and request photo library permission
    */
   private async checkPhotoLibraryPermission(): Promise<boolean> {
@@ -64,18 +81,34 @@ class ImageService {
       ? PERMISSIONS.IOS.PHOTO_LIBRARY 
       : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
 
-    const result = await check(permission);
-    
-    if (result === RESULTS.GRANTED) {
-      return true;
-    }
+    try {
+      const result = await check(permission);
+      console.log('Permission check result:', result);
+      
+      if (result === RESULTS.GRANTED) {
+        return true;
+      }
 
-    if (result === RESULTS.DENIED) {
-      const requestResult = await request(permission);
-      return requestResult === RESULTS.GRANTED;
-    }
+      if (result === RESULTS.DENIED || result === RESULTS.BLOCKED) {
+        console.log('Requesting permission...');
+        const requestResult = await request(permission);
+        console.log('Permission request result:', requestResult);
+        return requestResult === RESULTS.GRANTED;
+      }
 
-    return false;
+      // If permission is unavailable or restricted, try to request anyway
+      if (result === RESULTS.UNAVAILABLE || result === RESULTS.RESTRICTED) {
+        console.log('Permission unavailable/restricted, trying to request...');
+        const requestResult = await request(permission);
+        console.log('Permission request result:', requestResult);
+        return requestResult === RESULTS.GRANTED;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Error checking photo library permission:', error);
+      return false;
+    }
   }
 
   /**
@@ -147,38 +180,61 @@ class ImageService {
    * Pick image from gallery
    */
   public async pickFromGallery(): Promise<string | null> {
-    const hasPermission = await this.checkPhotoLibraryPermission();
-    
-    if (!hasPermission) {
+    try {
+      const hasPermission = await this.checkPhotoLibraryPermission();
+      
+      if (!hasPermission) {
+        Alert.alert(
+          'Permission Required',
+          'Photo library permission is required to select images. Please enable it in Settings.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Open Settings', 
+              onPress: () => {
+                // On iOS, this will open the app settings
+                // On Android, this will open the system settings
+                console.log('Opening settings...');
+              }
+            }
+          ]
+        );
+        return null;
+      }
+
+      return new Promise((resolve) => {
+        const options: ImagePickerOptions = {
+          mediaType: 'photo',
+          quality: 0.8,
+          maxWidth: 1080,
+          maxHeight: 1080,
+        };
+
+        launchImageLibrary(options, (response: ImagePickerResponse) => {
+          if (response.didCancel || response.errorMessage) {
+            console.log('Image picker cancelled or error:', response.errorMessage);
+            resolve(null);
+            return;
+          }
+
+          if (response.assets && response.assets[0]) {
+            console.log('Image selected:', response.assets[0].uri);
+            resolve(response.assets[0].uri || null);
+          } else {
+            console.log('No image selected');
+            resolve(null);
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error in pickFromGallery:', error);
       Alert.alert(
-        'Permission Required',
-        'Photo library permission is required to select images. Please enable it in Settings.',
+        'Error',
+        'Failed to access photo library. Please try again.',
         [{ text: 'OK' }]
       );
       return null;
     }
-
-    return new Promise((resolve) => {
-      const options: ImagePickerOptions = {
-        mediaType: 'photo',
-        quality: 0.8,
-        maxWidth: 1080,
-        maxHeight: 1080,
-      };
-
-      launchImageLibrary(options, (response: ImagePickerResponse) => {
-        if (response.didCancel || response.errorMessage) {
-          resolve(null);
-          return;
-        }
-
-        if (response.assets && response.assets[0]) {
-          resolve(response.assets[0].uri || null);
-        } else {
-          resolve(null);
-        }
-      });
-    });
   }
 
   /**

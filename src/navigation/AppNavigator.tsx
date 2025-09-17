@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import AnimatedSplashScreen from '../screens/AnimatedSplashScreen';
 import SplashScreen from '../screens/SplashScreen';
 import HomeScreen from '../screens/HomeScreen';
+import StorageService from '../services/StorageService';
 import ImageSelectionScreen from '../screens/ImageSelectionScreen';
 import EditorScreen from '../screens/EditorScreen';
 import PreviewScreen from '../screens/PreviewScreen';
@@ -22,14 +24,39 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 const AppNavigator: React.FC = () => {
+  const [showAdvancedSplash, setShowAdvancedSplash] = useState(true);
+  const [hasRestoredProject, setHasRestoredProject] = useState(false);
+
+  useEffect(() => {
+    // Check if there's a saved project to restore
+    StorageService.loadCurrentProject().then(project => {
+      if (project && !project.isCompleted) {
+        setHasRestoredProject(true);
+      }
+    });
+
+    // Determine which splash screen to show based on first launch
+    StorageService.isFirstLaunch().then(isFirst => {
+      setShowAdvancedSplash(isFirst);
+    });
+  }, []);
+
   return (
     <NavigationContainer>
-      <Stack.Navigator 
+      <Stack.Navigator
         initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
+          animationEnabled: true,
+          gestureEnabled: true,
         }}>
-        <Stack.Screen name="Splash" component={SplashScreen} />
+        <Stack.Screen
+          name="Splash"
+          component={SplashScreen}
+          options={{
+            animationTypeForReplace: 'push',
+          }}
+        />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen 
           name="ImageSelection" 
