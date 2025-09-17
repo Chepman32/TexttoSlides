@@ -11,6 +11,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // Create animated FlatList component
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
@@ -36,6 +37,7 @@ const PreviewScreen: React.FC = () => {
   const route = useRoute<PreviewRouteProp>();
   const navigation = useNavigation<PreviewNavigationProp>();
   const { slides } = route.params;
+  const insets = useSafeAreaInsets();
   
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
@@ -184,14 +186,7 @@ const PreviewScreen: React.FC = () => {
   }).current;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Preview</Text>
-        <Text style={styles.slideIndicator}>
-          Slide {currentSlideIndex + 1} of {slides.length}
-        </Text>
-      </View>
-      
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.previewContainer}>
         {slides.length > 0 ? (
           <AnimatedFlatList
@@ -247,22 +242,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  slideIndicator: {
-    fontSize: 16,
-    color: '#666',
   },
   previewContainer: {
     flex: 1,

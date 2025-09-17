@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import IAPService from '../services/IAPService';
 
 const UpgradeScreen: React.FC = () => {
@@ -65,7 +66,8 @@ const UpgradeScreen: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollContainer}>
       <View style={styles.header}>
         <Text style={styles.title}>Go Pro</Text>
         <Text style={styles.subtitle}>Unlock all features</Text>
@@ -109,7 +111,8 @@ const UpgradeScreen: React.FC = () => {
           <Text style={styles.restoreButtonText}>Restore Purchases</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -117,6 +120,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    flex: 1,
   },
   header: {
     alignItems: 'center',

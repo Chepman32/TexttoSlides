@@ -8,6 +8,7 @@ import {
   Dimensions,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { PanGestureHandler, State, Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -52,6 +53,7 @@ const EditorScreen: React.FC = () => {
   const route = useRoute<EditorRouteProp>();
   const navigation = useNavigation<EditorNavigationProp>();
   const { text, images } = route.params;
+  const insets = useSafeAreaInsets();
   
   // Optimize text and split using advanced algorithms
   const optimizedText = optimizeForSlides(text);
@@ -262,14 +264,7 @@ const EditorScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Slide Editor</Text>
-        <Text style={styles.slideIndicator}>
-          Slide {currentSlideIndex + 1} of {slides.length}
-        </Text>
-      </View>
-      
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Slide preview area */}
       <View style={styles.editorContainer}>
         {useAdvancedGraphics ? (
@@ -472,22 +467,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  slideIndicator: {
-    fontSize: 16,
-    color: '#666',
   },
   editorContainer: {
     flex: 1,

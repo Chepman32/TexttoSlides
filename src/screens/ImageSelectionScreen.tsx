@@ -8,6 +8,7 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import ImageService from '../services/ImageService';
@@ -27,6 +28,7 @@ const ImageSelectionScreen: React.FC = () => {
   const route = useRoute<ImageSelectionRouteProp>();
   const navigation = useNavigation<ImageSelectionNavigationProp>();
   const { text } = route.params;
+  const insets = useSafeAreaInsets();
   
   // For now, we'll use placeholder images
   // In a real app, we would integrate with image picker libraries
@@ -89,8 +91,7 @@ const ImageSelectionScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Select Images</Text>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <Text style={styles.subtitle}>
         Choose background images for your {requiredImages} slide{requiredImages > 1 ? 's' : ''}
       </Text>
@@ -154,16 +155,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    margin: 20,
-    textAlign: 'center',
-  },
   subtitle: {
     fontSize: 16,
     color: '#666',
     marginBottom: 20,
+    marginHorizontal: 20,
+    marginTop: 20,
     textAlign: 'center',
   },
   content: {

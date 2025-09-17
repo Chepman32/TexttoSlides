@@ -31,11 +31,51 @@ const AppNavigator: React.FC = () => {
         }}>
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="ImageSelection" component={ImageSelectionScreen} />
-        <Stack.Screen name="Editor" component={EditorScreen} />
-        <Stack.Screen name="Preview" component={PreviewScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="Upgrade" component={UpgradeScreen} />
+        <Stack.Screen 
+          name="ImageSelection" 
+          component={ImageSelectionScreen}
+          options={{
+            headerShown: true,
+            title: 'Select Images',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen 
+          name="Editor" 
+          component={EditorScreen}
+          options={{
+            headerShown: true,
+            title: 'Slide Editor',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen 
+          name="Preview" 
+          component={PreviewScreen}
+          options={{
+            headerShown: true,
+            title: 'Preview',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen 
+          name="Settings" 
+          component={SettingsScreen}
+          options={{
+            headerShown: true,
+            title: 'Settings',
+            headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen 
+          name="Upgrade" 
+          component={UpgradeScreen}
+          options={{
+            headerShown: true,
+            title: 'Go Pro',
+            headerBackTitle: 'Back',
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

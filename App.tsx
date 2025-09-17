@@ -33,7 +33,11 @@ function App() {
         <ThemeProvider>
           <LanguageProvider>
             <View style={styles.container}>
-              <StatusBar barStyle="dark-content" />
+              <StatusBar 
+                barStyle="dark-content" 
+                backgroundColor="transparent"
+                translucent={false}
+              />
               <AppNavigator />
             </View>
           </LanguageProvider>

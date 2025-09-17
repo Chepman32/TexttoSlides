@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { estimateSlideCount } from '../utils/textUtils';
@@ -41,9 +42,10 @@ const HomeScreen: React.FC = () => {
   const estimatedSlides = estimateSlideCount(text);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.header}>
         <Text style={styles.title}>Text to Slides</Text>
         <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
@@ -75,7 +77,8 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.generateButtonText}>Generate Slides</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -84,11 +87,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  keyboardContainer: {
+    flex: 1,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    paddingTop: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
