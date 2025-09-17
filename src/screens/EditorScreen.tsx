@@ -28,7 +28,6 @@ const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 import { smartSplit, optimizeForSlides } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
 import TemplateService from '../services/TemplateService';
-import SkiaSlideRenderer from '../components/SkiaSlideRenderer';
 
 type RootStackParamList = {
   Home: undefined;
@@ -94,8 +93,6 @@ const EditorScreen: React.FC = () => {
   const [slides, setSlides] = useState<Slide[]>(initialSlides);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [useAdvancedGraphics, setUseAdvancedGraphics] = useState(false);
-  const [graphicsStyle, setGraphicsStyle] = useState<'modern' | 'elegant' | 'minimal' | 'dramatic'>('modern');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
   const currentSlide = slides[currentSlideIndex];
@@ -370,7 +367,7 @@ const EditorScreen: React.FC = () => {
 
   const handleApplyTemplate = (templateId: string) => {
     FeedbackService.buttonTap();
-    const template = TemplateService.applyTemplate(templateId, currentSlide.text);
+    const template = TemplateService.getInstance().applyTemplate(templateId, currentSlide.text);
     
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
@@ -393,7 +390,7 @@ const EditorScreen: React.FC = () => {
 
   const handleAutoLayout = () => {
     FeedbackService.buttonTap();
-    const autoLayout = TemplateService.autoLayout({
+    const autoLayout = TemplateService.getInstance().autoLayout({
       slideWidth: slideSize,
       slideHeight: slideSize,
       textLength: currentSlide.text.length,
@@ -451,52 +448,43 @@ const EditorScreen: React.FC = () => {
 
       {/* Slide preview area */}
       <View style={styles.editorContainer}>
-        {useAdvancedGraphics ? (
-          <SkiaSlideRenderer
-            slide={currentSlide}
-            width={slideSize}
-            height={slideSize}
-            styleName={graphicsStyle}
-          />
-        ) : (
-          <View style={[styles.slidePreview, { width: slideSize, height: slideSize }]}>
-            {currentSlide.image ? (
-              <Image 
-                source={{ uri: currentSlide.image }} 
-                style={styles.imageBackground}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.plainBackground} />
-            )}
-            
-            <GestureDetector gesture={composed}>
-              <Animated.View 
-                style={[
-                  styles.textOverlay, 
-                  animatedStyle,
-                  {
-                    backgroundColor: currentSlide.backgroundColor,
-                    maxWidth: slideSize * 0.9, // Limit max width to 90% of slide
-                  }
-                ]}>
-                <Text style={[
-                  styles.slideText, 
-                  { 
-                    fontSize: currentSlide.fontSize,
-                    color: currentSlide.color,
-                    textAlign: currentSlide.textAlign,
-                    fontWeight: currentSlide.fontWeight,
-                    // Add wrapping to prevent text from overflowing
-                    flexWrap: 'wrap',
-                  }
-                ]}>
-                  {currentSlide.text}
-                </Text>
-              </Animated.View>
-            </GestureDetector>
-          </View>
-        )}
+        <View style={[styles.slidePreview, { width: slideSize, height: slideSize }]}>
+          {currentSlide.image ? (
+            <Image
+              source={{ uri: currentSlide.image }}
+              style={styles.imageBackground}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.plainBackground} />
+          )}
+
+          <GestureDetector gesture={composed}>
+            <Animated.View
+              style={[
+                styles.textOverlay,
+                animatedStyle,
+                {
+                  backgroundColor: currentSlide.backgroundColor,
+                  maxWidth: slideSize * 0.9, // Limit max width to 90% of slide
+                }
+              ]}>
+              <Text style={[
+                styles.slideText,
+                {
+                  fontSize: currentSlide.fontSize,
+                  color: currentSlide.color,
+                  textAlign: currentSlide.textAlign,
+                  fontWeight: currentSlide.fontWeight,
+                  // Add wrapping to prevent text from overflowing
+                  flexWrap: 'wrap',
+                }
+              ]}>
+                {currentSlide.text}
+              </Text>
+            </Animated.View>
+          </GestureDetector>
+        </View>
       </View>
       
       {/* Slide navigation */}
@@ -530,45 +518,20 @@ const EditorScreen: React.FC = () => {
           <Text style={styles.templateButtonText}>Templates</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.templateButton}
           onPress={handleAutoLayout}>
           <Text style={styles.templateButtonText}>Auto Layout</Text>
         </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={[styles.templateButton, useAdvancedGraphics && styles.activeButton]}
-          onPress={() => setUseAdvancedGraphics(!useAdvancedGraphics)}>
-          <Text style={styles.templateButtonText}>Skia Graphics</Text>
-        </TouchableOpacity>
       </View>
 
-      {/* Graphics style selection */}
-      {useAdvancedGraphics && (
-        <View style={styles.graphicsStyleSelector}>
-          <Text style={styles.controlsTitle}>Graphics Style</Text>
-          <View style={styles.styleOptions}>
-            {(['modern', 'elegant', 'minimal', 'dramatic'] as const).map((style) => (
-              <TouchableOpacity
-                key={style}
-                style={[styles.styleOption, graphicsStyle === style && styles.activeStyleOption]}
-                onPress={() => {
-                  FeedbackService.buttonTap();
-                  setGraphicsStyle(style);
-                }}>
-                <Text style={styles.styleOptionText}>{style.charAt(0).toUpperCase() + style.slice(1)}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )}
 
       {/* Template selection */}
       {showTemplates && (
         <View style={styles.templateSelector}>
           <Text style={styles.controlsTitle}>Choose Template</Text>
           <AnimatedScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {TemplateService.getTemplates().map((template) => (
+            {TemplateService.getInstance().getTemplates().map((template) => (
               <TouchableOpacity
                 key={template.id}
                 style={styles.templateOption}
@@ -727,36 +690,6 @@ const styles = StyleSheet.create({
   },
   activeButton: {
     backgroundColor: '#34C759',
-  },
-  graphicsStyleSelector: {
-    backgroundColor: '#f8f8f8',
-    padding: 15,
-    marginHorizontal: 20,
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  styleOptions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
-  },
-  styleOption: {
-    backgroundColor: '#fff',
-    padding: 10,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    minWidth: 60,
-  },
-  activeStyleOption: {
-    backgroundColor: '#007AFF',
-    borderColor: '#007AFF',
-  },
-  styleOptionText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
   },
   templateSelector: {
     backgroundColor: '#f8f8f8',

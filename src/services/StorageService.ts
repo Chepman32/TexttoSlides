@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import StorageInitializer from '../utils/storageInit';
 
 export interface ProjectState {
   id: string;
@@ -46,49 +47,56 @@ class StorageService {
   static getInstance(): StorageService {
     if (!StorageService.instance) {
       StorageService.instance = new StorageService();
+      // Initialize storage on first getInstance
+      StorageInitializer.initialize().catch(error => {
+        console.log('Storage initialization in background:', error);
+      });
     }
     return StorageService.instance;
   }
 
   // Save current project state
   async saveCurrentProject(project: ProjectState): Promise<void> {
-    try {
-      project.lastModified = new Date().toISOString();
-      await AsyncStorage.setItem(
-        this.STORAGE_KEYS.CURRENT_PROJECT,
-        JSON.stringify(project)
-      );
+    return StorageInitializer.safeStorageOperation(
+      async () => {
+        project.lastModified = new Date().toISOString();
+        await AsyncStorage.setItem(
+          this.STORAGE_KEYS.CURRENT_PROJECT,
+          JSON.stringify(project)
+        );
 
-      // Also add to recent projects
-      await this.addToRecentProjects(project);
-    } catch (error) {
-      console.error('Error saving current project:', error);
-      // Don't throw error to prevent app crash, just log it
-      // AsyncStorage might fail on first run
-    }
+        // Also add to recent projects
+        await this.addToRecentProjects(project);
+      },
+      undefined,
+      'saveCurrentProject'
+    );
   }
 
   // Load current project state
   async loadCurrentProject(): Promise<ProjectState | null> {
-    try {
-      const projectData = await AsyncStorage.getItem(this.STORAGE_KEYS.CURRENT_PROJECT);
-      if (projectData) {
-        return JSON.parse(projectData);
-      }
-      return null;
-    } catch (error) {
-      console.error('Error loading current project:', error);
-      return null;
-    }
+    return StorageInitializer.safeStorageOperation(
+      async () => {
+        const projectData = await AsyncStorage.getItem(this.STORAGE_KEYS.CURRENT_PROJECT);
+        if (projectData) {
+          return JSON.parse(projectData);
+        }
+        return null;
+      },
+      null,
+      'loadCurrentProject'
+    );
   }
 
   // Clear current project
   async clearCurrentProject(): Promise<void> {
-    try {
-      await AsyncStorage.removeItem(this.STORAGE_KEYS.CURRENT_PROJECT);
-    } catch (error) {
-      console.error('Error clearing current project:', error);
-    }
+    return StorageInitializer.safeStorageOperation(
+      async () => {
+        await AsyncStorage.removeItem(this.STORAGE_KEYS.CURRENT_PROJECT);
+      },
+      undefined,
+      'clearCurrentProject'
+    );
   }
 
   // Add project to recent projects
@@ -215,22 +223,19 @@ class StorageService {
 
   // Check if first launch
   async isFirstLaunch(): Promise<boolean> {
-    try {
-      const firstLaunch = await AsyncStorage.getItem(this.STORAGE_KEYS.FIRST_LAUNCH);
-      if (firstLaunch === null) {
-        // Try to set the first launch flag, but don't fail if it errors
-        try {
+    return StorageInitializer.safeStorageOperation(
+      async () => {
+        const firstLaunch = await AsyncStorage.getItem(this.STORAGE_KEYS.FIRST_LAUNCH);
+        if (firstLaunch === null) {
+          // Try to set the first launch flag
           await AsyncStorage.setItem(this.STORAGE_KEYS.FIRST_LAUNCH, 'false');
-        } catch (setError) {
-          console.log('Could not set first launch flag:', setError);
+          return true;
         }
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Error checking first launch:', error);
-      return false;
-    }
+        return false;
+      },
+      false,
+      'isFirstLaunch'
+    );
   }
 
   // Clear all storage

@@ -319,4 +319,4 @@ class GraphicsService {
   }
 }
 
-export default GraphicsService.getInstance();
+export default GraphicsService;

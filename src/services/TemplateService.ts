@@ -278,4 +278,4 @@ class TemplateService {
   }
 }
 
-export default TemplateService.getInstance();
+export default TemplateService;

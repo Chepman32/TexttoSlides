@@ -228,7 +228,49 @@ export const smartSplit = (text: string, targetSlides: number = 3): string[] => 
       break;
   }
 
-  return splitIntoAdvancedChunks(text, idealChunkSize, options);
+  const chunks = splitIntoAdvancedChunks(text, idealChunkSize, options);
+
+  // Ensure we have at least the target number of slides
+  if (chunks.length < targetSlides) {
+    const result: string[] = [];
+    const targetChunkSize = Math.ceil(textLength / targetSlides);
+
+    // If we got only one big chunk, force split it
+    if (chunks.length === 1) {
+      const singleChunk = chunks[0];
+      let startIndex = 0;
+
+      for (let i = 0; i < targetSlides; i++) {
+        const endIndex = Math.min(
+          startIndex + targetChunkSize,
+          singleChunk.length
+        );
+
+        if (startIndex < singleChunk.length) {
+          // Try to find a good break point (space, period, etc.)
+          let breakPoint = endIndex;
+          if (endIndex < singleChunk.length) {
+            for (let j = endIndex; j > Math.max(startIndex, endIndex - 20); j--) {
+              if (singleChunk[j] === ' ' || singleChunk[j] === '.' || singleChunk[j] === ',') {
+                breakPoint = j + 1;
+                break;
+              }
+            }
+          }
+
+          result.push(singleChunk.substring(startIndex, breakPoint).trim());
+          startIndex = breakPoint;
+        }
+      }
+    } else {
+      // Distribute existing chunks evenly
+      return chunks;
+    }
+
+    return result.filter(chunk => chunk.length > 0);
+  }
+
+  return chunks;
 };
 
 /**
