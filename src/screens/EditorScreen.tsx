@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Image,
   Dimensions,
-  ScrollView,
   Alert,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +23,6 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { smartSplit, optimizeForSlides } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
-import TemplateService from '../services/TemplateService';
 
 type RootStackParamList = {
   Home: undefined;
@@ -54,49 +52,51 @@ const EditorScreen: React.FC = () => {
   const { text, images } = route.params;
   const insets = useSafeAreaInsets();
   const { themeDefinition } = useTheme();
-  const { t } = useLanguage();
-  const autoSaveTimer = useRef<NodeJS.Timeout | null>(null);
+  const {} = useLanguage();
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const projectId = useRef<string>(`project_${Date.now()}`);
-  
+
   // Optimize text and split using advanced algorithms
   const optimizedText = optimizeForSlides(text);
   const textSlides = smartSplit(optimizedText, 3); // Default to 3 slides
-  
+
   // Create slides with enhanced properties
-  const initialSlides: Slide[] = textSlides.length > 0 
-    ? textSlides.map((slideText, index) => ({
-        id: index,
-        text: slideText,
-        image: images[index] || '',
-        position: { x: 50, y: 100 },
-        fontSize: 24,
-        color: '#FFFFFF',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        textAlign: 'center',
-        fontWeight: 'bold',
-      }))
-    : [{
-        id: 0,
-        text: 'No text provided',
-        image: '',
-        position: { x: 50, y: 100 },
-        fontSize: 24,
-        color: '#FFFFFF',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        textAlign: 'center',
-        fontWeight: 'bold',
-      }];
-  
+  const initialSlides: Slide[] =
+    textSlides.length > 0
+      ? textSlides.map((slideText, index) => ({
+          id: index,
+          text: slideText,
+          image: images[index] || '',
+          position: { x: 50, y: 100 },
+          fontSize: 24,
+          color: '#FFFFFF',
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          textAlign: 'center',
+          fontWeight: 'bold',
+        }))
+      : [
+          {
+            id: 0,
+            text: 'No text provided',
+            image: '',
+            position: { x: 50, y: 100 },
+            fontSize: 24,
+            color: '#FFFFFF',
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            textAlign: 'center',
+            fontWeight: 'bold',
+          },
+        ];
+
   const [slides, setSlides] = useState<Slide[]>(initialSlides);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
-  const [showTemplates, setShowTemplates] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Undo/Redo history management
-  const [history, setHistory] = useState<Slide[][]>([initialSlides]);
+  const [, setHistory] = useState<Slide[][]>([initialSlides]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const isRestoringFromHistory = useRef(false);
-  
+
   const currentSlide = slides[currentSlideIndex];
   const { width: screenWidth } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth - 40, 350);
@@ -115,6 +115,10 @@ const EditorScreen: React.FC = () => {
   const savedScale = useSharedValue(1);
   const rotation = useSharedValue(0);
   const savedRotation = useSharedValue(0);
+
+  // Font size slider gesture values
+  const sliderTranslateY = useSharedValue(0);
+  const sliderStartY = useSharedValue(0);
 
   // Auto-save functionality
   const saveProject = useCallback(async () => {
@@ -171,7 +175,7 @@ const EditorScreen: React.FC = () => {
               {
                 text: 'No',
                 onPress: () => StorageService.clearCurrentProject(),
-                style: 'cancel'
+                style: 'cancel',
               },
               {
                 text: 'Yes',
@@ -180,9 +184,9 @@ const EditorScreen: React.FC = () => {
                     setSlides(savedProject.slides);
                   }
                   projectId.current = savedProject.id;
-                }
-              }
-            ]
+                },
+              },
+            ],
           );
         }
       } catch (error) {
@@ -205,7 +209,34 @@ const EditorScreen: React.FC = () => {
       rotation.value = 0;
       savedRotation.value = 0;
     }
-  }, [currentSlideIndex, currentSlide, translateX, translateY, currentFontSize, currentTextLength, scale, savedScale, rotation, savedRotation]);
+  }, [
+    currentSlideIndex,
+    currentSlide,
+    translateX,
+    translateY,
+    currentFontSize,
+    currentTextLength,
+    scale,
+    savedScale,
+    rotation,
+    savedRotation,
+  ]);
+
+  // Initialize slider position when slide changes
+  useEffect(() => {
+    if (currentSlide) {
+      const sliderHeight = 200;
+      const progress = (currentSlide.fontSize - 12) / (72 - 12);
+      const newPosition = -progress * sliderHeight;
+      sliderTranslateY.value = withSpring(newPosition);
+
+      console.log('Slider initialized:', {
+        fontSize: currentSlide.fontSize,
+        progress,
+        newPosition,
+      });
+    }
+  }, [currentSlideIndex, currentSlide, sliderTranslateY]);
 
   // Mark changes for auto-save
   useEffect(() => {
@@ -213,68 +244,38 @@ const EditorScreen: React.FC = () => {
   }, [slides]);
 
   // Add to history function
-  const addToHistory = useCallback((newSlides: Slide[]) => {
-    console.log('addToHistory called, isRestoring:', isRestoringFromHistory.current);
-    if (!isRestoringFromHistory.current) {
-      setHistory(prevHistory => {
-        const currentIndex = historyIndex;
-        const newHistory = prevHistory.slice(0, currentIndex + 1);
-        newHistory.push(newSlides);
-        console.log('History updated, new length:', newHistory.length, 'current index:', currentIndex);
+  const addToHistory = useCallback(
+    (newSlides: Slide[]) => {
+      console.log(
+        'addToHistory called, isRestoring:',
+        isRestoringFromHistory.current,
+      );
+      if (!isRestoringFromHistory.current) {
+        setHistory(prevHistory => {
+          const currentIndex = historyIndex;
+          const newHistory = prevHistory.slice(0, currentIndex + 1);
+          newHistory.push(newSlides);
+          console.log(
+            'History updated, new length:',
+            newHistory.length,
+            'current index:',
+            currentIndex,
+          );
 
-        // Keep history limited to 20 items
-        if (newHistory.length > 20) {
-          newHistory.shift();
-          setHistoryIndex(19);
-        } else {
-          setHistoryIndex(newHistory.length - 1);
-        }
+          // Keep history limited to 20 items
+          if (newHistory.length > 20) {
+            newHistory.shift();
+            setHistoryIndex(19);
+          } else {
+            setHistoryIndex(newHistory.length - 1);
+          }
 
-        return newHistory;
-      });
-    }
-  }, []);
-
-  // Undo function
-  const handleUndo = () => {
-    console.log('Undo pressed, current index:', historyIndex, 'history length:', history.length);
-    if (historyIndex > 0) {
-      FeedbackService.buttonTap();
-      const newIndex = historyIndex - 1;
-      console.log('Undoing to index:', newIndex);
-      isRestoringFromHistory.current = true;
-      setHistoryIndex(newIndex);
-      setSlides(history[newIndex]);
-      setTimeout(() => {
-        isRestoringFromHistory.current = false;
-        console.log('Undo complete, restoring flag cleared');
-      }, 0);
-    } else {
-      console.log('Cannot undo, at beginning of history');
-    }
-  };
-
-  // Redo function
-  const handleRedo = () => {
-    console.log('Redo pressed, current index:', historyIndex, 'history length:', history.length);
-    if (historyIndex < history.length - 1) {
-      FeedbackService.buttonTap();
-      const newIndex = historyIndex + 1;
-      console.log('Redoing to index:', newIndex);
-      isRestoringFromHistory.current = true;
-      setHistoryIndex(newIndex);
-      setSlides(history[newIndex]);
-      setTimeout(() => {
-        isRestoringFromHistory.current = false;
-        console.log('Redo complete, restoring flag cleared');
-      }, 0);
-    } else {
-      console.log('Cannot redo, at end of history');
-    }
-  };
-
-  const canUndo = historyIndex > 0;
-  const canRedo = historyIndex < history.length - 1;
+          return newHistory;
+        });
+      }
+    },
+    [historyIndex],
+  );
 
   // Function to update slide position (needs to be called from JS thread)
   const updateSlidePosition = (x: number, y: number) => {
@@ -290,13 +291,48 @@ const EditorScreen: React.FC = () => {
     });
   };
 
+  const handleFontSizeChange = (change: number) => {
+    FeedbackService.textResize();
+    setSlides(prevSlides => {
+      const newSlides = [...prevSlides];
+      const slide = newSlides[currentSlideIndex];
+
+      slide.fontSize = Math.max(12, Math.min(48, slide.fontSize + change));
+      // Update the shared value for gesture handling
+      currentFontSize.value = slide.fontSize;
+      newSlides[currentSlideIndex] = slide;
+      addToHistory(newSlides);
+      return newSlides;
+    });
+  };
+
+  const updateFontSize = useCallback(
+    (newFontSize: number) => {
+      console.log('updateFontSize called with:', newFontSize);
+      FeedbackService.textResize();
+      setSlides(prevSlides => {
+        const newSlides = [...prevSlides];
+        const slide = newSlides[currentSlideIndex];
+        slide.fontSize = Math.max(12, Math.min(72, newFontSize));
+        // Update the shared value for gesture handling
+        currentFontSize.value = slide.fontSize;
+        newSlides[currentSlideIndex] = slide;
+        addToHistory(newSlides);
+        setHasUnsavedChanges(true);
+        console.log('Font size updated to:', slide.fontSize);
+        return newSlides;
+      });
+    },
+    [currentSlideIndex, addToHistory, currentFontSize],
+  );
+
   const panGesture = Gesture.Pan()
-    .onStart((_) => {
+    .onStart(_ => {
       // Store the current position as starting point
       startX.value = translateX.value;
       startY.value = translateY.value;
     })
-    .onUpdate((event) => {
+    .onUpdate(event => {
       // Calculate new position based on translation from start
       const newX = startX.value + event.translationX;
       const newY = startY.value + event.translationY;
@@ -307,13 +343,16 @@ const EditorScreen: React.FC = () => {
       const fontSize = currentFontSize.value;
       const textLength = currentTextLength.value;
 
-      const charsPerLine = Math.max(1, Math.floor((slideSize * 0.9) / (fontSize * 0.6)));
+      const charsPerLine = Math.max(
+        1,
+        Math.floor((slideSize * 0.9) / (fontSize * 0.6)),
+      );
       const numberOfLines = Math.ceil(textLength / charsPerLine);
       const estimatedTextWidth = Math.min(
         slideSize * 0.9, // Max 90% of slide width
         textLength < charsPerLine
           ? textLength * fontSize * 0.6
-          : slideSize * 0.9
+          : slideSize * 0.9,
       );
       const estimatedTextHeight = numberOfLines * fontSize * 1.2 + textPadding;
 
@@ -333,35 +372,77 @@ const EditorScreen: React.FC = () => {
     .onEnd(() => {
       // Update slide position using runOnJS
       runOnJS(updateSlidePosition)(translateX.value, translateY.value);
-    });
+    })
+    .runOnJS(true);
 
   // Pinch gesture for scaling
   const pinchGesture = Gesture.Pinch()
-    .onUpdate((event) => {
+    .onUpdate(event => {
       scale.value = savedScale.value * event.scale;
     })
     .onEnd(() => {
       savedScale.value = scale.value;
       // Update font size based on scale
-      const newFontSize = Math.max(12, Math.min(48, currentFontSize.value * scale.value));
+      const newFontSize = Math.max(
+        12,
+        Math.min(48, currentFontSize.value * scale.value),
+      );
       runOnJS(handleFontSizeChange)(newFontSize - currentFontSize.value);
       scale.value = withSpring(1);
       savedScale.value = 1;
-    });
+    })
+    .runOnJS(true);
 
   // Rotation gesture
   const rotationGesture = Gesture.Rotation()
-    .onUpdate((event) => {
+    .onUpdate(event => {
       rotation.value = savedRotation.value + event.rotation;
     })
     .onEnd(() => {
       savedRotation.value = rotation.value;
-    });
+    })
+    .runOnJS(true);
+
+  // Font size slider gesture
+  const sliderGesture = Gesture.Pan()
+    .onStart(() => {
+      sliderStartY.value = sliderTranslateY.value;
+    })
+    .onUpdate(event => {
+      const sliderHeight = 200; // Height of the slider track
+      const newY = sliderStartY.value + event.translationY;
+
+      // Constrain the slider movement within bounds
+      const constrainedY = Math.max(-sliderHeight, Math.min(0, newY));
+      sliderTranslateY.value = constrainedY;
+    })
+    .onEnd(() => {
+      // Calculate final font size based on slider position
+      const sliderHeight = 200;
+      // Convert from negative range (-200 to 0) to positive range (0 to 1)
+      const progress = Math.abs(sliderTranslateY.value) / sliderHeight;
+      const fontSize = Math.round(12 + progress * (72 - 12));
+
+      console.log('Slider gesture ended:', {
+        sliderTranslateY: sliderTranslateY.value,
+        progress,
+        fontSize,
+      });
+
+      // Update font size only when gesture ends
+      if (updateFontSize) {
+        runOnJS(updateFontSize)(fontSize);
+      }
+
+      // Snap to final position
+      sliderTranslateY.value = withSpring(sliderTranslateY.value);
+    })
+    .runOnJS(true);
 
   // Compose all gestures
   const composed = Gesture.Simultaneous(
     panGesture,
-    Gesture.Simultaneous(pinchGesture, rotationGesture)
+    Gesture.Simultaneous(pinchGesture, rotationGesture),
   );
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -375,27 +456,42 @@ const EditorScreen: React.FC = () => {
     };
   });
 
+  const sliderThumbStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: sliderTranslateY.value }],
+    };
+  });
+
+  const sliderTrackFillStyle = useAnimatedStyle(() => {
+    const sliderHeight = 200;
+    const progress = Math.abs(sliderTranslateY.value) / sliderHeight;
+    return {
+      height: `${progress * 100}%`,
+    };
+  });
+
+
   // Safety check for currentSlide
   if (!currentSlide) {
     return (
       <View style={styles.container}>
         <Text style={styles.navButtonText}>No slides available</Text>
-        <Text style={[styles.navButtonText, { fontSize: 16, marginTop: 10 }]}>Please check your input text.</Text>
+        <Text style={styles.navButtonSubtext}>
+          Please check your input text.
+        </Text>
       </View>
     );
   }
 
-  const handleFontSizeChange = (change: number) => {
-    FeedbackService.textResize();
+  const handleFontWeightChange = (newWeight: 'normal' | 'bold') => {
+    FeedbackService.buttonTap();
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
       const slide = newSlides[currentSlideIndex];
-
-      slide.fontSize = Math.max(12, Math.min(48, slide.fontSize + change));
-      // Update the shared value for gesture handling
-      currentFontSize.value = slide.fontSize;
+      slide.fontWeight = newWeight;
       newSlides[currentSlideIndex] = slide;
       addToHistory(newSlides);
+      setHasUnsavedChanges(true);
       return newSlides;
     });
   };
@@ -435,60 +531,6 @@ const EditorScreen: React.FC = () => {
     });
   };
 
-  const handleApplyTemplate = (templateId: string) => {
-    FeedbackService.buttonTap();
-    const template = TemplateService.getInstance().applyTemplate(templateId, currentSlide.text);
-
-    setSlides(prevSlides => {
-      const newSlides = [...prevSlides];
-      const slide = newSlides[currentSlideIndex];
-
-      if (template.position) slide.position = template.position;
-      if (template.fontSize) slide.fontSize = template.fontSize;
-      // Don't override the user's chosen color
-      // if (template.color) slide.color = template.color;
-      if (template.backgroundColor) slide.backgroundColor = template.backgroundColor;
-      if (template.textAlign) slide.textAlign = template.textAlign;
-      if (template.fontWeight) slide.fontWeight = template.fontWeight;
-
-      newSlides[currentSlideIndex] = slide;
-      addToHistory(newSlides);
-      return newSlides;
-    });
-
-    setShowTemplates(false);
-    FeedbackService.success();
-  };
-
-  const handleAutoLayout = () => {
-    FeedbackService.buttonTap();
-    const autoLayout = TemplateService.getInstance().autoLayout({
-      slideWidth: slideSize,
-      slideHeight: slideSize,
-      textLength: currentSlide.text.length,
-      imagePresent: !!currentSlide.image,
-    });
-
-    setSlides(prevSlides => {
-      const newSlides = [...prevSlides];
-      const slide = newSlides[currentSlideIndex];
-
-      if (autoLayout.position) slide.position = autoLayout.position;
-      if (autoLayout.fontSize) slide.fontSize = autoLayout.fontSize;
-      // Don't override the user's chosen color
-      // if (autoLayout.color) slide.color = autoLayout.color;
-      if (autoLayout.backgroundColor) slide.backgroundColor = autoLayout.backgroundColor;
-      if (autoLayout.textAlign) slide.textAlign = autoLayout.textAlign;
-      if (autoLayout.fontWeight) slide.fontWeight = autoLayout.fontWeight;
-
-      newSlides[currentSlideIndex] = slide;
-      addToHistory(newSlides);
-      return newSlides;
-    });
-
-    FeedbackService.success();
-  };
-
   const handlePreview = async () => {
     FeedbackService.buttonTap();
 
@@ -510,11 +552,24 @@ const EditorScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: Math.max(insets.top, 20), backgroundColor: themeDefinition.colors.background }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: Math.max(insets.top, 20),
+          backgroundColor: themeDefinition.colors.background,
+        },
+      ]}
+    >
       {/* Auto-save indicator */}
       {hasUnsavedChanges && (
         <View style={styles.autoSaveIndicator}>
-          <Text style={[styles.autoSaveText, { color: themeDefinition.colors.text }]}>
+          <Text
+            style={[
+              styles.autoSaveText,
+              { color: themeDefinition.colors.text },
+            ]}
+          >
             Saving...
           </Text>
         </View>
@@ -522,7 +577,9 @@ const EditorScreen: React.FC = () => {
 
       {/* Slide preview area */}
       <View style={styles.editorContainer}>
-        <View style={[styles.slidePreview, { width: slideSize, height: slideSize }]}>
+        <View
+          style={[styles.slidePreview, { width: slideSize, height: slideSize }]}
+        >
           {currentSlide.image ? (
             <Image
               source={{ uri: currentSlide.image }}
@@ -541,137 +598,220 @@ const EditorScreen: React.FC = () => {
                 {
                   backgroundColor: currentSlide.backgroundColor,
                   maxWidth: slideSize * 0.9, // Limit max width to 90% of slide
-                }
-              ]}>
-              <Text style={[
-                styles.slideText,
-                {
-                  fontSize: currentSlide.fontSize,
-                  color: currentSlide.color,
-                  textAlign: currentSlide.textAlign,
-                  fontWeight: currentSlide.fontWeight,
-                  // Add wrapping to prevent text from overflowing
-                  flexWrap: 'wrap',
-                }
-              ]}>
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.slideText,
+                  {
+                    fontSize: currentSlide.fontSize,
+                    color: currentSlide.color,
+                    textAlign: currentSlide.textAlign,
+                    fontWeight: currentSlide.fontWeight,
+                    // Add wrapping to prevent text from overflowing
+                  },
+                ]}
+              >
                 {currentSlide.text}
               </Text>
             </Animated.View>
           </GestureDetector>
         </View>
       </View>
-      
+
       {/* Navigation arrows overlayed on slide */}
       <TouchableOpacity
-        style={[styles.navArrowLeft, currentSlideIndex === 0 && styles.navArrowDisabled]}
+        style={[
+          styles.navArrowLeft,
+          currentSlideIndex === 0 && styles.navArrowDisabled,
+        ]}
         onPress={() => {
           if (currentSlideIndex > 0) {
             FeedbackService.slideTransition();
             setCurrentSlideIndex(currentSlideIndex - 1);
           }
         }}
-        disabled={currentSlideIndex === 0}>
+        disabled={currentSlideIndex === 0}
+      >
         <Text style={styles.navArrowText}>‹</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={[styles.navArrowRight, currentSlideIndex === slides.length - 1 && styles.navArrowDisabled]}
+        style={[
+          styles.navArrowRight,
+          currentSlideIndex === slides.length - 1 && styles.navArrowDisabled,
+        ]}
         onPress={() => {
           if (currentSlideIndex < slides.length - 1) {
             FeedbackService.slideTransition();
             setCurrentSlideIndex(currentSlideIndex + 1);
           }
         }}
-        disabled={currentSlideIndex === slides.length - 1}>
+        disabled={currentSlideIndex === slides.length - 1}
+      >
         <Text style={styles.navArrowText}>›</Text>
       </TouchableOpacity>
 
-      {/* Bottom controls */}
-      <View style={styles.bottomControls}>
-        {/* Template and action buttons */}
-        <View style={styles.templateButtons}>
-          <TouchableOpacity
-            style={[styles.templateButton, !canUndo && styles.disabledButton]}
-            onPress={handleUndo}
-            disabled={!canUndo}>
-            <Text style={styles.templateIcon}>↶</Text>
-            <Text style={styles.templateButtonText}>Undo</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.templateButton, !canRedo && styles.disabledButton]}
-            onPress={handleRedo}
-            disabled={!canRedo}>
-            <Text style={styles.templateIcon}>↷</Text>
-            <Text style={styles.templateButtonText}>Redo</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.templateButton}
-            onPress={() => setShowTemplates(!showTemplates)}>
-            <Text style={styles.templateIcon}>📄</Text>
-            <Text style={styles.templateButtonText}>Template</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.templateButton}
-            onPress={handleAutoLayout}>
-            <Text style={styles.templateIcon}>✨</Text>
-            <Text style={styles.templateButtonText}>Auto</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Template selector (shown when template button is pressed) */}
-        {showTemplates && (
-          <ScrollView horizontal style={styles.templateSelector} showsHorizontalScrollIndicator={false}>
-            {['minimal', 'bold', 'elegant', 'playful', 'professional'].map((templateId) => (
-              <TouchableOpacity
-                key={templateId}
-                style={styles.templateOption}
-                onPress={() => handleApplyTemplate(templateId)}>
-                <Text style={styles.templateOptionText}>{templateId.charAt(0).toUpperCase() + templateId.slice(1)}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
-
-        {/* Text color selector */}
-        <View style={styles.colorSection}>
-          <Text style={styles.sectionLabel}>Text color</Text>
-          <View style={styles.colorControls}>
-            {['#FFFFFF', '#000000', '#FF0000', '#FFFF00', '#00FF00'].map((color) => (
-              <TouchableOpacity
-                key={color}
-                style={[
-                  styles.colorButton,
-                  { backgroundColor: color },
-                  currentSlide.color === color && styles.activeColorButton
-                ]}
-                onPress={() => handleTextColorChange(color)}
-              />
-            ))}
+      {/* Vertical font size slider on the left */}
+      <View style={styles.fontSizeSlider}>
+        <GestureDetector gesture={sliderGesture}>
+          <View style={styles.sliderTrack}>
+            <View style={styles.sliderTrackBackground} />
+            <Animated.View
+              style={[styles.sliderTrackFill, sliderTrackFillStyle]}
+            />
+            <Animated.View
+              style={[
+                styles.sliderThumb,
+                sliderThumbStyle,
+                {
+                  top: `${((currentSlide.fontSize - 12) / (72 - 12)) * 100}%`,
+                },
+                styles.sliderThumbPosition,
+              ]}
+            />
           </View>
-        </View>
-
-        {/* Background opacity selector */}
-        <View style={styles.opacitySection}>
-          <Text style={styles.sectionLabel}>Background opacity</Text>
-          <View style={styles.opacityControls}>
-            {[0, 0.25, 0.5, 0.75, 1].map((opacity) => (
-              <TouchableOpacity
-                key={opacity}
-                style={[
-                  styles.opacityButton,
-                  { backgroundColor: `rgba(0,0,0,${opacity})` },
-                  currentSlide.backgroundColor === `rgba(0,0,0,${opacity})` && styles.activeOpacityButton
-                ]}
-                onPress={() => handleBackgroundOpacityChange(opacity)}
-              />
-            ))}
-          </View>
-        </View>
+        </GestureDetector>
+        <Text style={styles.fontSizeLabel}>{currentSlide.fontSize}</Text>
       </View>
-      
+
+      {/* Minimalistic bottom controls */}
+      <View style={styles.minimalControls}>
+        {/* Text alignment controls */}
+        <View style={styles.alignmentControls}>
+          <TouchableOpacity
+            style={[
+              styles.alignmentButton,
+              currentSlide.textAlign === 'left' && styles.activeAlignmentButton,
+            ]}
+            onPress={() => {
+              FeedbackService.buttonTap();
+              handleTextAlignChange('left');
+            }}
+          >
+            <Text
+              style={[
+                styles.alignmentIcon,
+                currentSlide.textAlign === 'left' && styles.activeAlignmentIcon,
+              ]}
+            >
+              ≡
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.alignmentButton,
+              currentSlide.textAlign === 'center' &&
+                styles.activeAlignmentButton,
+            ]}
+            onPress={() => {
+              FeedbackService.buttonTap();
+              handleTextAlignChange('center');
+            }}
+          >
+            <Text
+              style={[
+                styles.alignmentIcon,
+                currentSlide.textAlign === 'center' &&
+                  styles.activeAlignmentIcon,
+              ]}
+            >
+              ☰
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.alignmentButton,
+              currentSlide.textAlign === 'right' &&
+                styles.activeAlignmentButton,
+            ]}
+            onPress={() => {
+              FeedbackService.buttonTap();
+              handleTextAlignChange('right');
+            }}
+          >
+            <Text
+              style={[
+                styles.alignmentIcon,
+                currentSlide.textAlign === 'right' &&
+                  styles.activeAlignmentIcon,
+              ]}
+            >
+              ≡
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Color picker */}
+        <TouchableOpacity
+          style={styles.colorPickerButton}
+          onPress={() => {
+            FeedbackService.buttonTap();
+            // Cycle through colors
+            const colors = [
+              '#FFFFFF',
+              '#000000',
+              '#FF0000',
+              '#FFFF00',
+              '#00FF00',
+              '#00FFFF',
+              '#FF00FF',
+            ];
+            const currentIndex = colors.indexOf(currentSlide.color);
+            const nextIndex = (currentIndex + 1) % colors.length;
+            handleTextColorChange(colors[nextIndex]);
+          }}
+        >
+          <View
+            style={[styles.colorWheel, { backgroundColor: currentSlide.color }]}
+          />
+        </TouchableOpacity>
+
+        {/* Font weight toggle */}
+        <TouchableOpacity
+          style={[
+            styles.fontWeightButton,
+            currentSlide.fontWeight === 'bold' && styles.activeFontWeightButton,
+          ]}
+          onPress={() => {
+            FeedbackService.buttonTap();
+            handleFontWeightChange(
+              currentSlide.fontWeight === 'bold' ? 'normal' : 'bold',
+            );
+          }}
+        >
+          <Text
+            style={[
+              styles.fontWeightIcon,
+              currentSlide.fontWeight === 'bold' && styles.activeFontWeightIcon,
+            ]}
+          >
+            A
+          </Text>
+        </TouchableOpacity>
+
+        {/* Background opacity toggle */}
+        <TouchableOpacity
+          style={styles.opacityButton}
+          onPress={() => {
+            FeedbackService.buttonTap();
+            // Cycle through opacity levels
+            const opacities = [0, 0.25, 0.5, 0.75, 1];
+            const currentOpacity = parseFloat(
+              currentSlide.backgroundColor.split(',')[3].replace(')', ''),
+            );
+            const currentIndex = opacities.indexOf(currentOpacity);
+            const nextIndex = (currentIndex + 1) % opacities.length;
+            handleBackgroundOpacityChange(opacities[nextIndex]);
+          }}
+        >
+          <Text style={styles.opacityIcon}>◐</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Preview button */}
       <TouchableOpacity style={styles.previewButton} onPress={handlePreview}>
         <Text style={styles.previewButtonText}>Preview Slides</Text>
@@ -755,101 +895,169 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
   },
-  bottomControls: {
-    backgroundColor: '#f8f8f8',
-    paddingVertical: 15,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  templateButtons: {
-    flexDirection: 'row',
-    marginBottom: 15,
-    flexWrap: 'wrap',
-  },
-  templateButton: {
-    flexDirection: 'row',
+  // Vertical font size slider
+  fontSizeSlider: {
+    position: 'absolute',
+    left: 20,
+    top: '50%',
+    marginTop: -100,
+    width: 50, // Increased width for better touch target
+    height: 200,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    marginRight: 10,
-    marginBottom: 5,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    backgroundColor: 'rgba(0,0,0,0.1)', // Add subtle background for better visibility
+    borderRadius: 25,
   },
-  disabledButton: {
-    opacity: 0.4,
-    backgroundColor: '#f5f5f5',
+  sliderTrack: {
+    width: 6,
+    height: 200,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 3,
+    position: 'relative',
   },
-  templateIcon: {
-    fontSize: 16,
-    marginRight: 5,
+  sliderTrackBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 3,
   },
-  templateButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
+  sliderTrackFill: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 3,
   },
-  templateSelector: {
-    marginBottom: 15,
-    maxHeight: 50,
+  sliderThumb: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    left: -7,
   },
-  templateOption: {
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    marginRight: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  templateOptionText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-  },
-  colorSection: {
-    marginBottom: 15,
-  },
-  opacitySection: {
-    marginBottom: 10,
-  },
-  sectionLabel: {
+  fontSizeLabel: {
+    position: 'absolute',
+    bottom: -30,
+    left: -10,
+    right: -10,
+    textAlign: 'center',
+    color: '#FFFFFF',
     fontSize: 12,
-    color: '#666',
-    marginBottom: 8,
+    fontWeight: 'bold',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 10,
+    paddingVertical: 2,
   },
-  colorControls: {
+
+  // Minimalistic bottom controls
+  minimalControls: {
+    position: 'absolute',
+    top: 370, // Position right under the slide preview (350 + 20)
+    left: 0,
+    right: 0,
     flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    gap: 20,
   },
-  opacityControls: {
+
+  // Alignment controls
+  alignmentControls: {
     flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 20,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    gap: 2,
   },
-  colorButton: {
+  alignmentButton: {
     width: 36,
     height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 18,
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: '#ddd',
   },
-  activeColorButton: {
-    borderColor: '#007AFF',
-    borderWidth: 3,
+  activeAlignmentButton: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
+  alignmentIcon: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: 'bold',
+  },
+  activeAlignmentIcon: {
+    color: '#FFFFFF',
+  },
+
+  // Color picker
+  colorPickerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  colorWheel: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.8)',
+  },
+
+  // Font weight button
+  fontWeightButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  activeFontWeightButton: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.8)',
+  },
+  fontWeightIcon: {
+    fontSize: 18,
+    color: 'rgba(255,255,255,0.8)',
+    fontWeight: 'normal',
+  },
+  activeFontWeightIcon: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+
+  // Opacity button
   opacityButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 12,
-    borderWidth: 2,
-    borderColor: '#ddd',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
-  activeOpacityButton: {
-    borderColor: '#007AFF',
-    borderWidth: 3,
+  opacityIcon: {
+    fontSize: 18,
+    color: 'rgba(255,255,255,0.8)',
   },
   previewButton: {
     backgroundColor: '#34C759',
@@ -877,6 +1085,21 @@ const styles = StyleSheet.create({
   autoSaveText: {
     fontSize: 12,
     color: '#fff',
+  },
+  navButtonText: {
+    fontSize: 16,
+    color: '#fff',
+    textAlign: 'center',
+  },
+  navButtonSubtext: {
+    fontSize: 16,
+    marginTop: 10,
+    color: '#fff',
+    textAlign: 'center',
+  },
+  sliderThumbPosition: {
+    top: '50%',
+    marginTop: -10,
   },
 });
 
