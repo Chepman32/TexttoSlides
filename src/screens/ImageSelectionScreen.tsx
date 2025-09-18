@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import ImageService from '../services/ImageService';
+import StorageService from '../services/StorageService';
 import FeedbackService from '../services/FeedbackService';
 import { smartSplit, getOptimalSlideCount, optimizeForSlides } from '../utils/textUtils';
 import { useTheme } from '../context/ThemeContext';
@@ -36,6 +37,7 @@ const ImageSelectionScreen: React.FC = () => {
   
   // Initialize selectedImages array with empty slots for each slide
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const hasRestoredImages = React.useRef(false);
   
   // Optimize text for slides and split using advanced algorithms
   const optimizedText = optimizeForSlides(text);
@@ -48,6 +50,50 @@ const ImageSelectionScreen: React.FC = () => {
   }
 
   const requiredImages = slides.length;
+
+  useEffect(() => {
+    if (hasRestoredImages.current) {
+      return;
+    }
+
+    let isActive = true;
+
+    const restoreImages = async () => {
+      try {
+        const savedProject = await StorageService.loadCurrentProject();
+        if (
+          !isActive ||
+          !savedProject ||
+          savedProject.isCompleted ||
+          !savedProject.slides ||
+          savedProject.slides.length === 0
+        ) {
+          return;
+        }
+
+        const restoredImages = Array.from({ length: requiredImages }, (_, idx) => {
+          const savedSlide = savedProject.slides?.[idx];
+          if (!savedSlide) {
+            return undefined;
+          }
+          return savedSlide.image ?? '';
+        });
+
+        if (restoredImages.some(image => image !== undefined)) {
+          hasRestoredImages.current = true;
+          setSelectedImages(restoredImages);
+        }
+      } catch (error) {
+        console.error('Failed to restore selected images:', error);
+      }
+    };
+
+    restoreImages();
+
+    return () => {
+      isActive = false;
+    };
+  }, [requiredImages]);
 
   const handleSelectImage = async (index: number) => {
     FeedbackService.buttonTap();

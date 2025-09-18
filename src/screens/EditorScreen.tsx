@@ -1,13 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -59,6 +51,7 @@ const EditorScreen: React.FC = () => {
   const {} = useLanguage();
   const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const projectId = useRef<string>(`project_${Date.now()}`);
+  const isRestoringFromStorage = useRef(false);
 
   // Optimize text and split using advanced algorithms
   const optimizedText = optimizeForSlides(text);
@@ -95,6 +88,7 @@ const EditorScreen: React.FC = () => {
   const [slides, setSlides] = useState<Slide[]>(initialSlides);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isColorPaletteVisible, setColorPaletteVisible] = useState(false);
 
   // Undo/Redo history management
   const [, setHistory] = useState<Slide[][]>([initialSlides]);
@@ -180,26 +174,20 @@ const EditorScreen: React.FC = () => {
       try {
         const savedProject = await StorageService.loadCurrentProject();
         if (savedProject && !savedProject.isCompleted) {
-          Alert.alert(
-            'Resume Project',
-            'Would you like to resume your previous project?',
-            [
-              {
-                text: 'No',
-                onPress: () => StorageService.clearCurrentProject(),
-                style: 'cancel',
-              },
-              {
-                text: 'Yes',
-                onPress: () => {
-                  if (savedProject.slides) {
-                    setSlides(savedProject.slides);
-                  }
-                  projectId.current = savedProject.id;
-                },
-              },
-            ],
-          );
+          if (savedProject.slides && savedProject.slides.length > 0) {
+            isRestoringFromStorage.current = true;
+            isRestoringFromHistory.current = true;
+            setSlides(savedProject.slides);
+            setHistory([savedProject.slides]);
+            setHistoryIndex(0);
+            setCurrentSlideIndex(0);
+            setTimeout(() => {
+              isRestoringFromHistory.current = false;
+            }, 0);
+          }
+          projectId.current = savedProject.id;
+        } else {
+          StorageService.clearCurrentProject();
         }
       } catch (error) {
         console.error('Failed to load saved project:', error);
@@ -252,6 +240,11 @@ const EditorScreen: React.FC = () => {
 
   // Mark changes for auto-save
   useEffect(() => {
+    if (isRestoringFromStorage.current) {
+      isRestoringFromStorage.current = false;
+      setHasUnsavedChanges(false);
+      return;
+    }
     setHasUnsavedChanges(true);
   }, [slides]);
 
@@ -584,6 +577,7 @@ const EditorScreen: React.FC = () => {
 
     setSlides(newSlides);
     addToHistory(newSlides);
+    setColorPaletteVisible(false);
   };
 
   const handleBackgroundOpacityChange = (opacity: number) => {
@@ -628,20 +622,6 @@ const EditorScreen: React.FC = () => {
         },
       ]}
     >
-      {/* Auto-save indicator */}
-      {hasUnsavedChanges && (
-        <View style={styles.autoSaveIndicator}>
-          <Text
-            style={[
-              styles.autoSaveText,
-              { color: themeDefinition.colors.text },
-            ]}
-          >
-            Saving...
-          </Text>
-        </View>
-      )}
-
       {/* Slide preview area */}
       <View style={styles.editorContainer}>
         <View
@@ -741,140 +721,155 @@ const EditorScreen: React.FC = () => {
 
       {/* Minimalistic bottom controls */}
       <View style={styles.minimalControls}>
-        {/* Text alignment controls */}
-        <View style={styles.alignmentControls}>
-          <TouchableOpacity
-            style={[
-              styles.alignmentButton,
-              currentSlide.textAlign === 'left' && styles.activeAlignmentButton,
-            ]}
-            onPress={() => {
-              FeedbackService.buttonTap();
-              handleTextAlignChange('left');
-            }}
-          >
-            <Text
-              style={[
-                styles.alignmentIcon,
-                currentSlide.textAlign === 'left' && styles.activeAlignmentIcon,
-              ]}
+        {!isColorPaletteVisible ? (
+          <>
+            {/* Text alignment controls */}
+            <View style={styles.alignmentControls}>
+              <TouchableOpacity
+                style={[
+                  styles.alignmentButton,
+                  currentSlide.textAlign === 'left' &&
+                    styles.activeAlignmentButton,
+                ]}
+                onPress={() => {
+                  FeedbackService.buttonTap();
+                  handleTextAlignChange('left');
+                }}
+              >
+                <Text
+                  style={[
+                    styles.alignmentIcon,
+                    currentSlide.textAlign === 'left' &&
+                      styles.activeAlignmentIcon,
+                  ]}
+                >
+                  ≡
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.alignmentButton,
+                  currentSlide.textAlign === 'center' &&
+                    styles.activeAlignmentButton,
+                ]}
+                onPress={() => {
+                  FeedbackService.buttonTap();
+                  handleTextAlignChange('center');
+                }}
+              >
+                <Text
+                  style={[
+                    styles.alignmentIcon,
+                    currentSlide.textAlign === 'center' &&
+                      styles.activeAlignmentIcon,
+                  ]}
+                >
+                  ☰
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.alignmentButton,
+                  currentSlide.textAlign === 'right' &&
+                    styles.activeAlignmentButton,
+                ]}
+                onPress={() => {
+                  FeedbackService.buttonTap();
+                  handleTextAlignChange('right');
+                }}
+              >
+                <Text
+                  style={[
+                    styles.alignmentIcon,
+                    currentSlide.textAlign === 'right' &&
+                      styles.activeAlignmentIcon,
+                  ]}
+                >
+                  ≡
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Color picker */}
+            <TouchableOpacity
+              style={styles.colorPickerButton}
+              onPress={() => {
+                FeedbackService.buttonTap();
+                setColorPaletteVisible(true);
+              }}
             >
-              ≡
-            </Text>
-          </TouchableOpacity>
+              <View
+                style={[styles.colorWheel, { backgroundColor: currentSlide.color }]}
+              />
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.alignmentButton,
-              currentSlide.textAlign === 'center' &&
-                styles.activeAlignmentButton,
-            ]}
-            onPress={() => {
-              FeedbackService.buttonTap();
-              handleTextAlignChange('center');
-            }}
-          >
-            <Text
+            {/* Font weight toggle */}
+            <TouchableOpacity
               style={[
-                styles.alignmentIcon,
-                currentSlide.textAlign === 'center' &&
-                  styles.activeAlignmentIcon,
+                styles.fontWeightButton,
+                currentSlide.fontWeight === 'bold' &&
+                  styles.activeFontWeightButton,
               ]}
+              onPress={() => {
+                FeedbackService.buttonTap();
+                handleFontWeightChange(
+                  currentSlide.fontWeight === 'bold' ? 'normal' : 'bold',
+                );
+              }}
             >
-              ☰
-            </Text>
-          </TouchableOpacity>
+              <Text
+                style={[
+                  styles.fontWeightIcon,
+                  currentSlide.fontWeight === 'bold' &&
+                    styles.activeFontWeightIcon,
+                ]}
+              >
+                A
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.alignmentButton,
-              currentSlide.textAlign === 'right' &&
-                styles.activeAlignmentButton,
-            ]}
-            onPress={() => {
-              FeedbackService.buttonTap();
-              handleTextAlignChange('right');
-            }}
-          >
-            <Text
-              style={[
-                styles.alignmentIcon,
-                currentSlide.textAlign === 'right' &&
-                  styles.activeAlignmentIcon,
-              ]}
+            {/* Background opacity toggle */}
+            <TouchableOpacity
+              style={styles.opacityButton}
+              onPress={() => {
+                FeedbackService.buttonTap();
+                const opacities = [0, 0.25, 0.5, 0.75, 1];
+                const currentOpacity = parseFloat(
+                  currentSlide.backgroundColor.split(',')[3].replace(')', ''),
+                );
+                const currentIndex = opacities.indexOf(currentOpacity);
+                const nextIndex = (currentIndex + 1) % opacities.length;
+                handleBackgroundOpacityChange(opacities[nextIndex]);
+              }}
             >
-              ≡
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Color picker */}
-        <TouchableOpacity
-          style={styles.colorPickerButton}
-          onPress={() => {
-            FeedbackService.buttonTap();
-            // Cycle through colors
-            const colors = [
-              '#FFFFFF',
-              '#000000',
-              '#FF0000',
-              '#FFFF00',
-              '#00FF00',
-              '#00FFFF',
-              '#FF00FF',
-            ];
-            const currentIndex = colors.indexOf(currentSlide.color);
-            const nextIndex = (currentIndex + 1) % colors.length;
-            handleTextColorChange(colors[nextIndex]);
-          }}
-        >
-          <View
-            style={[styles.colorWheel, { backgroundColor: currentSlide.color }]}
-          />
-        </TouchableOpacity>
-
-        {/* Font weight toggle */}
-        <TouchableOpacity
-          style={[
-            styles.fontWeightButton,
-            currentSlide.fontWeight === 'bold' && styles.activeFontWeightButton,
-          ]}
-          onPress={() => {
-            FeedbackService.buttonTap();
-            handleFontWeightChange(
-              currentSlide.fontWeight === 'bold' ? 'normal' : 'bold',
-            );
-          }}
-        >
-          <Text
-            style={[
-              styles.fontWeightIcon,
-              currentSlide.fontWeight === 'bold' && styles.activeFontWeightIcon,
-            ]}
-          >
-            A
-          </Text>
-        </TouchableOpacity>
-
-        {/* Background opacity toggle */}
-        <TouchableOpacity
-          style={styles.opacityButton}
-          onPress={() => {
-            FeedbackService.buttonTap();
-            // Cycle through opacity levels
-            const opacities = [0, 0.25, 0.5, 0.75, 1];
-            const currentOpacity = parseFloat(
-              currentSlide.backgroundColor.split(',')[3].replace(')', ''),
-            );
-            const currentIndex = opacities.indexOf(currentOpacity);
-            const nextIndex = (currentIndex + 1) % opacities.length;
-            handleBackgroundOpacityChange(opacities[nextIndex]);
-          }}
-        >
-          <Text style={styles.opacityIcon}>◐</Text>
-        </TouchableOpacity>
+              <Text style={styles.opacityIcon}>◐</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.colorPaletteContainer}>
+            {['#FFFFFF', '#000000', '#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#FF00FF', '#FFA500', '#8A2BE2', '#FFD700'].map(
+              color => (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorOption,
+                    {
+                      backgroundColor: color,
+                      borderColor:
+                        currentSlide.color === color
+                          ? '#FFFFFF'
+                          : 'rgba(255,255,255,0.3)',
+                    },
+                  ]}
+                  onPress={() => handleTextColorChange(color)}
+                />
+              ),
+            )}
+          </View>
+        )}
       </View>
-
       {/* Preview button */}
       <TouchableOpacity style={styles.previewButton} onPress={handlePreview}>
         <Text style={styles.previewButtonText}>Preview Slides</Text>
@@ -1094,6 +1089,21 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'rgba(255,255,255,0.8)',
   },
+  colorPaletteContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  colorOption: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    marginHorizontal: 4,
+  },
   previewButton: {
     backgroundColor: '#34C759',
     paddingVertical: 15,
@@ -1106,20 +1116,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  autoSaveIndicator: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 1000,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 5,
-  },
-  autoSaveText: {
-    fontSize: 12,
-    color: '#fff',
   },
   navButtonText: {
     fontSize: 16,
