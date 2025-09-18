@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -89,6 +89,7 @@ const EditorScreen: React.FC = () => {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isColorPaletteVisible, setColorPaletteVisible] = useState(false);
+  const [isOpacityPaletteVisible, setOpacityPaletteVisible] = useState(false);
 
   // Undo/Redo history management
   const [, setHistory] = useState<Slide[][]>([initialSlides]);
@@ -726,7 +727,7 @@ const EditorScreen: React.FC = () => {
 
       {/* Minimalistic bottom controls */}
       <View style={[styles.minimalControls, { top: imageContainerHeight - 60 }]}>
-        {!isColorPaletteVisible ? (
+        {!isColorPaletteVisible && !isOpacityPaletteVisible ? (
           <>
             {/* Text alignment controls */}
             <View style={styles.alignmentControls}>
@@ -803,6 +804,7 @@ const EditorScreen: React.FC = () => {
               onPress={() => {
                 FeedbackService.buttonTap();
                 setColorPaletteVisible(true);
+                setOpacityPaletteVisible(false); // Hide opacity palette if visible
               }}
             >
               <View
@@ -835,26 +837,26 @@ const EditorScreen: React.FC = () => {
               </Text>
             </TouchableOpacity>
 
-            {/* Background opacity toggle */}
+            {/* Background opacity picker */}
             <TouchableOpacity
               style={styles.opacityButton}
               onPress={() => {
                 FeedbackService.buttonTap();
-                const opacities = [0, 0.25, 0.5, 0.75, 1];
-                const currentOpacity = parseFloat(
-                  currentSlide.backgroundColor.split(',')[3].replace(')', ''),
-                );
-                const currentIndex = opacities.indexOf(currentOpacity);
-                const nextIndex = (currentIndex + 1) % opacities.length;
-                handleBackgroundOpacityChange(opacities[nextIndex]);
+                setOpacityPaletteVisible(true);
+                setColorPaletteVisible(false); // Hide color palette if visible
               }}
             >
               <Text style={styles.opacityIcon}>◐</Text>
             </TouchableOpacity>
           </>
-        ) : (
-          <View style={styles.colorPaletteContainer}>
-            {['#FFFFFF', '#000000', '#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#FF00FF', '#FFA500', '#8A2BE2', '#FFD700'].map(
+        ) : isColorPaletteVisible ? (
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.colorPaletteScrollContainer}
+            contentContainerStyle={styles.colorPaletteContainer}
+          >
+            {['#FFFFFF', '#000000', '#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#FF00FF', '#FFA500', '#8A2BE2', '#FFD700', '#0033A0', '#008080', '#BFFF00', '#FF7F50', '#800000', '#4B0082', '#808080'].map(
               color => {
                 const borderColor = currentSlide.color === color ? '#FFFFFF' : 'rgba(255,255,255,0.3)';
                 return (
@@ -872,6 +874,31 @@ const EditorScreen: React.FC = () => {
                 );
               },
             )}
+          </ScrollView>
+        ) : (
+          <View style={styles.opacityPaletteContainer}>
+            {[0, 0.2, 0.4, 0.6, 0.8, 1].map(opacity => {
+              const currentOpacity = parseFloat(
+                currentSlide.backgroundColor.split(',')[3].replace(')', ''),
+              );
+              const borderColor = Math.abs(currentOpacity - opacity) < 0.01 ? '#FFFFFF' : 'rgba(255,255,255,0.3)';
+              return (
+                <TouchableOpacity
+                  key={opacity}
+                  style={[
+                    styles.opacityOption,
+                    {
+                      backgroundColor: `rgba(0,0,0,${opacity})`,
+                      borderColor,
+                    },
+                  ]}
+                  onPress={() => {
+                    handleBackgroundOpacityChange(opacity);
+                    setOpacityPaletteVisible(false);
+                  }}
+                />
+              );
+            })}
           </View>
         )}
       </View>
@@ -1094,6 +1121,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'rgba(255,255,255,0.8)',
   },
+  colorPaletteScrollContainer: {
+    maxWidth: '100%',
+  },
   colorPaletteContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1103,6 +1133,21 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   colorOption: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    marginHorizontal: 4,
+  },
+  opacityPaletteContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  opacityOption: {
     width: 32,
     height: 32,
     borderRadius: 16,
