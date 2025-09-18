@@ -24,6 +24,10 @@ import { useLanguage } from '../context/LanguageContext';
 import { smartSplit, optimizeForSlides } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
 
+const SLIDER_HEIGHT = 200;
+const MIN_FONT_SIZE = 12;
+const MAX_FONT_SIZE = 72;
+
 type RootStackParamList = {
   Home: undefined;
   Editor: { text: string; images: string[] };
@@ -117,7 +121,15 @@ const EditorScreen: React.FC = () => {
   const savedRotation = useSharedValue(0);
 
   // Font size slider gesture values
-  const sliderTranslateY = useSharedValue(0);
+  const sliderTranslateY = useSharedValue(
+    (() => {
+      const progress = currentSlide
+        ? (currentSlide.fontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)
+        : 0;
+      const clampedProgress = Math.max(0, Math.min(1, progress));
+      return (1 - clampedProgress) * SLIDER_HEIGHT;
+    })(),
+  );
   const sliderStartY = useSharedValue(0);
 
   // Auto-save functionality
@@ -225,15 +237,15 @@ const EditorScreen: React.FC = () => {
   // Initialize slider position when slide changes
   useEffect(() => {
     if (currentSlide) {
-      const sliderHeight = 200;
-      const progress = (currentSlide.fontSize - 12) / (72 - 12);
-      const newPosition = -progress * sliderHeight;
-      sliderTranslateY.value = withSpring(newPosition);
+      const progress =
+        (currentSlide.fontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE);
+      const clampedProgress = Math.max(0, Math.min(1, progress));
+      sliderTranslateY.value = withSpring((1 - clampedProgress) * SLIDER_HEIGHT);
 
       console.log('Slider initialized:', {
         fontSize: currentSlide.fontSize,
-        progress,
-        newPosition,
+        progress: clampedProgress,
+        newPosition: (1 - clampedProgress) * SLIDER_HEIGHT,
       });
     }
   }, [currentSlideIndex, currentSlide, sliderTranslateY]);
@@ -297,9 +309,17 @@ const EditorScreen: React.FC = () => {
       const newSlides = [...prevSlides];
       const slide = newSlides[currentSlideIndex];
 
-      slide.fontSize = Math.max(12, Math.min(48, slide.fontSize + change));
+      const clampedFontSize = Math.max(
+        MIN_FONT_SIZE,
+        Math.min(MAX_FONT_SIZE, slide.fontSize + change),
+      );
+      slide.fontSize = clampedFontSize;
       // Update the shared value for gesture handling
       currentFontSize.value = slide.fontSize;
+      sliderTranslateY.value = withSpring(
+        (1 - (clampedFontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)) *
+          SLIDER_HEIGHT,
+      );
       newSlides[currentSlideIndex] = slide;
       addToHistory(newSlides);
       return newSlides;
@@ -313,9 +333,18 @@ const EditorScreen: React.FC = () => {
       setSlides(prevSlides => {
         const newSlides = [...prevSlides];
         const slide = newSlides[currentSlideIndex];
-        slide.fontSize = Math.max(12, Math.min(72, newFontSize));
+        const clampedFontSize = Math.max(
+          MIN_FONT_SIZE,
+          Math.min(MAX_FONT_SIZE, newFontSize),
+        );
+        slide.fontSize = clampedFontSize;
         // Update the shared value for gesture handling
         currentFontSize.value = slide.fontSize;
+        sliderTranslateY.value = withSpring(
+          (1 -
+            (clampedFontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)) *
+            SLIDER_HEIGHT,
+        );
         newSlides[currentSlideIndex] = slide;
         addToHistory(newSlides);
         setHasUnsavedChanges(true);
@@ -384,8 +413,8 @@ const EditorScreen: React.FC = () => {
       savedScale.value = scale.value;
       // Update font size based on scale
       const newFontSize = Math.max(
-        12,
-        Math.min(48, currentFontSize.value * scale.value),
+        MIN_FONT_SIZE,
+        Math.min(MAX_FONT_SIZE, currentFontSize.value * scale.value),
       );
       runOnJS(handleFontSizeChange)(newFontSize - currentFontSize.value);
       scale.value = withSpring(1);
@@ -409,19 +438,27 @@ const EditorScreen: React.FC = () => {
       sliderStartY.value = sliderTranslateY.value;
     })
     .onUpdate(event => {
-      const sliderHeight = 200; // Height of the slider track
       const newY = sliderStartY.value + event.translationY;
 
       // Constrain the slider movement within bounds
-      const constrainedY = Math.max(-sliderHeight, Math.min(0, newY));
+      const constrainedY = Math.max(0, Math.min(SLIDER_HEIGHT, newY));
       sliderTranslateY.value = constrainedY;
+
+      // Update font size continuously while dragging
+      const progress = 1 - constrainedY / SLIDER_HEIGHT;
+      const liveFontSize = Math.round(
+        MIN_FONT_SIZE + progress * (MAX_FONT_SIZE - MIN_FONT_SIZE),
+      );
+      if (updateFontSize) {
+        runOnJS(updateFontSize)(liveFontSize);
+      }
     })
     .onEnd(() => {
       // Calculate final font size based on slider position
-      const sliderHeight = 200;
-      // Convert from negative range (-200 to 0) to positive range (0 to 1)
-      const progress = Math.abs(sliderTranslateY.value) / sliderHeight;
-      const fontSize = Math.round(12 + progress * (72 - 12));
+      const progress = 1 - sliderTranslateY.value / SLIDER_HEIGHT;
+      const fontSize = Math.round(
+        MIN_FONT_SIZE + progress * (MAX_FONT_SIZE - MIN_FONT_SIZE),
+      );
 
       console.log('Slider gesture ended:', {
         sliderTranslateY: sliderTranslateY.value,
@@ -456,19 +493,9 @@ const EditorScreen: React.FC = () => {
     };
   });
 
-  const sliderThumbStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: sliderTranslateY.value }],
-    };
-  });
-
-  const sliderTrackFillStyle = useAnimatedStyle(() => {
-    const sliderHeight = 200;
-    const progress = Math.abs(sliderTranslateY.value) / sliderHeight;
-    return {
-      height: `${progress * 100}%`,
-    };
-  });
+  const sliderThumbStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sliderTranslateY.value - 10 }],
+  }));
 
 
   // Safety check for currentSlide
@@ -657,23 +684,14 @@ const EditorScreen: React.FC = () => {
       <View style={styles.fontSizeSlider}>
         <GestureDetector gesture={sliderGesture}>
           <View style={styles.sliderTrack}>
-            <View style={styles.sliderTrackBackground} />
-            <Animated.View
-              style={[styles.sliderTrackFill, sliderTrackFillStyle]}
-            />
             <Animated.View
               style={[
                 styles.sliderThumb,
                 sliderThumbStyle,
-                {
-                  top: `${((currentSlide.fontSize - 12) / (72 - 12)) * 100}%`,
-                },
-                styles.sliderThumbPosition,
               ]}
             />
           </View>
         </GestureDetector>
-        <Text style={styles.fontSizeLabel}>{currentSlide.fontSize}</Text>
       </View>
 
       {/* Minimalistic bottom controls */}
@@ -910,30 +928,14 @@ const styles = StyleSheet.create({
   },
   sliderTrack: {
     width: 6,
-    height: 200,
+    height: SLIDER_HEIGHT,
     backgroundColor: 'rgba(255,255,255,0.3)',
     borderRadius: 3,
     position: 'relative',
   },
-  sliderTrackBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 3,
-  },
-  sliderTrackFill: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 3,
-  },
   sliderThumb: {
     position: 'absolute',
+    top: 0,
     width: 20,
     height: 20,
     backgroundColor: '#FFFFFF',
@@ -944,19 +946,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
     left: -7,
-  },
-  fontSizeLabel: {
-    position: 'absolute',
-    bottom: -30,
-    left: -10,
-    right: -10,
-    textAlign: 'center',
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: 'bold',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 10,
-    paddingVertical: 2,
   },
 
   // Minimalistic bottom controls
@@ -1096,10 +1085,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: '#fff',
     textAlign: 'center',
-  },
-  sliderThumbPosition: {
-    top: '50%',
-    marginTop: -10,
   },
 });
 
