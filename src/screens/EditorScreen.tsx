@@ -527,12 +527,52 @@ const EditorScreen: React.FC = () => {
     FeedbackService.buttonTap();
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
-      const slide = newSlides[currentSlideIndex];
+      const existingSlide = newSlides[currentSlideIndex];
+      if (!existingSlide) {
+        return prevSlides;
+      }
+
+      const slide = { ...existingSlide };
       slide.textAlign = align;
+
+      const fontSize = slide.fontSize;
+      const textLength = slide.text.length;
+      const textPadding = 20;
+      const charsPerLine = Math.max(
+        1,
+        Math.floor((slideSize * 0.9) / (fontSize * 0.6)),
+      );
+      const numberOfLines = Math.ceil(textLength / charsPerLine);
+      const estimatedTextWidth = Math.min(
+        slideSize * 0.9,
+        textLength < charsPerLine
+          ? textLength * fontSize * 0.6
+          : slideSize * 0.9,
+      );
+      const estimatedTextHeight = numberOfLines * fontSize * 1.2 + textPadding;
+
+      let newX = slide.position.x;
+      if (align === 'left') {
+        newX = 0;
+      } else if (align === 'center') {
+        newX = Math.max(0, (slideSize - estimatedTextWidth) / 2);
+      } else {
+        newX = Math.max(0, slideSize - estimatedTextWidth);
+      }
+
+      const maxY = Math.max(0, slideSize - estimatedTextHeight);
+      const newY = Math.max(0, Math.min(maxY, slide.position.y));
+
+      slide.position = { x: newX, y: newY };
       newSlides[currentSlideIndex] = slide;
+
+      translateX.value = withSpring(newX);
+      translateY.value = withSpring(newY);
+
       addToHistory(newSlides);
       return newSlides;
     });
+    setHasUnsavedChanges(true);
   };
 
   const handleTextColorChange = (color: string) => {
@@ -644,6 +684,25 @@ const EditorScreen: React.FC = () => {
               </Text>
             </Animated.View>
           </GestureDetector>
+
+          {/* Vertical font size slider on the left */}
+          <View
+            style={[
+              styles.fontSizeSlider,
+              { top: Math.max(10, (slideSize - SLIDER_HEIGHT) / 2) },
+            ]}
+          >
+            <GestureDetector gesture={sliderGesture}>
+              <View style={styles.sliderTrack}>
+                <Animated.View
+                  style={[
+                    styles.sliderThumb,
+                    sliderThumbStyle,
+                  ]}
+                />
+              </View>
+            </GestureDetector>
+          </View>
         </View>
       </View>
 
@@ -679,20 +738,6 @@ const EditorScreen: React.FC = () => {
       >
         <Text style={styles.navArrowText}>›</Text>
       </TouchableOpacity>
-
-      {/* Vertical font size slider on the left */}
-      <View style={styles.fontSizeSlider}>
-        <GestureDetector gesture={sliderGesture}>
-          <View style={styles.sliderTrack}>
-            <Animated.View
-              style={[
-                styles.sliderThumb,
-                sliderThumbStyle,
-              ]}
-            />
-          </View>
-        </GestureDetector>
-      </View>
 
       {/* Minimalistic bottom controls */}
       <View style={styles.minimalControls}>
@@ -891,6 +936,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.2)',
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
+    zIndex: 10,
   },
   navArrowRight: {
     position: 'absolute',
@@ -904,6 +950,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.2)',
     borderTopLeftRadius: 30,
     borderBottomLeftRadius: 30,
+    zIndex: 10,
   },
   navArrowDisabled: {
     opacity: 0.3,
@@ -916,15 +963,14 @@ const styles = StyleSheet.create({
   // Vertical font size slider
   fontSizeSlider: {
     position: 'absolute',
-    left: 20,
-    top: '50%',
-    marginTop: -100,
+    left: 10,
     width: 50, // Increased width for better touch target
-    height: 200,
+    height: SLIDER_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.1)', // Add subtle background for better visibility
     borderRadius: 25,
+    zIndex: 5,
   },
   sliderTrack: {
     width: 6,
