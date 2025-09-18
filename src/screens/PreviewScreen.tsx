@@ -46,8 +46,14 @@ const PreviewScreen: React.FC = () => {
   const [isProUser, setIsProUser] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
   const slideRefs = useRef<View[]>([]);
-  const { width: screenWidth } = Dimensions.get('window');
-  const slideSize = Math.min(screenWidth - 40, 350);
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const slideSize = Math.min(screenWidth * 0.99, screenWidth - 10); // Use 99% of screen width
+  
+  // Calculate available height for image container
+  const headerHeight = Math.max(insets.top, 20) + 60; // Safe area + title height
+  const exportButtonHeight = 100; // Height for export button + margins
+  const availableHeight = screenHeight - headerHeight - exportButtonHeight;
+  const imageContainerHeight = availableHeight; // Use available height without minimum constraint
 
   useEffect(() => {
     IAPService.isPro().then(setIsProUser);
@@ -120,7 +126,7 @@ const PreviewScreen: React.FC = () => {
       ref={(ref) => {
         if (ref) slideRefs.current[index] = ref;
       }}
-      style={[styles.slideContainer, { width: slideSize, height: slideSize }]}>
+      style={[styles.slideContainer, { width: slideSize, height: imageContainerHeight }]}>
       {item.image ? (
         <Image
           source={{ uri: item.image }}
@@ -190,7 +196,7 @@ const PreviewScreen: React.FC = () => {
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
             decelerationRate="fast"
-            snapToInterval={300}
+            snapToInterval={slideSize + 20}
           />
         ) : (
           <View style={styles.emptyContainer}>

@@ -96,8 +96,14 @@ const EditorScreen: React.FC = () => {
   const isRestoringFromHistory = useRef(false);
 
   const currentSlide = slides[currentSlideIndex];
-  const { width: screenWidth } = Dimensions.get('window');
-  const slideSize = Math.min(screenWidth - 40, 350);
+  const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+  const slideSize = Math.min(screenWidth * 0.99, screenWidth - 10); // Use 99% of screen width
+  
+  // Calculate available height for image container
+  const headerHeight = Math.max(insets.top, 20) + 60; // Safe area + title height
+  const previewButtonHeight = 80; // Height for preview button + margins
+  const availableHeight = screenHeight - headerHeight - previewButtonHeight;
+  const imageContainerHeight = availableHeight; // Use available height without minimum constraint
 
   // Animated values for drag and drop (must be declared at the top level)
   const translateX = useSharedValue(currentSlide?.position?.x || 50);
@@ -345,7 +351,7 @@ const EditorScreen: React.FC = () => {
         return newSlides;
       });
     },
-    [currentSlideIndex, addToHistory, currentFontSize],
+    [currentSlideIndex, addToHistory, currentFontSize, sliderTranslateY],
   );
 
   const panGesture = Gesture.Pan()
@@ -382,7 +388,7 @@ const EditorScreen: React.FC = () => {
       const minX = 0;
       const minY = 0;
       const maxX = Math.max(0, slideSize - estimatedTextWidth);
-      const maxY = Math.max(0, slideSize - estimatedTextHeight);
+      const maxY = Math.max(0, imageContainerHeight - estimatedTextHeight);
 
       // Apply constraints to keep text fully within bounds
       const constrainedX = Math.max(minX, Math.min(maxX, newX));
@@ -553,7 +559,7 @@ const EditorScreen: React.FC = () => {
         newX = Math.max(0, slideSize - estimatedTextWidth);
       }
 
-      const maxY = Math.max(0, slideSize - estimatedTextHeight);
+      const maxY = Math.max(0, imageContainerHeight - estimatedTextHeight);
       const newY = Math.max(0, Math.min(maxY, slide.position.y));
 
       slide.position = { x: newX, y: newY };
@@ -617,7 +623,6 @@ const EditorScreen: React.FC = () => {
       style={[
         styles.container,
         {
-          paddingTop: Math.max(insets.top, 20),
           backgroundColor: themeDefinition.colors.background,
         },
       ]}
@@ -625,7 +630,7 @@ const EditorScreen: React.FC = () => {
       {/* Slide preview area */}
       <View style={styles.editorContainer}>
         <View
-          style={[styles.slidePreview, { width: slideSize, height: slideSize }]}
+          style={[styles.slidePreview, { width: slideSize, height: imageContainerHeight }]}
         >
           {currentSlide.image ? (
             <Image
@@ -669,7 +674,7 @@ const EditorScreen: React.FC = () => {
           <View
             style={[
               styles.fontSizeSlider,
-              { top: Math.max(10, (slideSize - SLIDER_HEIGHT) / 2) },
+              { top: Math.max(10, (imageContainerHeight - SLIDER_HEIGHT) / 2) },
             ]}
           >
             <GestureDetector gesture={sliderGesture}>
@@ -720,7 +725,7 @@ const EditorScreen: React.FC = () => {
       </TouchableOpacity>
 
       {/* Minimalistic bottom controls */}
-      <View style={styles.minimalControls}>
+      <View style={[styles.minimalControls, { top: imageContainerHeight - 60 }]}>
         {!isColorPaletteVisible ? (
           <>
             {/* Text alignment controls */}
@@ -850,22 +855,22 @@ const EditorScreen: React.FC = () => {
         ) : (
           <View style={styles.colorPaletteContainer}>
             {['#FFFFFF', '#000000', '#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#FF00FF', '#FFA500', '#8A2BE2', '#FFD700'].map(
-              color => (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    {
-                      backgroundColor: color,
-                      borderColor:
-                        currentSlide.color === color
-                          ? '#FFFFFF'
-                          : 'rgba(255,255,255,0.3)',
-                    },
-                  ]}
-                  onPress={() => handleTextColorChange(color)}
-                />
-              ),
+              color => {
+                const borderColor = currentSlide.color === color ? '#FFFFFF' : 'rgba(255,255,255,0.3)';
+                return (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.colorOption,
+                      {
+                        backgroundColor: color,
+                        borderColor,
+                      },
+                    ]}
+                    onPress={() => handleTextColorChange(color)}
+                  />
+                );
+              },
             )}
           </View>
         )}
