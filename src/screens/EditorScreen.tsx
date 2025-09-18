@@ -992,7 +992,7 @@ const styles = StyleSheet.create({
   // Minimalistic bottom controls
   minimalControls: {
     position: 'absolute',
-    top: 370, // Position right under the slide preview (350 + 20)
+    top: 360, // Position right under the slide preview (350 + 20)
     left: 0,
     right: 0,
     flexDirection: 'row',
