@@ -633,7 +633,7 @@ const EditorScreen: React.FC = () => {
             <Image
               source={{ uri: currentSlide.image }}
               style={styles.imageBackground}
-              resizeMode="cover"
+              resizeMode="contain"
             />
           ) : (
             <View style={styles.plainBackground} />

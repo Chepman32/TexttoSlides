@@ -84,22 +84,6 @@ const PreviewScreen: React.FC = () => {
         FeedbackService.success();
         ExportService.showExportSuccess(result.savedPaths.length);
 
-        // Show upgrade prompt for free users
-        if (!isProUser && result.savedPaths.length > 0) {
-          setTimeout(() => {
-            Alert.alert(
-              'Upgrade to Pro',
-              'Remove watermarks and unlock all features',
-              [
-                { text: 'Later', style: 'cancel' },
-                {
-                  text: 'Upgrade Now',
-                  onPress: () => navigation.navigate('Upgrade' as any)
-                }
-              ]
-            );
-          }, 1000);
-        }
       } else {
         FeedbackService.error();
         Alert.alert(
@@ -131,7 +115,7 @@ const PreviewScreen: React.FC = () => {
         <Image
           source={{ uri: item.image }}
           style={styles.imageBackground}
-          resizeMode="cover"
+          resizeMode="contain"
         />
       ) : (
         <View style={[styles.plainBackground, { backgroundColor: themeDefinition.colors.card }]} />
