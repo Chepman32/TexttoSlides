@@ -87,6 +87,62 @@ class ExportService {
     return true;
   }
 
+  private async measureViewSize(
+    viewRef: React.RefObject<any>
+  ): Promise<{ width: number; height: number } | null> {
+    const view = viewRef?.current;
+
+    if (!view || typeof view.measure !== 'function') {
+      return null;
+    }
+
+    return new Promise((resolve) => {
+      const resolveWith = (value: { width: number; height: number } | null) => {
+        resolve(value);
+      };
+
+      setTimeout(() => {
+        try {
+          view.measure(
+            (
+              _x: number,
+              _y: number,
+              width: number,
+              height: number
+            ) => {
+              if (width > 0 && height > 0) {
+                resolveWith({ width, height });
+                return;
+              }
+
+              if (typeof view.measureInWindow === 'function') {
+                view.measureInWindow(
+                  (
+                    __x: number,
+                    __y: number,
+                    winWidth: number,
+                    winHeight: number
+                  ) => {
+                    if (winWidth > 0 && winHeight > 0) {
+                      resolveWith({ width: winWidth, height: winHeight });
+                    } else {
+                      resolveWith(null);
+                    }
+                  }
+                );
+              } else {
+                resolveWith(null);
+              }
+            }
+          );
+        } catch (error) {
+          console.warn('Unable to measure view for export:', error);
+          resolveWith(null);
+        }
+      }, 0);
+    });
+  }
+
   private async addWatermarkToImage(
     imagePath: string,
     watermarkText: string = 'Text to Slides',
@@ -161,13 +217,37 @@ class ExportService {
         }
 
         try {
-          // Capture the view
-          const uri = await captureRef(viewRef, {
+          const measuredSize = await this.measureViewSize(viewRef);
+          const captureOptions: Parameters<typeof captureRef>[1] = {
             format,
-            quality,
-            width: resolution,
-            height: resolution,
-          });
+            result: 'tmpfile',
+          };
+
+          if (format === 'jpg') {
+            captureOptions.quality = quality;
+          }
+
+          if (measuredSize && measuredSize.width > 0 && measuredSize.height > 0) {
+            const aspectRatio = measuredSize.width / measuredSize.height;
+            let targetWidth = measuredSize.width;
+            let targetHeight = measuredSize.height;
+
+            if (resolution && resolution > 0) {
+              if (aspectRatio >= 1) {
+                targetWidth = resolution;
+                targetHeight = resolution / (aspectRatio || 1);
+              } else {
+                targetHeight = resolution;
+                targetWidth = resolution * aspectRatio;
+              }
+            }
+
+            captureOptions.width = Math.max(1, Math.round(targetWidth));
+            captureOptions.height = Math.max(1, Math.round(targetHeight));
+          }
+
+          // Capture the view
+          const uri = await captureRef(viewRef, captureOptions);
 
           // Add watermark if not Pro user
           let finalUri = uri;

@@ -397,6 +397,19 @@ export const getOptimalSlideCount = (text: string): number => {
  */
 export const estimateSlideCount = (text: string, charsPerSlide: number = 200): number => {
   const cleanText = text.replace(/\s+/g, ' ').trim();
+
+  if (!cleanText) {
+    return 1;
+  }
+
+  const optimized = optimizeForSlides(cleanText);
+  const targetSlides = getOptimalSlideCount(optimized);
+  const chunks = smartSplit(optimized, targetSlides);
+
+  if (chunks.length > 0) {
+    return chunks.length;
+  }
+
   return Math.max(1, Math.ceil(cleanText.length / charsPerSlide));
 };
 
