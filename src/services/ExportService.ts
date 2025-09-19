@@ -372,20 +372,7 @@ class ExportService {
   }
 
   public showUpgradePrompt() {
-    Alert.alert(
-      'Upgrade to Pro',
-      'Remove watermarks and unlock all features with Pro version',
-      [
-        { text: 'Later', style: 'cancel' },
-        {
-          text: 'Upgrade Now',
-          onPress: () => {
-            // Navigate to upgrade screen
-            // This should be handled by the component using this service
-          }
-        }
-      ]
-    );
+    console.log("Upgrade prompt");
   }
 }
 

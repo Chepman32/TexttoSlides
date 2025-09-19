@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Switch,
   ScrollView,
   Alert,
   Modal,
@@ -64,15 +63,6 @@ const SettingsScreen: React.FC = () => {
     FeedbackService.success();
   };
 
-  const handleSoundToggle = (enabled: boolean) => {
-    FeedbackService.toggle();
-    updatePreferences({ soundEnabled: enabled });
-  };
-
-  const handleHapticsToggle = (enabled: boolean) => {
-    FeedbackService.toggle();
-    updatePreferences({ hapticsEnabled: enabled });
-  };
 
   const handleUpgrade = () => {
     navigation.navigate('Upgrade');
@@ -133,30 +123,6 @@ const SettingsScreen: React.FC = () => {
             {currentLanguageName} ›
           </Text>
         </TouchableOpacity>
-      </View>
-      
-      {/* Sound and Haptics */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: themeDefinition.colors.text }]}>Feedback</Text>
-        <View style={[styles.settingRow, { borderBottomColor: themeDefinition.colors.border }]}>
-          <Text style={[styles.settingLabel, { color: themeDefinition.colors.text }]}>{t('settings_sound')}</Text>
-          <Switch
-            value={preferences.soundEnabled}
-            onValueChange={handleSoundToggle}
-            trackColor={{ false: '#767577', true: themeDefinition.colors.primary }}
-            thumbColor={preferences.soundEnabled ? '#fff' : '#f4f3f4'}
-          />
-        </View>
-
-        <View style={[styles.settingRow, { borderBottomColor: themeDefinition.colors.border }]}>
-          <Text style={[styles.settingLabel, { color: themeDefinition.colors.text }]}>{t('settings_haptics')}</Text>
-          <Switch
-            value={preferences.hapticsEnabled}
-            onValueChange={handleHapticsToggle}
-            trackColor={{ false: '#767577', true: themeDefinition.colors.primary }}
-            thumbColor={preferences.hapticsEnabled ? '#fff' : '#f4f3f4'}
-          />
-        </View>
       </View>
       
       {/* Upgrade Section */}

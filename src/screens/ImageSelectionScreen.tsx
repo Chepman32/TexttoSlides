@@ -8,14 +8,13 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import ImageService from '../services/ImageService';
 import StorageService from '../services/StorageService';
 import FeedbackService from '../services/FeedbackService';
 import { smartSplit, getOptimalSlideCount, optimizeForSlides } from '../utils/textUtils';
-import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 
 type RootStackParamList = {
@@ -32,7 +31,6 @@ const ImageSelectionScreen: React.FC = () => {
   const navigation = useNavigation<ImageSelectionNavigationProp>();
   const { text } = route.params;
   const insets = useSafeAreaInsets();
-  const { themeDefinition } = useTheme();
   const { t } = useLanguage();
   
   // Initialize selectedImages array with empty slots for each slide
@@ -74,12 +72,12 @@ const ImageSelectionScreen: React.FC = () => {
         const restoredImages = Array.from({ length: requiredImages }, (_, idx) => {
           const savedSlide = savedProject.slides?.[idx];
           if (!savedSlide) {
-            return undefined;
+            return '';
           }
           return savedSlide.image ?? '';
         });
 
-        if (restoredImages.some(image => image !== undefined)) {
+        if (restoredImages.some(image => image !== '')) {
           hasRestoredImages.current = true;
           setSelectedImages(restoredImages);
         }
@@ -131,7 +129,7 @@ const ImageSelectionScreen: React.FC = () => {
     } catch (error) {
       console.error('Error selecting image:', error);
       FeedbackService.error();
-      Alert.alert('Error', 'Failed to select image. Please try again.');
+      Alert.alert(t('image_selection_error_title'), t('image_selection_error_select_failed'));
     }
   };
 
@@ -146,12 +144,12 @@ const ImageSelectionScreen: React.FC = () => {
   const handleContinue = () => {
     FeedbackService.buttonTap();
 
-    // Count how many images have been selected (not undefined)
-    const selectedCount = selectedImages.filter(img => img !== undefined).length;
+    // Count how many images have been selected (not empty)
+    const selectedCount = selectedImages.filter(img => img !== '').length;
 
     if (selectedCount < requiredImages) {
       FeedbackService.error();
-      Alert.alert('Error', `Please select ${requiredImages} images for your slides (${selectedCount}/${requiredImages} selected)`);
+      Alert.alert(t('image_selection_error_title'), t('image_selection_error', { count: requiredImages }));
       return;
     }
     
@@ -163,13 +161,13 @@ const ImageSelectionScreen: React.FC = () => {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Text style={styles.subtitle}>
-        Choose background images for your {requiredImages} slide{requiredImages > 1 ? 's' : ''}
+        {t('image_selection_subtitle', { count: requiredImages, plural: requiredImages > 1 ? 's' : '' })}
       </Text>
       
       <ScrollView style={styles.content}>
         {slides.map((slideText, index) => (
           <View key={index} style={styles.slideContainer}>
-            <Text style={styles.slideTitle}>Slide {index + 1}</Text>
+            <Text style={styles.slideTitle}>{t('image_selection_slide', { number: index + 1 })}</Text>
             <Text style={styles.slidePreview} numberOfLines={3}>
               {slideText}
             </Text>
@@ -178,17 +176,17 @@ const ImageSelectionScreen: React.FC = () => {
               <TouchableOpacity
                 style={styles.imageButton}
                 onPress={() => handleSelectImage(index)}>
-                <Text style={styles.imageButtonText}>Select Image</Text>
+                <Text style={styles.imageButtonText}>{t('image_selection_select_image')}</Text>
               </TouchableOpacity>
               
               <TouchableOpacity
                 style={[styles.imageButton, styles.plainButton]}
                 onPress={() => handleUsePlainBackground(index)}>
-                <Text style={styles.imageButtonText}>Plain Background</Text>
+                <Text style={styles.imageButtonText}>{t('image_selection_plain_background')}</Text>
               </TouchableOpacity>
             </View>
             
-            {selectedImages[index] !== undefined ? (
+            {selectedImages[index] !== '' ? (
               <View style={styles.imagePreview}>
                 {selectedImages[index] !== '' ? (
                   <Image
@@ -198,13 +196,13 @@ const ImageSelectionScreen: React.FC = () => {
                   />
                 ) : (
                   <View style={styles.plainBackgroundPreview}>
-                    <Text style={styles.plainBackgroundText}>Plain Background</Text>
+                    <Text style={styles.plainBackgroundText}>{t('image_selection_plain_background')}</Text>
                   </View>
                 )}
               </View>
             ) : (
               <View style={styles.emptyImagePreview}>
-                <Text style={styles.emptyImageText}>No image selected</Text>
+                <Text style={styles.emptyImageText}>{t('image_selection_no_image')}</Text>
               </View>
             )}
           </View>
@@ -214,11 +212,11 @@ const ImageSelectionScreen: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.continueButton,
-          selectedImages.filter(img => img !== undefined).length === requiredImages && styles.continueButtonEnabled
+          selectedImages.filter(img => img !== '').length === requiredImages && styles.continueButtonEnabled
         ]}
         onPress={handleContinue}
-        disabled={selectedImages.filter(img => img !== undefined).length !== requiredImages}>
-        <Text style={styles.continueButtonText}>Continue to Editor</Text>
+        disabled={selectedImages.filter(img => img !== '').length !== requiredImages}>
+        <Text style={styles.continueButtonText}>{t('image_selection_continue')}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -230,22 +228,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 20,
+    fontWeight: 'bold',
     color: '#666',
     marginBottom: 20,
-    marginHorizontal: 20,
-    marginTop: 20,
     textAlign: 'center',
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
+    paddingHorizontal: 8,
   },
   slideContainer: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 15,
+    padding: 8,
     marginBottom: 15,
   },
   slideTitle: {
@@ -329,7 +326,7 @@ const styles = StyleSheet.create({
   continueButton: {
     backgroundColor: '#ccc',
     padding: 15,
-    margin: 20,
+    margin: 8,
     borderRadius: 8,
     alignItems: 'center',
   },

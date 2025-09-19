@@ -13,7 +13,7 @@ import Animated, {
 import StorageService, { ProjectState } from '../services/StorageService';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import { smartSplit, optimizeForSlides } from '../utils/textUtils';
+import { smartSplit, optimizeForSlides, getOptimalSlideCount } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
 
 const SLIDER_HEIGHT = 200;
@@ -53,9 +53,10 @@ const EditorScreen: React.FC = () => {
   const projectId = useRef<string>(`project_${Date.now()}`);
   const isRestoringFromStorage = useRef(false);
 
-  // Optimize text and split using advanced algorithms
+  // Optimize text and split using the same algorithm as ImageSelectionScreen
   const optimizedText = optimizeForSlides(text);
-  const textSlides = smartSplit(optimizedText, 3); // Default to 3 slides
+  const optimalSlideCount = getOptimalSlideCount(optimizedText);
+  const textSlides = smartSplit(optimizedText, optimalSlideCount);
 
   // Create slides with enhanced properties
   const initialSlides: Slide[] =
@@ -460,12 +461,6 @@ const EditorScreen: React.FC = () => {
         MIN_FONT_SIZE + progress * (MAX_FONT_SIZE - MIN_FONT_SIZE),
       );
 
-      console.log('Slider gesture ended:', {
-        sliderTranslateY: sliderTranslateY.value,
-        progress,
-        fontSize,
-      });
-
       // Update font size only when gesture ends
       if (updateFontSize) {
         runOnJS(updateFontSize)(fontSize);
@@ -474,7 +469,8 @@ const EditorScreen: React.FC = () => {
       // Snap to final position
       sliderTranslateY.value = withSpring(sliderTranslateY.value);
     })
-    .runOnJS(true);
+    .runOnJS(true)
+    .shouldCancelWhenOutside(false);
 
   // Compose all gestures
   const composed = Gesture.Simultaneous(
@@ -494,7 +490,7 @@ const EditorScreen: React.FC = () => {
   });
 
   const sliderThumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: sliderTranslateY.value - 10 }],
+    transform: [{ translateY: sliderTranslateY.value - 12 }], // Adjusted for larger thumb
   }));
 
 
@@ -672,13 +668,13 @@ const EditorScreen: React.FC = () => {
           </GestureDetector>
 
           {/* Vertical font size slider on the left */}
-          <View
-            style={[
-              styles.fontSizeSlider,
-              { top: Math.max(10, (imageContainerHeight - SLIDER_HEIGHT) / 2) },
-            ]}
-          >
-            <GestureDetector gesture={sliderGesture}>
+          <GestureDetector gesture={sliderGesture}>
+            <View
+              style={[
+                styles.fontSizeSlider,
+                { top: Math.max(10, (imageContainerHeight - SLIDER_HEIGHT) / 2) },
+              ]}
+            >
               <View style={styles.sliderTrack}>
                 <Animated.View
                   style={[
@@ -687,43 +683,56 @@ const EditorScreen: React.FC = () => {
                   ]}
                 />
               </View>
-            </GestureDetector>
-          </View>
+            </View>
+          </GestureDetector>
         </View>
       </View>
 
-      {/* Navigation arrows overlayed on slide */}
-      <TouchableOpacity
-        style={[
-          styles.navArrowLeft,
-          currentSlideIndex === 0 && styles.navArrowDisabled,
-        ]}
-        onPress={() => {
-          if (currentSlideIndex > 0) {
-            FeedbackService.slideTransition();
-            setCurrentSlideIndex(currentSlideIndex - 1);
-          }
-        }}
-        disabled={currentSlideIndex === 0}
-      >
-        <Text style={styles.navArrowText}>‹</Text>
-      </TouchableOpacity>
+      {/* Slide indicator */}
+      {slides.length > 1 && (
+        <View style={styles.slideIndicator}>
+          <Text style={styles.slideIndicatorText}>
+            {currentSlideIndex + 1} / {slides.length}
+          </Text>
+        </View>
+      )}
 
-      <TouchableOpacity
-        style={[
-          styles.navArrowRight,
-          currentSlideIndex === slides.length - 1 && styles.navArrowDisabled,
-        ]}
-        onPress={() => {
-          if (currentSlideIndex < slides.length - 1) {
-            FeedbackService.slideTransition();
-            setCurrentSlideIndex(currentSlideIndex + 1);
-          }
-        }}
-        disabled={currentSlideIndex === slides.length - 1}
-      >
-        <Text style={styles.navArrowText}>›</Text>
-      </TouchableOpacity>
+      {/* Navigation arrows overlayed on slide */}
+      {slides.length > 1 && (
+        <>
+          <TouchableOpacity
+            style={[
+              styles.navArrowLeft,
+              currentSlideIndex === 0 && styles.navArrowDisabled,
+            ]}
+            onPress={() => {
+              if (currentSlideIndex > 0) {
+                FeedbackService.slideTransition();
+                setCurrentSlideIndex(currentSlideIndex - 1);
+              }
+            }}
+            disabled={currentSlideIndex === 0}
+          >
+            <Text style={styles.navArrowText}>‹</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.navArrowRight,
+              currentSlideIndex === slides.length - 1 && styles.navArrowDisabled,
+            ]}
+            onPress={() => {
+              if (currentSlideIndex < slides.length - 1) {
+                FeedbackService.slideTransition();
+                setCurrentSlideIndex(currentSlideIndex + 1);
+              }
+            }}
+            disabled={currentSlideIndex === slides.length - 1}
+          >
+            <Text style={styles.navArrowText}>›</Text>
+          </TouchableOpacity>
+        </>
+      )}
 
       {/* Minimalistic bottom controls */}
       <View style={[styles.minimalControls, { top: imageContainerHeight - 60 }]}>
@@ -953,38 +962,66 @@ const styles = StyleSheet.create({
   },
   navArrowLeft: {
     position: 'absolute',
-    left: 10,
+    left: 5,
     top: '50%',
     marginTop: -30,
-    width: 40,
+    width: 50,
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     borderTopRightRadius: 30,
     borderBottomRightRadius: 30,
-    zIndex: 10,
+    zIndex: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
   },
   navArrowRight: {
     position: 'absolute',
-    right: 10,
+    right: 5,
     top: '50%',
     marginTop: -30,
-    width: 40,
+    width: 50,
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.7)',
     borderTopLeftRadius: 30,
     borderBottomLeftRadius: 30,
-    zIndex: 10,
+    zIndex: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
   },
   navArrowDisabled: {
     opacity: 0.3,
   },
   navArrowText: {
-    fontSize: 30,
+    fontSize: 32,
     color: '#fff',
+    fontWeight: 'bold',
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  slideIndicator: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+    zIndex: 20,
+  },
+  slideIndicatorText: {
+    color: '#fff',
+    fontSize: 14,
     fontWeight: 'bold',
   },
   // Vertical font size slider
@@ -1000,25 +1037,25 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   sliderTrack: {
-    width: 6,
+    width: 8, // Increased width for better visibility
     height: SLIDER_HEIGHT,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.4)', // Slightly more visible
+    borderRadius: 4,
     position: 'relative',
   },
   sliderThumb: {
     position: 'absolute',
     top: 0,
-    width: 20,
-    height: 20,
+    width: 24, // Slightly larger for better touch target
+    height: 24,
     backgroundColor: '#FFFFFF',
-    borderRadius: 10,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    left: -7,
+    left: -8, // Adjusted for wider track
   },
 
   // Minimalistic bottom controls
