@@ -3,6 +3,9 @@
  * Provides predefined text layout templates and auto-layout functionality
  */
 
+import { DEFAULT_SLIDE_FONT_ID } from '../constants/fonts';
+import type { SlideFontId } from '../constants/fonts';
+
 export interface TextTemplate {
   id: string;
   name: string;
@@ -13,6 +16,8 @@ export interface TextTemplate {
   backgroundColor: string;
   textAlign: 'left' | 'center' | 'right';
   fontWeight: 'normal' | 'bold';
+  fontFamily?: string;
+  fontId?: SlideFontId;
   maxChars?: number;
   lineHeight?: number;
   padding?: number;
@@ -49,6 +54,8 @@ class TemplateService {
       backgroundColor: 'rgba(0,0,0,0.6)',
       textAlign: 'center',
       fontWeight: 'bold',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
       maxChars: 100,
       lineHeight: 1.2,
       padding: 20,
@@ -63,6 +70,8 @@ class TemplateService {
       backgroundColor: 'rgba(0,0,0,0.5)',
       textAlign: 'center',
       fontWeight: 'bold',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
       maxChars: 200,
       lineHeight: 1.3,
       padding: 15,
@@ -77,6 +86,8 @@ class TemplateService {
       backgroundColor: 'rgba(0,0,0,0.4)',
       textAlign: 'left',
       fontWeight: 'bold',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
       maxChars: 150,
       lineHeight: 1.3,
       padding: 12,
@@ -91,6 +102,8 @@ class TemplateService {
       backgroundColor: 'rgba(0,0,0,0.5)',
       textAlign: 'right',
       fontWeight: 'bold',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
       maxChars: 120,
       lineHeight: 1.2,
       padding: 10,
@@ -105,6 +118,8 @@ class TemplateService {
       backgroundColor: 'rgba(0,0,0,0.3)',
       textAlign: 'center',
       fontWeight: 'normal',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
       maxChars: 180,
       lineHeight: 1.4,
       padding: 25,
@@ -119,6 +134,8 @@ class TemplateService {
       backgroundColor: 'rgba(255,255,255,0.8)',
       textAlign: 'center',
       fontWeight: 'normal',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
       maxChars: 80,
       lineHeight: 1.3,
       padding: 20,
@@ -163,6 +180,8 @@ class TemplateService {
       backgroundColor: template.backgroundColor,
       textAlign: template.textAlign,
       fontWeight: template.fontWeight,
+      fontFamily: template.fontFamily,
+      fontId: template.fontId ?? DEFAULT_SLIDE_FONT_ID,
     };
   }
 
@@ -212,6 +231,8 @@ class TemplateService {
       backgroundColor,
       textAlign,
       fontWeight: 'bold',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
     };
   }
 
@@ -226,6 +247,8 @@ class TemplateService {
       backgroundColor: 'rgba(0,0,0,0.5)',
       textAlign: 'center',
       fontWeight: 'bold',
+      fontFamily: undefined,
+      fontId: DEFAULT_SLIDE_FONT_ID,
     };
   }
 

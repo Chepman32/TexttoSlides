@@ -1,5 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  ScrollView,
+  Platform,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -15,6 +24,16 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { smartSplit, optimizeForSlides, getOptimalSlideCount } from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
+import {
+  SLIDE_FONT_OPTIONS,
+  DEFAULT_SLIDE_FONT_ID,
+  SlideFontId,
+  SlideFontOption,
+  getSlideFontByFamily,
+  getSlideFontById,
+  resolveFontFamilyForPlatform,
+  LEGACY_SYSTEM_FONT_ID,
+} from '../constants/fonts';
 
 const SLIDER_HEIGHT = 200;
 const MIN_FONT_SIZE = 12;
@@ -40,6 +59,8 @@ type Slide = {
   backgroundColor: string;
   textAlign: 'left' | 'center' | 'right';
   fontWeight: 'normal' | 'bold';
+  fontFamily?: string;
+  fontId?: SlideFontId;
 };
 
 const EditorScreen: React.FC = () => {
@@ -71,6 +92,8 @@ const EditorScreen: React.FC = () => {
           backgroundColor: 'rgba(0,0,0,0.5)',
           textAlign: 'center',
           fontWeight: 'bold',
+          fontFamily: undefined,
+          fontId: DEFAULT_SLIDE_FONT_ID,
         }))
       : [
           {
@@ -83,6 +106,8 @@ const EditorScreen: React.FC = () => {
             backgroundColor: 'rgba(0,0,0,0.5)',
             textAlign: 'center',
             fontWeight: 'bold',
+            fontFamily: undefined,
+            fontId: DEFAULT_SLIDE_FONT_ID,
           },
         ];
 
@@ -91,6 +116,7 @@ const EditorScreen: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isColorPaletteVisible, setColorPaletteVisible] = useState(false);
   const [isOpacityPaletteVisible, setOpacityPaletteVisible] = useState(false);
+  const [isFontPaletteVisible, setFontPaletteVisible] = useState(false);
 
   // Undo/Redo history management
   const [, setHistory] = useState<Slide[][]>([initialSlides]);
@@ -101,12 +127,28 @@ const EditorScreen: React.FC = () => {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth * 0.99, screenWidth - 10); // Use 99% of screen width
 
-  const overlayPaddingHorizontal = Math.max(12, currentSlide?.fontSize * 0.5 || 0);
-  const overlayPaddingVertical = Math.max(8, currentSlide?.fontSize * 0.35 || 0);
+  const overlayPaddingHorizontal = Math.max(12, currentSlide?.fontSize * 0.55 || 0);
+  const overlayPaddingVertical = Math.max(16, currentSlide?.fontSize * 0.65 || 0);
   const overlayBorderRadius = Math.min(
     Math.max(12, currentSlide?.fontSize * 0.6 || 0),
     30,
   );
+
+  const platformKey =
+    Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
+
+  const normalizedFontId =
+    currentSlide?.fontId === LEGACY_SYSTEM_FONT_ID
+      ? DEFAULT_SLIDE_FONT_ID
+      : currentSlide?.fontId;
+
+  const activeFontOption = currentSlide
+    ? normalizedFontId
+      ? getSlideFontById(normalizedFontId)
+      : getSlideFontByFamily(currentSlide.fontFamily)
+    : getSlideFontById(DEFAULT_SLIDE_FONT_ID);
+  const activeFontId = activeFontOption.id;
+  const resolvedFontFamily = resolveFontFamilyForPlatform(activeFontOption, platformKey);
   
   // Calculate available height for image container
   const headerHeight = Math.max(insets.top, 20) + 60; // Safe area + title height
@@ -514,16 +556,22 @@ const EditorScreen: React.FC = () => {
   }
 
   const handleFontWeightChange = (newWeight: 'normal' | 'bold') => {
+    if (!activeFontOption?.supportsWeightToggle) {
+      return;
+    }
     FeedbackService.buttonTap();
     setSlides(prevSlides => {
       const newSlides = [...prevSlides];
       const slide = newSlides[currentSlideIndex];
-      slide.fontWeight = newWeight;
-      newSlides[currentSlideIndex] = slide;
+      if (!slide) {
+        return prevSlides;
+      }
+      const updatedSlide = { ...slide, fontWeight: newWeight };
+      newSlides[currentSlideIndex] = updatedSlide;
       addToHistory(newSlides);
-      setHasUnsavedChanges(true);
       return newSlides;
     });
+    setHasUnsavedChanges(true);
   };
 
   const handleTextAlignChange = (align: 'left' | 'center' | 'right') => {
@@ -588,6 +636,32 @@ const EditorScreen: React.FC = () => {
     setSlides(newSlides);
     addToHistory(newSlides);
     setColorPaletteVisible(false);
+    setFontPaletteVisible(false);
+  };
+
+  const handleFontChange = (fontOption: SlideFontOption) => {
+    FeedbackService.buttonTap();
+    setSlides(prevSlides => {
+      const newSlides = [...prevSlides];
+      const slide = newSlides[currentSlideIndex];
+      if (!slide) {
+        return prevSlides;
+      }
+      const nextFontFamily = resolveFontFamilyForPlatform(fontOption, platformKey);
+      const updatedSlide = {
+        ...slide,
+        fontId: fontOption.id,
+        fontFamily: nextFontFamily,
+        fontWeight: fontOption.supportsWeightToggle ? slide.fontWeight : 'normal',
+      };
+      newSlides[currentSlideIndex] = updatedSlide;
+      addToHistory(newSlides);
+      return newSlides;
+    });
+    setFontPaletteVisible(false);
+    setColorPaletteVisible(false);
+    setOpacityPaletteVisible(false);
+    setHasUnsavedChanges(true);
   };
 
   const handleBackgroundOpacityChange = (opacity: number) => {
@@ -600,6 +674,7 @@ const EditorScreen: React.FC = () => {
       addToHistory(newSlides);
       return newSlides;
     });
+    setFontPaletteVisible(false);
   };
 
   const handlePreview = async () => {
@@ -667,8 +742,11 @@ const EditorScreen: React.FC = () => {
                     fontSize: currentSlide.fontSize,
                     color: currentSlide.color,
                     textAlign: currentSlide.textAlign,
-                    fontWeight: currentSlide.fontWeight,
-                    lineHeight: currentSlide.fontSize * 1.2,
+                    fontWeight: activeFontOption?.supportsWeightToggle
+                      ? currentSlide.fontWeight
+                      : undefined,
+                    fontFamily: resolvedFontFamily,
+                    lineHeight: currentSlide.fontSize * 1.35,
                     // Add wrapping to prevent text from overflowing
                   },
                 ]}
@@ -747,7 +825,7 @@ const EditorScreen: React.FC = () => {
 
       {/* Minimalistic bottom controls */}
       <View style={[styles.minimalControls, { top: imageContainerHeight - 60 }]}>
-        {!isColorPaletteVisible && !isOpacityPaletteVisible ? (
+        {!isColorPaletteVisible && !isOpacityPaletteVisible && !isFontPaletteVisible ? (
           <>
             {/* Text alignment controls */}
             <View style={styles.alignmentControls}>
@@ -825,11 +903,29 @@ const EditorScreen: React.FC = () => {
                 FeedbackService.buttonTap();
                 setColorPaletteVisible(true);
                 setOpacityPaletteVisible(false); // Hide opacity palette if visible
+                setFontPaletteVisible(false);
               }}
             >
               <View
                 style={[styles.colorWheel, { backgroundColor: currentSlide.color }]}
               />
+            </TouchableOpacity>
+
+            {/* Font picker */}
+            <TouchableOpacity
+              style={[
+                styles.fontPickerButton,
+                isFontPaletteVisible && styles.activeFontPickerButton,
+              ]}
+              onPress={() => {
+                FeedbackService.buttonTap();
+                const willShow = !isFontPaletteVisible;
+                setFontPaletteVisible(willShow);
+                setColorPaletteVisible(false);
+                setOpacityPaletteVisible(false);
+              }}
+            >
+              <Text style={styles.fontPickerIcon}>Aa</Text>
             </TouchableOpacity>
 
             {/* Font weight toggle */}
@@ -838,6 +934,8 @@ const EditorScreen: React.FC = () => {
                 styles.fontWeightButton,
                 currentSlide.fontWeight === 'bold' &&
                   styles.activeFontWeightButton,
+                !activeFontOption?.supportsWeightToggle &&
+                  styles.disabledFontWeightButton,
               ]}
               onPress={() => {
                 FeedbackService.buttonTap();
@@ -845,12 +943,15 @@ const EditorScreen: React.FC = () => {
                   currentSlide.fontWeight === 'bold' ? 'normal' : 'bold',
                 );
               }}
+              disabled={!activeFontOption?.supportsWeightToggle}
             >
               <Text
                 style={[
                   styles.fontWeightIcon,
                   currentSlide.fontWeight === 'bold' &&
                     styles.activeFontWeightIcon,
+                  !activeFontOption?.supportsWeightToggle &&
+                    styles.disabledFontWeightIcon,
                 ]}
               >
                 A
@@ -864,6 +965,7 @@ const EditorScreen: React.FC = () => {
                 FeedbackService.buttonTap();
                 setOpacityPaletteVisible(true);
                 setColorPaletteVisible(false); // Hide color palette if visible
+                setFontPaletteVisible(false);
               }}
             >
               <Text style={styles.opacityIcon}>◐</Text>
@@ -894,6 +996,38 @@ const EditorScreen: React.FC = () => {
                 );
               },
             )}
+          </ScrollView>
+        ) : isFontPaletteVisible ? (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.fontPaletteScrollContainer}
+            contentContainerStyle={styles.fontPaletteContainer}
+          >
+            {SLIDE_FONT_OPTIONS.map(option => {
+              const isActive = option.id === activeFontId;
+              const optionFontFamily = resolveFontFamilyForPlatform(option, platformKey);
+              return (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.fontOptionButton,
+                    isActive && styles.activeFontOption,
+                  ]}
+                  onPress={() => handleFontChange(option)}
+                >
+                  <Text
+                    style={[
+                      styles.fontOptionSample,
+                      optionFontFamily ? { fontFamily: optionFontFamily } : null,
+                    ]}
+                  >
+                    {option.sample || 'Aa'}
+                  </Text>
+                  <Text style={styles.fontOptionLabel}>{option.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         ) : (
           <View style={styles.opacityPaletteContainer}>
@@ -952,10 +1086,16 @@ const styles = StyleSheet.create({
   imageBackground: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
   },
   plainBackground: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
     backgroundColor: '#f9f9f9',
   },
   textOverlay: {
@@ -1129,6 +1269,27 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.8)',
   },
 
+  // Font picker button
+  fontPickerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+  },
+  activeFontPickerButton: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderColor: 'rgba(255,255,255,0.8)',
+  },
+  fontPickerIcon: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+
   // Font weight button
   fontWeightButton: {
     width: 44,
@@ -1144,6 +1305,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.3)',
     borderColor: 'rgba(255,255,255,0.8)',
   },
+  disabledFontWeightButton: {
+    opacity: 0.4,
+  },
   fontWeightIcon: {
     fontSize: 18,
     color: 'rgba(255,255,255,0.8)',
@@ -1152,6 +1316,9 @@ const styles = StyleSheet.create({
   activeFontWeightIcon: {
     color: '#FFFFFF',
     fontWeight: 'bold',
+  },
+  disabledFontWeightIcon: {
+    color: 'rgba(255,255,255,0.5)',
   },
 
   // Opacity button
@@ -1180,12 +1347,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
+  fontPaletteScrollContainer: {
+    maxWidth: '100%',
+  },
+  fontPaletteContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
   colorOption: {
     width: 32,
     height: 32,
     borderRadius: 16,
     borderWidth: 2,
     marginHorizontal: 4,
+  },
+  fontOptionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    marginHorizontal: 6,
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  activeFontOption: {
+    borderColor: '#FFFFFF',
+    backgroundColor: 'rgba(255,255,255,0.15)',
+  },
+  fontOptionSample: {
+    fontSize: 18,
+    color: '#FFFFFF',
+  },
+  fontOptionLabel: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    marginTop: 4,
   },
   opacityPaletteContainer: {
     flexDirection: 'row',

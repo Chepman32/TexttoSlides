@@ -13,6 +13,7 @@ import FeedbackService from '../services/FeedbackService';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import IAPService from '../services/IAPService';
+import type { SlideFontId } from '../constants/fonts';
 
 interface TestResult {
   name: string;
@@ -43,6 +44,8 @@ const TestScreen: React.FC = () => {
           backgroundColor: '#fff',
           textAlign: 'center' as const,
           fontWeight: 'normal' as const,
+          fontFamily: undefined,
+          fontId: 'fira_sans_regular' as SlideFontId,
         }],
         images: [],
         lastModified: new Date().toISOString(),

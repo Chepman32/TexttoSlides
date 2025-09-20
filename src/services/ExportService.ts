@@ -6,8 +6,8 @@ import {
   Surface,
   Image as SkiaImage,
   Paint,
-  Font,
   Rect as SkiaRect,
+  matchFont,
 } from '@shopify/react-native-skia';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import ViewShot, { captureRef } from 'react-native-view-shot';
@@ -15,6 +15,14 @@ import RNFS from 'react-native-fs';
 import { Alert, Platform, PermissionsAndroid, Linking } from 'react-native';
 import { manipulateAsync, SaveFormat } from 'react-native-image-manipulator';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  DEFAULT_SLIDE_FONT_ID,
+  getSlideFontByFamily,
+  getSlideFontById,
+  resolveFontFamilyForPlatform,
+  LEGACY_SYSTEM_FONT_ID,
+} from '../constants/fonts';
+import type { SlideFontId } from '../constants/fonts';
 
 export interface ExportOptions {
   addWatermark: boolean;
@@ -35,6 +43,8 @@ export interface Slide {
   backgroundColor: string;
   textAlign: 'left' | 'center' | 'right';
   fontWeight: 'normal' | 'bold';
+  fontFamily?: string;
+  fontId?: SlideFontId;
 }
 
 class ExportService {
@@ -302,6 +312,7 @@ class ExportService {
     const addWatermark = !this.isProUser;
 
     try {
+      const platformKey = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
       for (const slide of slides) {
         // Create a surface for rendering
         const surface = Skia.Surface.MakeOffscreen(
@@ -340,14 +351,26 @@ class ExportService {
           }
         }
 
-        const font = Skia.Font(null, slide.fontSize);
+        const legacyFontId = slide.fontId === LEGACY_SYSTEM_FONT_ID
+          ? DEFAULT_SLIDE_FONT_ID
+          : slide.fontId;
+        const fontOption = legacyFontId
+          ? getSlideFontById(legacyFontId)
+          : getSlideFontByFamily(slide.fontFamily);
+        const resolvedFontFamily =
+          resolveFontFamilyForPlatform(fontOption, platformKey) || 'System';
+        const font = matchFont({
+          fontFamily: resolvedFontFamily,
+          fontSize: slide.fontSize,
+          fontWeight: resolvedFontFamily !== 'System' ? 'normal' : slide.fontWeight || 'normal',
+        });
         const textPaint = Skia.Paint();
         textPaint.setColor(Skia.Color(slide.color));
 
         const lines = slide.text ? slide.text.split('\n') : [''];
-        const paddingX = Math.max(12, slide.fontSize * 0.5);
-        const paddingY = Math.max(8, slide.fontSize * 0.35);
-        const lineHeight = slide.fontSize * 1.2;
+        const paddingX = Math.max(12, slide.fontSize * 0.55);
+        const paddingY = Math.max(16, slide.fontSize * 0.65);
+        const lineHeight = slide.fontSize * 1.35;
         const maxBackgroundWidth = canvasSize.width * 0.9;
 
         const lineWidths = lines.map((line) => font.getTextWidth(line, textPaint));
@@ -389,7 +412,11 @@ class ExportService {
 
         // Add watermark if not Pro
         if (addWatermark) {
-          const watermarkFont = Skia.Font(null, 16);
+          const watermarkFont = matchFont({
+            fontFamily: 'System',
+            fontSize: 16,
+            fontWeight: 'normal',
+          });
           const watermarkPaint = Skia.Paint();
           watermarkPaint.setColor(Skia.Color('rgba(0, 0, 0, 0.5)'));
 

@@ -1,5 +1,17 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 import StorageInitializer from '../utils/storageInit';
+import {
+  DEFAULT_SLIDE_FONT_ID,
+  getSlideFontByFamily,
+  getSlideFontById,
+  resolveFontFamilyForPlatform,
+  SlideFontId,
+  LEGACY_SYSTEM_FONT_ID,
+} from '../constants/fonts';
+
+const platformKey: 'ios' | 'android' | 'default' =
+  Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
 
 export interface ProjectState {
   id: string;
@@ -14,6 +26,8 @@ export interface ProjectState {
     backgroundColor: string;
     textAlign: 'left' | 'center' | 'right';
     fontWeight: 'normal' | 'bold';
+    fontFamily?: string;
+    fontId?: SlideFontId;
   }>;
   images: string[];
   lastModified: string;
@@ -79,7 +93,31 @@ class StorageService {
       async () => {
         const projectData = await AsyncStorage.getItem(this.STORAGE_KEYS.CURRENT_PROJECT);
         if (projectData) {
-          return JSON.parse(projectData);
+          const parsed: ProjectState = JSON.parse(projectData);
+
+          if (parsed?.slides?.length) {
+            parsed.slides = parsed.slides.map(slide => {
+              const legacyFontId =
+                slide.fontId === LEGACY_SYSTEM_FONT_ID
+                  ? DEFAULT_SLIDE_FONT_ID
+                  : slide.fontId;
+              const fontOption = legacyFontId
+                ? getSlideFontById(legacyFontId)
+                : getSlideFontByFamily(slide.fontFamily);
+
+              return {
+                ...slide,
+                fontId:
+                  legacyFontId ??
+                  (slide.fontFamily
+                    ? getSlideFontByFamily(slide.fontFamily).id
+                    : DEFAULT_SLIDE_FONT_ID),
+                fontFamily: resolveFontFamilyForPlatform(fontOption, platformKey),
+              };
+            });
+          }
+
+          return parsed;
         }
         return null;
       },
@@ -127,7 +165,29 @@ class StorageService {
     try {
       const projectsData = await AsyncStorage.getItem(this.STORAGE_KEYS.RECENT_PROJECTS);
       if (projectsData) {
-        return JSON.parse(projectsData);
+        const parsed: ProjectState[] = JSON.parse(projectsData);
+        return parsed.map(project => ({
+          ...project,
+          slides: project.slides?.map(slide => {
+            const legacyFontId =
+              slide.fontId === LEGACY_SYSTEM_FONT_ID
+                ? DEFAULT_SLIDE_FONT_ID
+                : slide.fontId;
+            const fontOption = legacyFontId
+              ? getSlideFontById(legacyFontId)
+              : getSlideFontByFamily(slide.fontFamily);
+
+            return {
+              ...slide,
+              fontId:
+                legacyFontId ??
+                (slide.fontFamily
+                  ? getSlideFontByFamily(slide.fontFamily).id
+                  : DEFAULT_SLIDE_FONT_ID),
+              fontFamily: resolveFontFamilyForPlatform(fontOption, platformKey),
+            };
+          }) || [],
+        }));
       }
       return [];
     } catch (error) {

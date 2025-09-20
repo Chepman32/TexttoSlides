@@ -10,6 +10,7 @@ import {
   Image,
   Dimensions,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -23,6 +24,13 @@ import ExportService from '../services/ExportService';
 import IAPService from '../services/IAPService';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import {
+  DEFAULT_SLIDE_FONT_ID,
+  getSlideFontByFamily,
+  getSlideFontById,
+  resolveFontFamilyForPlatform,
+  LEGACY_SYSTEM_FONT_ID,
+} from '../constants/fonts';
 
 type RootStackParamList = {
   Home: undefined;
@@ -107,6 +115,14 @@ const PreviewScreen: React.FC = () => {
 
   const renderSlide = ({ item, index }: { item: any; index: number }) => {
     const fontSize = item.fontSize || 24;
+    const platformKey = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
+    const legacyFontId = item.fontId === LEGACY_SYSTEM_FONT_ID
+      ? DEFAULT_SLIDE_FONT_ID
+      : item.fontId;
+    const fontOption = legacyFontId
+      ? getSlideFontById(legacyFontId)
+      : getSlideFontByFamily(item.fontFamily);
+    const resolvedFontFamily = resolveFontFamilyForPlatform(fontOption, platformKey);
     const paddingHorizontal = Math.max(12, fontSize * 0.5);
     const paddingVertical = Math.max(8, fontSize * 0.35);
     const borderRadius = Math.min(Math.max(12, fontSize * 0.6), 30);
@@ -149,8 +165,9 @@ const PreviewScreen: React.FC = () => {
                 fontSize,
                 color: item.color || '#FFFFFF',
                 textAlign: item.textAlign || 'center',
-                fontWeight: item.fontWeight || 'bold',
-                lineHeight: fontSize * 1.2,
+                fontWeight: resolvedFontFamily ? undefined : item.fontWeight || 'bold',
+                fontFamily: resolvedFontFamily,
+                lineHeight: fontSize * 1.35,
               },
             ]}
           >
