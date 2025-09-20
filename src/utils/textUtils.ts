@@ -190,6 +190,58 @@ export const splitIntoChunks = (text: string, maxChars: number = 200): string[] 
 };
 
 /**
+ * Fallback splitter that enforces a target number of slides by length.
+ */
+const forceSplitByLength = (text: string, targetSlides: number): string[] => {
+  const trimmed = text.trim();
+
+  if (!trimmed) {
+    return [];
+  }
+
+  const slides = Math.max(1, targetSlides);
+  const idealSize = Math.max(1, Math.ceil(trimmed.length / slides));
+  const result: string[] = [];
+  let start = 0;
+
+  while (start < trimmed.length) {
+    let end = Math.min(start + idealSize, trimmed.length);
+
+    if (end < trimmed.length) {
+      let breakPoint = end;
+
+      for (let i = end - 1; i >= Math.max(start, end - 40); i--) {
+        const char = trimmed[i];
+
+        if (
+          char === ' ' ||
+          char === '.' ||
+          char === ',' ||
+          char === ';' ||
+          char === ':' ||
+          char === '\n'
+        ) {
+          breakPoint = i + 1;
+          break;
+        }
+      }
+
+      end = Math.max(breakPoint, start + 1);
+    }
+
+    const chunk = trimmed.slice(start, end).trim();
+
+    if (chunk.length > 0) {
+      result.push(chunk);
+    }
+
+    start = end;
+  }
+
+  return result.length > 0 ? result : [trimmed];
+};
+
+/**
  * Smart text splitting that adapts to content type
  */
 export const smartSplit = (text: string, targetSlides: number = 3): string[] => {
@@ -250,42 +302,19 @@ export const smartSplit = (text: string, targetSlides: number = 3): string[] => 
 
   // Ensure we have at least the target number of slides
   if (chunks.length < targetSlides) {
-    const result: string[] = [];
-    const targetChunkSize = Math.ceil(textLength / targetSlides);
+    const desiredChunkSize = Math.max(1, Math.ceil(textLength / targetSlides));
+    const sourceChunks = chunks.length > 0 ? chunks : [trimmedText];
+    const forced: string[] = [];
 
-    // If we got only one big chunk, force split it
-    if (chunks.length === 1) {
-      const singleChunk = chunks[0];
-      let startIndex = 0;
-
-      for (let i = 0; i < targetSlides; i++) {
-        const endIndex = Math.min(
-          startIndex + targetChunkSize,
-          singleChunk.length
-        );
-
-        if (startIndex < singleChunk.length) {
-          // Try to find a good break point (space, period, etc.)
-          let breakPoint = endIndex;
-          if (endIndex < singleChunk.length) {
-            for (let j = endIndex; j > Math.max(startIndex, endIndex - 20); j--) {
-              if (singleChunk[j] === ' ' || singleChunk[j] === '.' || singleChunk[j] === ',') {
-                breakPoint = j + 1;
-                break;
-              }
-            }
-          }
-
-          result.push(singleChunk.substring(startIndex, breakPoint).trim());
-          startIndex = breakPoint;
-        }
-      }
-    } else {
-      // Distribute existing chunks evenly
-      return chunks;
+    for (const chunk of sourceChunks) {
+      const projectedSlides = Math.max(
+        1,
+        Math.ceil(chunk.length / desiredChunkSize)
+      );
+      forced.push(...forceSplitByLength(chunk, projectedSlides));
     }
 
-    return result.filter(chunk => chunk.length > 0);
+    return forced.filter(chunk => chunk.length > 0);
   }
 
   return chunks;
@@ -405,12 +434,9 @@ export const estimateSlideCount = (text: string, charsPerSlide: number = 200): n
   const optimized = optimizeForSlides(cleanText);
   const targetSlides = getOptimalSlideCount(optimized);
   const chunks = smartSplit(optimized, targetSlides);
+  const lengthEstimate = Math.max(1, Math.ceil(optimized.length / charsPerSlide));
 
-  if (chunks.length > 0) {
-    return chunks.length;
-  }
-
-  return Math.max(1, Math.ceil(cleanText.length / charsPerSlide));
+  return Math.max(chunks.length, lengthEstimate);
 };
 
 /**
