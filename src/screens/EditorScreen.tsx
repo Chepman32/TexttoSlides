@@ -38,6 +38,25 @@ import {
 const SLIDER_HEIGHT = 200;
 const MIN_FONT_SIZE = 12;
 const MAX_FONT_SIZE = 72;
+const COLOR_OPTIONS = [
+  '#FFFFFF',
+  '#000000',
+  '#FF0000',
+  '#FFFF00',
+  '#00FF00',
+  '#00FFFF',
+  '#FF00FF',
+  '#FFA500',
+  '#8A2BE2',
+  '#FFD700',
+  '#0033A0',
+  '#008080',
+  '#BFFF00',
+  '#FF7F50',
+  '#800000',
+  '#4B0082',
+  '#808080',
+];
 
 type RootStackParamList = {
   Home: undefined;
@@ -182,6 +201,76 @@ const EditorScreen: React.FC = () => {
     })(),
   );
   const sliderStartY = useSharedValue(0);
+
+  const colorPaletteScrollRef = useRef<ScrollView | null>(null);
+  const fontPaletteScrollRef = useRef<ScrollView | null>(null);
+  const colorOptionPositions = useRef<Record<string, number>>({});
+  const fontOptionPositions = useRef<Record<string, number>>({});
+
+  const ensureSelectedColorVisible = useCallback(() => {
+    if (!isColorPaletteVisible || !colorPaletteScrollRef.current) {
+      return;
+    }
+
+    const selectedColor = currentSlide?.color;
+    if (!selectedColor) {
+      return;
+    }
+
+    const optionX = colorOptionPositions.current[selectedColor];
+    if (typeof optionX !== 'number') {
+      return;
+    }
+
+    colorPaletteScrollRef.current.scrollTo({
+      x: Math.max(0, optionX - 16),
+      animated: false,
+    });
+  }, [currentSlide?.color, isColorPaletteVisible]);
+
+  const ensureSelectedFontVisible = useCallback(() => {
+    if (!isFontPaletteVisible || !fontPaletteScrollRef.current) {
+      return;
+    }
+
+    if (!activeFontId) {
+      return;
+    }
+
+    const optionX = fontOptionPositions.current[activeFontId];
+    if (typeof optionX !== 'number') {
+      return;
+    }
+
+    fontPaletteScrollRef.current.scrollTo({
+      x: Math.max(0, optionX - 20),
+      animated: false,
+    });
+  }, [activeFontId, isFontPaletteVisible]);
+
+  useEffect(() => {
+    if (!isColorPaletteVisible) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      ensureSelectedColorVisible();
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [ensureSelectedColorVisible, isColorPaletteVisible]);
+
+  useEffect(() => {
+    if (!isFontPaletteVisible) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      ensureSelectedFontVisible();
+    }, 0);
+
+    return () => clearTimeout(timeout);
+  }, [ensureSelectedFontVisible, isFontPaletteVisible]);
 
   // Auto-save functionality
   const saveProject = useCallback(async () => {
@@ -972,33 +1061,40 @@ const EditorScreen: React.FC = () => {
             </TouchableOpacity>
           </>
         ) : isColorPaletteVisible ? (
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            ref={colorPaletteScrollRef}
+            horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.colorPaletteScrollContainer}
             contentContainerStyle={styles.colorPaletteContainer}
           >
-            {['#FFFFFF', '#000000', '#FF0000', '#FFFF00', '#00FF00', '#00FFFF', '#FF00FF', '#FFA500', '#8A2BE2', '#FFD700', '#0033A0', '#008080', '#BFFF00', '#FF7F50', '#800000', '#4B0082', '#808080'].map(
-              color => {
-                const borderColor = currentSlide.color === color ? '#FFFFFF' : 'rgba(255,255,255,0.3)';
-                return (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorOption,
-                      {
-                        backgroundColor: color,
-                        borderColor,
-                      },
-                    ]}
-                    onPress={() => handleTextColorChange(color)}
-                  />
-                );
-              },
-            )}
+            {COLOR_OPTIONS.map(color => {
+              const borderColor =
+                currentSlide?.color === color ? '#FFFFFF' : 'rgba(255,255,255,0.3)';
+              return (
+                <TouchableOpacity
+                  key={color}
+                  style={[
+                    styles.colorOption,
+                    {
+                      backgroundColor: color,
+                      borderColor,
+                    },
+                  ]}
+                  onPress={() => handleTextColorChange(color)}
+                  onLayout={event => {
+                    colorOptionPositions.current[color] = event.nativeEvent.layout.x;
+                    if (isColorPaletteVisible && currentSlide?.color === color) {
+                      ensureSelectedColorVisible();
+                    }
+                  }}
+                />
+              );
+            })}
           </ScrollView>
         ) : isFontPaletteVisible ? (
           <ScrollView
+            ref={fontPaletteScrollRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.fontPaletteScrollContainer}
@@ -1015,6 +1111,12 @@ const EditorScreen: React.FC = () => {
                     isActive && styles.activeFontOption,
                   ]}
                   onPress={() => handleFontChange(option)}
+                  onLayout={event => {
+                    fontOptionPositions.current[option.id] = event.nativeEvent.layout.x;
+                    if (isFontPaletteVisible && option.id === activeFontId) {
+                      ensureSelectedFontVisible();
+                    }
+                  }}
                 >
                   <Text
                     style={[
