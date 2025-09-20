@@ -19,10 +19,31 @@ export const splitIntoParagraphs = (text: string): string[] => {
 export const splitIntoSentences = (text: string): string[] => {
   // Simple sentence splitting regex
   const sentenceRegex = /[^.!?]+[.!?]+/g;
-  const sentences = text.match(sentenceRegex);
-  
-  if (sentences) {
-    return sentences.map(sentence => sentence.trim()).filter(sentence => sentence.length > 0);
+  const sentences: string[] = [];
+  let match: RegExpExecArray | null;
+  let lastIndex = 0;
+
+  while ((match = sentenceRegex.exec(text)) !== null) {
+    const sentence = match[0].trim();
+
+    if (sentence.length > 0) {
+      sentences.push(sentence);
+    }
+
+    lastIndex = sentenceRegex.lastIndex;
+  }
+
+  // Capture any trailing text without punctuation (e.g., bullet lists)
+  if (lastIndex < text.length) {
+    const tail = text.slice(lastIndex).trim();
+
+    if (tail.length > 0) {
+      sentences.push(tail);
+    }
+  }
+
+  if (sentences.length > 0) {
+    return sentences;
   }
   
   // If no sentences found, return the original text as one item
