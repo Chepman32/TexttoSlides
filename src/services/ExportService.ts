@@ -340,30 +340,52 @@ class ExportService {
           }
         }
 
-        // Draw text overlay background
-        const textBackgroundPaint = Skia.Paint();
-        textBackgroundPaint.setColor(Skia.Color(slide.backgroundColor));
-
-        const textBgRect = Skia.XYWHRect(
-          slide.position.x,
-          slide.position.y,
-          canvasSize.width * 0.8,
-          slide.fontSize * 2
-        );
-        canvas.drawRect(textBgRect, textBackgroundPaint);
-
-        // Draw text
         const font = Skia.Font(null, slide.fontSize);
         const textPaint = Skia.Paint();
         textPaint.setColor(Skia.Color(slide.color));
 
-        canvas.drawText(
-          slide.text,
-          slide.position.x + 10,
-          slide.position.y + slide.fontSize,
-          textPaint,
-          font
+        const lines = slide.text ? slide.text.split('\n') : [''];
+        const paddingX = Math.max(12, slide.fontSize * 0.5);
+        const paddingY = Math.max(8, slide.fontSize * 0.35);
+        const lineHeight = slide.fontSize * 1.2;
+        const maxBackgroundWidth = canvasSize.width * 0.9;
+
+        const lineWidths = lines.map((line) => font.getTextWidth(line, textPaint));
+        const rawTextWidth = Math.max(slide.fontSize, ...lineWidths);
+        const backgroundWidth = Math.min(rawTextWidth + paddingX * 2, maxBackgroundWidth);
+        const backgroundHeight = lineHeight * Math.max(lines.length, 1) + paddingY * 2;
+
+        // Draw text overlay background
+        const textBackgroundPaint = Skia.Paint();
+        textBackgroundPaint.setColor(Skia.Color(slide.backgroundColor));
+        textBackgroundPaint.setAntiAlias(true);
+
+        const textBgRect = Skia.XYWHRect(
+          slide.position.x,
+          slide.position.y,
+          backgroundWidth,
+          backgroundHeight
         );
+        const borderRadius = Math.min(Math.max(12, slide.fontSize * 0.6), 30);
+        const roundedRect = Skia.RRectXY(textBgRect, borderRadius, borderRadius);
+        canvas.drawRRect(roundedRect, textBackgroundPaint);
+
+        // Draw text
+        lines.forEach((line, index) => {
+          const lineWidth = lineWidths[index] ?? 0;
+          let textX = slide.position.x + paddingX;
+
+          if (slide.textAlign === 'center') {
+            textX = slide.position.x + backgroundWidth / 2 - lineWidth / 2;
+          } else if (slide.textAlign === 'right') {
+            textX = slide.position.x + backgroundWidth - paddingX - lineWidth;
+          }
+
+          const textY =
+            slide.position.y + paddingY + slide.fontSize + index * lineHeight;
+
+          canvas.drawText(line, textX, textY, textPaint, font);
+        });
 
         // Add watermark if not Pro
         if (addWatermark) {

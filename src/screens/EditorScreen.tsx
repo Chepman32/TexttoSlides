@@ -100,6 +100,13 @@ const EditorScreen: React.FC = () => {
   const currentSlide = slides[currentSlideIndex];
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth * 0.99, screenWidth - 10); // Use 99% of screen width
+
+  const overlayPaddingHorizontal = Math.max(12, currentSlide?.fontSize * 0.5 || 0);
+  const overlayPaddingVertical = Math.max(8, currentSlide?.fontSize * 0.35 || 0);
+  const overlayBorderRadius = Math.min(
+    Math.max(12, currentSlide?.fontSize * 0.6 || 0),
+    30,
+  );
   
   // Calculate available height for image container
   const headerHeight = Math.max(insets.top, 20) + 60; // Safe area + title height
@@ -647,6 +654,9 @@ const EditorScreen: React.FC = () => {
                 {
                   backgroundColor: currentSlide.backgroundColor,
                   maxWidth: slideSize * 0.9, // Limit max width to 90% of slide
+                  paddingHorizontal: overlayPaddingHorizontal,
+                  paddingVertical: overlayPaddingVertical,
+                  borderRadius: overlayBorderRadius,
                 },
               ]}
             >
@@ -658,6 +668,7 @@ const EditorScreen: React.FC = () => {
                     color: currentSlide.color,
                     textAlign: currentSlide.textAlign,
                     fontWeight: currentSlide.fontWeight,
+                    lineHeight: currentSlide.fontSize * 1.2,
                     // Add wrapping to prevent text from overflowing
                   },
                 ]}
