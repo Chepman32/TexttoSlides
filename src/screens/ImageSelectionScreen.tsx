@@ -14,7 +14,11 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import ImageService from '../services/ImageService';
 import StorageService from '../services/StorageService';
 import FeedbackService from '../services/FeedbackService';
-import { smartSplit, getOptimalSlideCount, optimizeForSlides } from '../utils/textUtils';
+import {
+  smartSplit,
+  getOptimalSlideCount,
+  optimizeForSlides,
+} from '../utils/textUtils';
 import { useLanguage } from '../context/LanguageContext';
 
 type RootStackParamList = {
@@ -24,7 +28,10 @@ type RootStackParamList = {
 };
 
 type ImageSelectionRouteProp = RouteProp<RootStackParamList, 'ImageSelection'>;
-type ImageSelectionNavigationProp = StackNavigationProp<RootStackParamList, 'Editor'>;
+type ImageSelectionNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Editor'
+>;
 
 const ImageSelectionScreen: React.FC = () => {
   const route = useRoute<ImageSelectionRouteProp>();
@@ -46,13 +53,19 @@ const ImageSelectionScreen: React.FC = () => {
   const ensureCapacity = (images: string[]): string[] => {
     const truncated = images.slice(0, requiredImages);
     if (truncated.length < requiredImages) {
-      return [...truncated, ...Array(requiredImages - truncated.length).fill('')];
+      return [
+        ...truncated,
+        ...Array(requiredImages - truncated.length).fill(''),
+      ];
     }
     return truncated;
   };
 
   const [selectedImages, setSelectedImages] = useState<string[]>(() =>
     Array(requiredImages).fill(''),
+  );
+  const [hasUserMadeChoice, setHasUserMadeChoice] = useState<boolean[]>(() =>
+    Array(requiredImages).fill(false),
   );
   const hasRestoredImages = React.useRef(false);
 
@@ -76,17 +89,22 @@ const ImageSelectionScreen: React.FC = () => {
           return;
         }
 
-        const restoredImages = Array.from({ length: requiredImages }, (_, idx) => {
-          const savedSlide = savedProject.slides?.[idx];
-          if (!savedSlide) {
-            return '';
-          }
-          return savedSlide.image ?? '';
-        });
+        const restoredImages = Array.from(
+          { length: requiredImages },
+          (_, idx) => {
+            const savedSlide = savedProject.slides?.[idx];
+            if (!savedSlide) {
+              return '';
+            }
+            return savedSlide.image ?? '';
+          },
+        );
 
         if (restoredImages.some(image => image !== '')) {
           hasRestoredImages.current = true;
           setSelectedImages(restoredImages);
+          // Mark all restored slides as having user choice
+          setHasUserMadeChoice(Array(requiredImages).fill(true));
         }
       } catch (error) {
         console.error('Failed to restore selected images:', error);
@@ -115,6 +133,11 @@ const ImageSelectionScreen: React.FC = () => {
           next[index] = imageUri;
           return next;
         });
+        setHasUserMadeChoice(prevChoices => {
+          const next = [...prevChoices];
+          next[index] = true;
+          return next;
+        });
         FeedbackService.success();
 
         // Try to process the image in the background (optional)
@@ -122,28 +145,33 @@ const ImageSelectionScreen: React.FC = () => {
           width: 1080,
           height: 1080,
           quality: 0.8,
-        }).then(processedUri => {
-          if (!processedUri) {
-            return;
-          }
-          console.log('Processed image URI:', processedUri);
-          setSelectedImages(prevImages => {
-            const normalized = ensureCapacity(prevImages);
-            if (normalized[index] !== imageUri) {
-              return prevImages;
+        })
+          .then(processedUri => {
+            if (!processedUri) {
+              return;
             }
-            const next = [...normalized];
-            next[index] = processedUri;
-            return next;
+            console.log('Processed image URI:', processedUri);
+            setSelectedImages(prevImages => {
+              const normalized = ensureCapacity(prevImages);
+              if (normalized[index] !== imageUri) {
+                return prevImages;
+              }
+              const next = [...normalized];
+              next[index] = processedUri;
+              return next;
+            });
+          })
+          .catch(err => {
+            console.log('Image processing failed, using original:', err);
           });
-        }).catch(err => {
-          console.log('Image processing failed, using original:', err);
-        });
       }
     } catch (error) {
       console.error('Error selecting image:', error);
       FeedbackService.error();
-      Alert.alert(t('image_selection_error_title'), t('image_selection_error_select_failed'));
+      Alert.alert(
+        t('image_selection_error_title'),
+        t('image_selection_error_select_failed'),
+      );
     }
   };
 
@@ -155,6 +183,11 @@ const ImageSelectionScreen: React.FC = () => {
       next[index] = '';
       return next;
     });
+    setHasUserMadeChoice(prevChoices => {
+      const next = [...prevChoices];
+      next[index] = true;
+      return next;
+    });
     FeedbackService.success();
   };
 
@@ -163,17 +196,18 @@ const ImageSelectionScreen: React.FC = () => {
 
     const normalizedImages = ensureCapacity(selectedImages);
 
-    // Count how many images have been selected (not empty)
-    const selectedCount = normalizedImages.filter(
-      img => typeof img === 'string' && img.trim().length > 0,
-    ).length;
+    // Check if user has made a choice for all slides
+    const choicesMade = hasUserMadeChoice.filter(choice => choice).length;
 
-    if (selectedCount < requiredImages) {
+    if (choicesMade < requiredImages) {
       FeedbackService.error();
-      Alert.alert(t('image_selection_error_title'), t('image_selection_error', { count: requiredImages }));
+      Alert.alert(
+        t('image_selection_error_title'),
+        t('image_selection_error', { count: requiredImages }),
+      );
       return;
     }
-    
+
     FeedbackService.success();
     // Navigate to editor with text and selected images
     if (normalizedImages.some((img, idx) => selectedImages[idx] !== img)) {
@@ -185,32 +219,43 @@ const ImageSelectionScreen: React.FC = () => {
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <Text style={styles.subtitle}>
-        {t('image_selection_subtitle', { count: requiredImages, plural: requiredImages > 1 ? 's' : '' })}
+        {t('image_selection_subtitle', {
+          count: requiredImages,
+          plural: requiredImages > 1 ? 's' : '',
+        })}
       </Text>
-      
+
       <ScrollView style={styles.content}>
         {slides.map((slideText, index) => (
           <View key={index} style={styles.slideContainer}>
-            <Text style={styles.slideTitle}>{t('image_selection_slide', { number: index + 1 })}</Text>
+            <Text style={styles.slideTitle}>
+              {t('image_selection_slide', { number: index + 1 })}
+            </Text>
             <Text style={styles.slidePreview} numberOfLines={3}>
               {slideText}
             </Text>
-            
+
             <View style={styles.imageOptions}>
               <TouchableOpacity
                 style={styles.imageButton}
-                onPress={() => handleSelectImage(index)}>
-                <Text style={styles.imageButtonText}>{t('image_selection_select_image')}</Text>
+                onPress={() => handleSelectImage(index)}
+              >
+                <Text style={styles.imageButtonText}>
+                  {t('image_selection_select_image')}
+                </Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.imageButton, styles.plainButton]}
-                onPress={() => handleUsePlainBackground(index)}>
-                <Text style={styles.imageButtonText}>{t('image_selection_plain_background')}</Text>
+                onPress={() => handleUsePlainBackground(index)}
+              >
+                <Text style={styles.imageButtonText}>
+                  {t('image_selection_plain_background')}
+                </Text>
               </TouchableOpacity>
             </View>
-            
-            {selectedImages[index] !== '' ? (
+
+            {hasUserMadeChoice[index] ? (
               <View style={styles.imagePreview}>
                 {selectedImages[index] !== '' ? (
                   <Image
@@ -220,27 +265,37 @@ const ImageSelectionScreen: React.FC = () => {
                   />
                 ) : (
                   <View style={styles.plainBackgroundPreview}>
-                    <Text style={styles.plainBackgroundText}>{t('image_selection_plain_background')}</Text>
+                    <Text style={styles.plainBackgroundText}>
+                      {t('image_selection_plain_background')}
+                    </Text>
                   </View>
                 )}
               </View>
             ) : (
               <View style={styles.emptyImagePreview}>
-                <Text style={styles.emptyImageText}>{t('image_selection_no_image')}</Text>
+                <Text style={styles.emptyImageText}>
+                  {t('image_selection_no_image')}
+                </Text>
               </View>
             )}
           </View>
         ))}
       </ScrollView>
-      
+
       <TouchableOpacity
         style={[
           styles.continueButton,
-          selectedImages.filter(img => img !== '').length === requiredImages && styles.continueButtonEnabled
+          hasUserMadeChoice.filter(choice => choice).length ===
+            requiredImages && styles.continueButtonEnabled,
         ]}
         onPress={handleContinue}
-        disabled={selectedImages.filter(img => img !== '').length !== requiredImages}>
-        <Text style={styles.continueButtonText}>{t('image_selection_continue')}</Text>
+        disabled={
+          hasUserMadeChoice.filter(choice => choice).length !== requiredImages
+        }
+      >
+        <Text style={styles.continueButtonText}>
+          {t('image_selection_continue')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
