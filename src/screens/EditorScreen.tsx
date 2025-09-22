@@ -851,6 +851,7 @@ const EditorScreen: React.FC = () => {
 
     setSlides(newSlides);
     addToHistory(newSlides);
+    // Color picker closes after selection (single selection behavior)
     setColorPaletteVisible(false);
     setFontPaletteVisible(false);
     setTextEffectsPanelVisible(false);
@@ -881,7 +882,8 @@ const EditorScreen: React.FC = () => {
       addToHistory(newSlides);
       return newSlides;
     });
-    setFontPaletteVisible(false);
+    // Font picker stays open for multiple selections
+    // setFontPaletteVisible(false);
     setColorPaletteVisible(false);
     setOpacityPaletteVisible(false);
     setTextEffectsPanelVisible(false);
@@ -899,6 +901,7 @@ const EditorScreen: React.FC = () => {
       addToHistory(newSlides);
       return newSlides;
     });
+    // Opacity picker stays open for multiple selections
     setFontPaletteVisible(false);
     setColorPaletteVisible(false);
     setTextEffectsPanelVisible(false);
@@ -1126,23 +1129,18 @@ const EditorScreen: React.FC = () => {
                 animatedStyle,
                 {
                   backgroundColor: currentSlide.backgroundColor,
-                  maxWidth: slideSize * 0.9, // Limit max width to 90% of slide
+                  // Only apply maxWidth if no effects are active that would create masks
+                  maxWidth: currentSlideEffects.some(
+                    effect =>
+                      effect.enabled !== false &&
+                      (effect.type === 'neonGlow' ||
+                        effect.type === 'softShadow'),
+                  )
+                    ? undefined
+                    : slideSize * 0.9,
                   paddingHorizontal: overlayPaddingHorizontal,
                   paddingVertical: overlayPaddingVertical,
                   borderRadius: overlayBorderRadius,
-                  alignSelf: 'flex-start', // Size container to content
-                },
-                // Only apply overlay styles that don't create large masks
-                {
-                  shadowColor: previewEffects.overlayStyle.shadowColor,
-                  shadowOffset: previewEffects.overlayStyle.shadowOffset,
-                  shadowOpacity: previewEffects.overlayStyle.shadowOpacity,
-                  shadowRadius: previewEffects.overlayStyle.shadowRadius,
-                  elevation: previewEffects.overlayStyle.elevation,
-                  backgroundColor:
-                    previewEffects.overlayStyle.backgroundColor ||
-                    currentSlide.backgroundColor,
-                  overflow: previewEffects.overlayStyle.overflow,
                 },
               ]}
             >
@@ -1160,7 +1158,11 @@ const EditorScreen: React.FC = () => {
                 />
               ) : (
                 <>
-                  {previewEffects.underlayElements}
+                  {previewEffects.underlayElements.map((element, index) =>
+                    React.cloneElement(element as React.ReactElement, {
+                      key: `${activeFontId}-${index}-${element.key}`,
+                    }),
+                  )}
                   <Text
                     style={[
                       styles.slideText,
@@ -1180,7 +1182,11 @@ const EditorScreen: React.FC = () => {
                   >
                     {currentSlide.text}
                   </Text>
-                  {previewEffects.overlayElements}
+                  {previewEffects.overlayElements.map((element, index) =>
+                    React.cloneElement(element as React.ReactElement, {
+                      key: `${activeFontId}-overlay-${index}-${element.key}`,
+                    }),
+                  )}
                 </>
               )}
             </Animated.View>
@@ -1335,7 +1341,8 @@ const EditorScreen: React.FC = () => {
                           // Add effect using simple function (no complex panel)
                           handleAddTextEffectSimple(definition.id);
                         }
-                        setEffectsPaletteVisible(false);
+                        // Effects palette stays open for multiple selections
+                        // setEffectsPaletteVisible(false);
                       }}
                     >
                       <Text style={styles.effectOptionLabel}>
@@ -1416,7 +1423,8 @@ const EditorScreen: React.FC = () => {
                     ]}
                     onPress={() => {
                       handleBackgroundOpacityChange(opacity);
-                      setOpacityPaletteVisible(false);
+                      // Opacity palette stays open for multiple selections
+                      // setOpacityPaletteVisible(false);
                     }}
                   />
                 );
@@ -1675,7 +1683,6 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
     overflow: 'visible',
     zIndex: 2,
-    alignSelf: 'flex-start', // Size to content
   },
   slideText: {
     color: '#fff',
