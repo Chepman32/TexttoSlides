@@ -87,6 +87,13 @@ const COLOR_OPTIONS = [
   '#808080',
 ];
 
+const SKIA_FONT_SOURCES: Record<SlideFontId, number> = {
+  archivo_black_regular: require('../assets/fonts/Archivo_Black/ArchivoBlack-Regular.ttf'),
+  fira_sans_regular: require('../assets/fonts/Fira_Sans/FiraSans-Regular.ttf'),
+  fira_sans_semibold: require('../assets/fonts/Fira_Sans/FiraSans-SemiBold.ttf'),
+  homemade_apple_regular: require('../assets/fonts/Homemade_Apple/HomemadeApple-Regular.ttf'),
+};
+
 type RootStackParamList = {
   Home: undefined;
   Editor: { text: string; images: string[] };
@@ -249,10 +256,15 @@ const EditorScreen: React.FC = () => {
   });
 
   // Load Skia font for text effects rendering
-  const skiaFont = useFont(
-    require('../assets/fonts/Fira_Sans/FiraSans-Bold.ttf'),
-    currentSlide?.fontSize || 24,
-  );
+  const skiaFontSource = useMemo(() => {
+    const fallback = SKIA_FONT_SOURCES[DEFAULT_SLIDE_FONT_ID];
+    if (!activeFontId) {
+      return fallback;
+    }
+    return SKIA_FONT_SOURCES[activeFontId] ?? fallback;
+  }, [activeFontId]);
+
+  const skiaFont = useFont(skiaFontSource, currentSlide?.fontSize || 24);
 
   // Convert old text effects to new format for Skia rendering
   const newFormatEffects: EffectInstance[] = React.useMemo(() => {
