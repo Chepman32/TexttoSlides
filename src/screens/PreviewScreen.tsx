@@ -31,6 +31,7 @@ import {
   resolveFontFamilyForPlatform,
   LEGACY_SYSTEM_FONT_ID,
 } from '../constants/fonts';
+import { buildPreviewEffects } from '../utils/textEffectsPreview';
 
 type RootStackParamList = {
   Home: undefined;
@@ -126,6 +127,13 @@ const PreviewScreen: React.FC = () => {
     const paddingHorizontal = Math.max(12, fontSize * 0.5);
     const paddingVertical = Math.max(8, fontSize * 0.35);
     const borderRadius = Math.min(Math.max(12, fontSize * 0.6), 30);
+    const previewEffects = buildPreviewEffects(item.textEffects ?? [], {
+      text: item.text ?? '',
+      fontSize,
+      textColor: item.color || '#FFFFFF',
+      fontFamily: resolvedFontFamily,
+      fontWeight: fontOption?.supportsWeightToggle ? item.fontWeight : undefined,
+    });
 
     return (
       <View
@@ -156,8 +164,10 @@ const PreviewScreen: React.FC = () => {
               borderRadius,
               maxWidth: slideSize * 0.9,
             },
+            previewEffects.overlayStyle,
           ]}
         >
+          {previewEffects.underlayElements}
           <Text
             style={[
               styles.slideText,
@@ -169,10 +179,12 @@ const PreviewScreen: React.FC = () => {
                 fontFamily: resolvedFontFamily,
                 lineHeight: fontSize * 1.35,
               },
+              previewEffects.textStyle,
             ]}
           >
             {item.text}
           </Text>
+          {previewEffects.overlayElements}
         </View>
 
         {/* Watermark preview for free users */}
@@ -295,7 +307,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     maxWidth: '90%',
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   slideText: {
     color: '#fff',
