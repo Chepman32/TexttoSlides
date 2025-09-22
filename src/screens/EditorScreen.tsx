@@ -418,19 +418,48 @@ const EditorScreen: React.FC = () => {
         const savedProject = await StorageService.loadCurrentProject();
         if (savedProject && !savedProject.isCompleted) {
           if (savedProject.slides && savedProject.slides.length > 0) {
-            isRestoringFromStorage.current = true;
-            isRestoringFromHistory.current = true;
-            const sanitizedSlides = savedProject.slides.map(slide => ({
-              ...slide,
-              textEffects: filterSupportedEffects(slide.textEffects),
-            }));
-            setSlides(sanitizedSlides);
-            setHistory([sanitizedSlides]);
-            setHistoryIndex(0);
-            setCurrentSlideIndex(0);
-            setTimeout(() => {
-              isRestoringFromHistory.current = false;
-            }, 0);
+            // Check if the images from navigation params are different from saved project
+            const savedImages = savedProject.slides.map(
+              slide => slide.image || '',
+            );
+            const imagesChanged =
+              images.length !== savedImages.length ||
+              images.some((img, index) => img !== savedImages[index]);
+
+            if (imagesChanged) {
+              // Images have changed, update slides with new images but keep other properties
+              console.log('Images changed, updating slides with new images');
+              const updatedSlides = savedProject.slides.map((slide, index) => ({
+                ...slide,
+                image: images[index] || '',
+                textEffects: filterSupportedEffects(slide.textEffects),
+              }));
+
+              isRestoringFromStorage.current = true;
+              isRestoringFromHistory.current = true;
+              setSlides(updatedSlides);
+              setHistory([updatedSlides]);
+              setHistoryIndex(0);
+              setCurrentSlideIndex(0);
+              setTimeout(() => {
+                isRestoringFromHistory.current = false;
+              }, 0);
+            } else {
+              // Images are the same, restore normally
+              isRestoringFromStorage.current = true;
+              isRestoringFromHistory.current = true;
+              const sanitizedSlides = savedProject.slides.map(slide => ({
+                ...slide,
+                textEffects: filterSupportedEffects(slide.textEffects),
+              }));
+              setSlides(sanitizedSlides);
+              setHistory([sanitizedSlides]);
+              setHistoryIndex(0);
+              setCurrentSlideIndex(0);
+              setTimeout(() => {
+                isRestoringFromHistory.current = false;
+              }, 0);
+            }
           }
           projectId.current = savedProject.id;
         } else {
@@ -442,7 +471,7 @@ const EditorScreen: React.FC = () => {
     };
 
     loadSavedProject();
-  }, []);
+  }, [images]); // Add images as dependency so it runs when images change
 
   // Update animated values when slide changes
   useEffect(() => {
