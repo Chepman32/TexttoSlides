@@ -73,30 +73,49 @@ const applyTextEffectsToCanvas = (
     const params = effect.parameters || {};
     switch (effect.type) {
       case 'softShadow': {
-        const color = typeof params.shadowColor === 'string' ? params.shadowColor : 'rgba(0,0,0,0.6)';
+        const color =
+          typeof params.shadowColor === 'string'
+            ? params.shadowColor
+            : 'rgba(0,0,0,0.6)';
         const offset = params.offset || { x: 8, y: 12 };
         const blur = typeof params.blur === 'number' ? params.blur : 18;
         const paint = basePaint.copy();
         paint.setColor(Skia.Color(color));
         if (blur > 0) {
-          const maskFilter = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, blur / 2, true);
+          const maskFilter = Skia.MaskFilter.MakeBlur(
+            BlurStyle.Normal,
+            blur / 2,
+            true,
+          );
           if (maskFilter) {
             paint.setMaskFilter(maskFilter);
           }
         }
         instructions.forEach(inst => {
-          canvas.drawText(inst.line, inst.x + offset.x, inst.y + offset.y, paint, font);
+          canvas.drawText(
+            inst.line,
+            inst.x + offset.x,
+            inst.y + offset.y,
+            paint,
+            font,
+          );
         });
         break;
       }
       case 'neonGlow': {
-        const glowColor = typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
+        const glowColor =
+          typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
         const spread = typeof params.spread === 'number' ? params.spread : 12;
-        const intensity = typeof params.intensity === 'number' ? params.intensity : 0.8;
+        const intensity =
+          typeof params.intensity === 'number' ? params.intensity : 0.8;
         const paint = basePaint.copy();
         paint.setColor(Skia.Color(glowColor));
         paint.setAlphaf(Math.min(1, 0.6 + intensity * 0.4));
-        const maskFilter = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, Math.max(2, spread / 2), true);
+        const maskFilter = Skia.MaskFilter.MakeBlur(
+          BlurStyle.Normal,
+          Math.max(2, spread / 2),
+          true,
+        );
         if (maskFilter) {
           paint.setMaskFilter(maskFilter);
         }
@@ -110,7 +129,10 @@ const applyTextEffectsToCanvas = (
         const length = Math.max(4, Math.min(120, Number(params.length) || 24));
         const angle = ((params.angle ?? 135) * Math.PI) / 180;
         const fade = typeof params.fade === 'number' ? params.fade : 0.6;
-        const shadowColor = typeof params.shadowColor === 'string' ? params.shadowColor : 'rgba(0,0,0,0.7)';
+        const shadowColor =
+          typeof params.shadowColor === 'string'
+            ? params.shadowColor
+            : 'rgba(0,0,0,0.7)';
         const steps = Math.min(25, Math.max(6, Math.round(length / 4)));
         const stepX = (Math.cos(angle) * length) / steps;
         const stepY = (Math.sin(angle) * length) / steps;
@@ -129,9 +151,14 @@ const applyTextEffectsToCanvas = (
       }
       case 'bloom': {
         const radius = typeof params.radius === 'number' ? params.radius : 16;
-        const intensity = typeof params.intensity === 'number' ? params.intensity : 0.75;
+        const intensity =
+          typeof params.intensity === 'number' ? params.intensity : 0.75;
         const paint = basePaint.copy();
-        const maskFilter = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, Math.max(4, radius), true);
+        const maskFilter = Skia.MaskFilter.MakeBlur(
+          BlurStyle.Normal,
+          Math.max(4, radius),
+          true,
+        );
         if (maskFilter) {
           paint.setMaskFilter(maskFilter);
         }
@@ -146,7 +173,13 @@ const applyTextEffectsToCanvas = (
         const paintShadow = basePaint.copy();
         paintShadow.setColor(Skia.Color('rgba(0,0,0,0.35)'));
         instructions.forEach(inst => {
-          canvas.drawText(inst.line, inst.x - depth / 3, inst.y + depth / 3, paintShadow, font);
+          canvas.drawText(
+            inst.line,
+            inst.x - depth / 3,
+            inst.y + depth / 3,
+            paintShadow,
+            font,
+          );
         });
         break;
       }
@@ -195,7 +228,7 @@ class ExportService {
             title: 'Storage Permission Required',
             message: 'This app needs access to your storage to save slides',
             buttonPositive: 'OK',
-          }
+          },
         );
         return granted === PermissionsAndroid.RESULTS.GRANTED;
       } catch (err) {
@@ -207,7 +240,7 @@ class ExportService {
   }
 
   private async measureViewSize(
-    viewRef: React.RefObject<any>
+    viewRef: React.RefObject<any>,
   ): Promise<{ width: number; height: number } | null> {
     const view = viewRef?.current;
 
@@ -215,7 +248,7 @@ class ExportService {
       return null;
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const resolveWith = (value: { width: number; height: number } | null) => {
         resolve(value);
       };
@@ -223,12 +256,7 @@ class ExportService {
       setTimeout(() => {
         try {
           view.measure(
-            (
-              _x: number,
-              _y: number,
-              width: number,
-              height: number
-            ) => {
+            (_x: number, _y: number, width: number, height: number) => {
               if (width > 0 && height > 0) {
                 resolveWith({ width, height });
                 return;
@@ -240,19 +268,19 @@ class ExportService {
                     __x: number,
                     __y: number,
                     winWidth: number,
-                    winHeight: number
+                    winHeight: number,
                   ) => {
                     if (winWidth > 0 && winHeight > 0) {
                       resolveWith({ width: winWidth, height: winHeight });
                     } else {
                       resolveWith(null);
                     }
-                  }
+                  },
                 );
               } else {
                 resolveWith(null);
               }
-            }
+            },
           );
         } catch (error) {
           console.warn('Unable to measure view for export:', error);
@@ -265,7 +293,7 @@ class ExportService {
   private async addWatermarkToImage(
     imagePath: string,
     watermarkText: string = 'Text to Slides',
-    position: string = 'bottomRight'
+    position: string = 'bottomRight',
   ): Promise<string> {
     try {
       // Calculate watermark position
@@ -277,18 +305,14 @@ class ExportService {
           uri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
           position: { x: 0, y: 0 },
           opacity: 0.5,
-        }
+        },
       };
 
       // Use image manipulation to add watermark text
-      const watermarkedImage = await manipulateAsync(
-        imagePath,
-        [],
-        {
-          compress: 0.9,
-          format: SaveFormat.PNG,
-        }
-      );
+      const watermarkedImage = await manipulateAsync(imagePath, [], {
+        compress: 0.9,
+        format: SaveFormat.PNG,
+      });
 
       // For now, return the original image path as we need native module for text overlay
       // In production, you would use a native module or Skia for proper text watermarking
@@ -302,7 +326,7 @@ class ExportService {
   public async exportSlides(
     slides: Slide[],
     viewRefs: React.RefObject<any>[],
-    options: ExportOptions = {}
+    options: ExportOptions = {},
   ): Promise<{ success: boolean; savedPaths: string[]; error?: string }> {
     const {
       addWatermark = !this.isProUser,
@@ -320,7 +344,7 @@ class ExportService {
         return {
           success: false,
           savedPaths: [],
-          error: 'Storage permission denied'
+          error: 'Storage permission denied',
         };
       }
 
@@ -346,7 +370,11 @@ class ExportService {
             captureOptions.quality = quality;
           }
 
-          if (measuredSize && measuredSize.width > 0 && measuredSize.height > 0) {
+          if (
+            measuredSize &&
+            measuredSize.width > 0 &&
+            measuredSize.height > 0
+          ) {
             const aspectRatio = measuredSize.width / measuredSize.height;
             let targetWidth = measuredSize.width;
             let targetHeight = measuredSize.height;
@@ -371,13 +399,17 @@ class ExportService {
           // Add watermark if not Pro user
           let finalUri = uri;
           if (addWatermark) {
-            finalUri = await this.addWatermarkToImage(uri, watermarkText, watermarkPosition);
+            finalUri = await this.addWatermarkToImage(
+              uri,
+              watermarkText,
+              watermarkPosition,
+            );
           }
 
           // Save to camera roll
           const savedPath = await CameraRoll.save(finalUri, {
             type: 'photo',
-            album: 'Text to Slides'
+            album: 'Text to Slides',
           });
 
           savedPaths.push(savedPath);
@@ -395,39 +427,48 @@ class ExportService {
         return {
           success: false,
           savedPaths: [],
-          error: 'No slides were exported successfully'
+          error: 'No slides were exported successfully',
         };
       }
 
       return {
         success: true,
-        savedPaths
+        savedPaths,
       };
     } catch (error) {
       console.error('Export error:', error);
       return {
         success: false,
         savedPaths: [],
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
       };
     }
   }
 
   public async exportSlidesWithSkia(
     slides: Slide[],
-    canvasSize: { width: number; height: number } = { width: 1080, height: 1080 }
+    canvasSize: { width: number; height: number } = {
+      width: 1080,
+      height: 1920,
+    },
   ): Promise<{ success: boolean; savedPaths: string[]; error?: string }> {
     const savedPaths: string[] = [];
     const addWatermark = !this.isProUser;
     const textEffectsEngine = TextEffectsEngine.getInstance();
 
     try {
-      const platformKey = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
+      const platformKey =
+        Platform.OS === 'ios'
+          ? 'ios'
+          : Platform.OS === 'android'
+          ? 'android'
+          : 'default';
       for (const slide of slides) {
         // Create a surface for rendering
         const surface = Skia.Surface.MakeOffscreen(
           canvasSize.width,
-          canvasSize.height
+          canvasSize.height,
         );
 
         if (!surface) {
@@ -446,12 +487,22 @@ class ExportService {
             // Load image from URI
             const imageData = await RNFS.readFile(slide.image, 'base64');
             const image = Skia.Image.MakeImageFromEncoded(
-              Skia.Data.fromBase64(imageData)
+              Skia.Data.fromBase64(imageData),
             );
 
             if (image) {
-              const srcRect = Skia.XYWHRect(0, 0, image.width(), image.height());
-              const dstRect = Skia.XYWHRect(0, 0, canvasSize.width, canvasSize.height);
+              const srcRect = Skia.XYWHRect(
+                0,
+                0,
+                image.width(),
+                image.height(),
+              );
+              const dstRect = Skia.XYWHRect(
+                0,
+                0,
+                canvasSize.width,
+                canvasSize.height,
+              );
 
               const paint = Skia.Paint();
               canvas.drawImageRect(image, srcRect, dstRect, paint);
@@ -461,9 +512,10 @@ class ExportService {
           }
         }
 
-        const legacyFontId = slide.fontId === LEGACY_SYSTEM_FONT_ID
-          ? DEFAULT_SLIDE_FONT_ID
-          : slide.fontId;
+        const legacyFontId =
+          slide.fontId === LEGACY_SYSTEM_FONT_ID
+            ? DEFAULT_SLIDE_FONT_ID
+            : slide.fontId;
         const fontOption = legacyFontId
           ? getSlideFontById(legacyFontId)
           : getSlideFontByFamily(slide.fontFamily);
@@ -472,7 +524,10 @@ class ExportService {
         const font = matchFont({
           fontFamily: resolvedFontFamily,
           fontSize: slide.fontSize,
-          fontWeight: resolvedFontFamily !== 'System' ? 'normal' : slide.fontWeight || 'normal',
+          fontWeight:
+            resolvedFontFamily !== 'System'
+              ? 'normal'
+              : slide.fontWeight || 'normal',
         });
         const textPaint = Skia.Paint();
         textPaint.setColor(Skia.Color(slide.color));
@@ -480,7 +535,8 @@ class ExportService {
         const slideEffects = (slide.textEffects ?? []).filter(effect =>
           isTextEffectSupported(effect.type),
         );
-        const preparedEffectLayers = textEffectsEngine.prepareLayers(slideEffects);
+        const preparedEffectLayers =
+          textEffectsEngine.prepareLayers(slideEffects);
         if (preparedEffectLayers.length > 0) {
           // TODO: invoke textEffectsEngine.applyEffects once layer-specific
           // renderers are implemented. This will require drawing text to an
@@ -493,10 +549,16 @@ class ExportService {
         const lineHeight = slide.fontSize * 1.35;
         const maxBackgroundWidth = canvasSize.width * 0.9;
 
-        const lineWidths = lines.map((line) => font.getTextWidth(line, textPaint));
+        const lineWidths = lines.map(line =>
+          font.getTextWidth(line, textPaint),
+        );
         const rawTextWidth = Math.max(slide.fontSize, ...lineWidths);
-        const backgroundWidth = Math.min(rawTextWidth + paddingX * 2, maxBackgroundWidth);
-        const backgroundHeight = lineHeight * Math.max(lines.length, 1) + paddingY * 2;
+        const backgroundWidth = Math.min(
+          rawTextWidth + paddingX * 2,
+          maxBackgroundWidth,
+        );
+        const backgroundHeight =
+          lineHeight * Math.max(lines.length, 1) + paddingY * 2;
 
         // Draw text overlay background
         const textBackgroundPaint = Skia.Paint();
@@ -507,30 +569,49 @@ class ExportService {
           slide.position.x,
           slide.position.y,
           backgroundWidth,
-          backgroundHeight
+          backgroundHeight,
         );
         const borderRadius = Math.min(Math.max(12, slide.fontSize * 0.6), 30);
-        const roundedRect = Skia.RRectXY(textBgRect, borderRadius, borderRadius);
+        const roundedRect = Skia.RRectXY(
+          textBgRect,
+          borderRadius,
+          borderRadius,
+        );
         canvas.drawRRect(roundedRect, textBackgroundPaint);
 
-        const textDrawInstructions: TextDrawInstruction[] = lines.map((line, index) => {
-          const lineWidth = lineWidths[index] ?? 0;
-          let textX = slide.position.x + paddingX;
+        const textDrawInstructions: TextDrawInstruction[] = lines.map(
+          (line, index) => {
+            const lineWidth = lineWidths[index] ?? 0;
+            let textX = slide.position.x + paddingX;
 
-          if (slide.textAlign === 'center') {
-            textX = slide.position.x + backgroundWidth / 2 - lineWidth / 2;
-          } else if (slide.textAlign === 'right') {
-            textX = slide.position.x + backgroundWidth - paddingX - lineWidth;
-          }
+            if (slide.textAlign === 'center') {
+              textX = slide.position.x + backgroundWidth / 2 - lineWidth / 2;
+            } else if (slide.textAlign === 'right') {
+              textX = slide.position.x + backgroundWidth - paddingX - lineWidth;
+            }
 
-          const textY = slide.position.y + paddingY + slide.fontSize + index * lineHeight;
-          return { line, x: textX, y: textY };
-        });
+            const textY =
+              slide.position.y + paddingY + slide.fontSize + index * lineHeight;
+            return { line, x: textX, y: textY };
+          },
+        );
 
-        applyTextEffectsToCanvas(canvas, font, textPaint, textDrawInstructions, slideEffects);
+        applyTextEffectsToCanvas(
+          canvas,
+          font,
+          textPaint,
+          textDrawInstructions,
+          slideEffects,
+        );
 
         textDrawInstructions.forEach(instruction => {
-          canvas.drawText(instruction.line, instruction.x, instruction.y, textPaint, font);
+          canvas.drawText(
+            instruction.line,
+            instruction.x,
+            instruction.y,
+            textPaint,
+            font,
+          );
         });
 
         // Add watermark if not Pro
@@ -557,7 +638,7 @@ class ExportService {
             watermarkX - 5,
             watermarkY - textBounds.height - 5,
             textBounds.width + 10,
-            textBounds.height + 10
+            textBounds.height + 10,
           );
           canvas.drawRect(watermarkBgRect, watermarkBgPaint);
 
@@ -567,7 +648,7 @@ class ExportService {
             watermarkX,
             watermarkY,
             watermarkPaint,
-            watermarkFont
+            watermarkFont,
           );
         }
 
@@ -582,7 +663,7 @@ class ExportService {
         // Save to camera roll
         const savedPath = await CameraRoll.save(tempPath, {
           type: 'photo',
-          album: 'Text to Slides'
+          album: 'Text to Slides',
         });
 
         savedPaths.push(savedPath);
@@ -593,14 +674,15 @@ class ExportService {
 
       return {
         success: savedPaths.length > 0,
-        savedPaths
+        savedPaths,
       };
     } catch (error) {
       console.error('Skia export error:', error);
       return {
         success: false,
         savedPaths: [],
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error:
+          error instanceof Error ? error.message : 'Unknown error occurred',
       };
     }
   }
@@ -616,15 +698,15 @@ class ExportService {
             if (Platform.OS === 'ios') {
               Linking.openURL('photos-redirect://');
             }
-          }
+          },
         },
-        { text: 'OK', style: 'default' }
-      ]
+        { text: 'OK', style: 'default' },
+      ],
     );
   }
 
   public showUpgradePrompt() {
-    console.log("Upgrade prompt");
+    console.log('Upgrade prompt');
   }
 }
 

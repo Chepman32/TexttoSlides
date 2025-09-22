@@ -42,21 +42,31 @@ interface SkiaSlideRendererProps {
 const SkiaSlideRenderer: React.FC<SkiaSlideRendererProps> = ({
   slide,
   width = 350,
-  height = 350,
+  height = 600,
   styleName = 'modern',
 }) => {
   const graphicsService = GraphicsService.getInstance();
   const textEffectsEngine = TextEffectsEngine.getInstance();
   const { width: screenWidth } = Dimensions.get('window');
-  const slideSize = Math.min(screenWidth - 40, width);
-  const platformKey = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
-  const legacyFontId = slide.fontId === LEGACY_SYSTEM_FONT_ID
-    ? DEFAULT_SLIDE_FONT_ID
-    : slide.fontId;
+  const slideWidth = Math.min(screenWidth - 40, width);
+  const slideHeight = height;
+  const platformKey =
+    Platform.OS === 'ios'
+      ? 'ios'
+      : Platform.OS === 'android'
+      ? 'android'
+      : 'default';
+  const legacyFontId =
+    slide.fontId === LEGACY_SYSTEM_FONT_ID
+      ? DEFAULT_SLIDE_FONT_ID
+      : slide.fontId;
   const fontOption = legacyFontId
     ? getSlideFontById(legacyFontId)
     : getSlideFontByFamily(slide.fontFamily);
-  const resolvedFontFamily = resolveFontFamilyForPlatform(fontOption, platformKey);
+  const resolvedFontFamily = resolveFontFamilyForPlatform(
+    fontOption,
+    platformKey,
+  );
   const slideEffects = (slide.textEffects ?? []).filter(effect =>
     isTextEffectSupported(effect.type),
   );
@@ -71,7 +81,16 @@ const SkiaSlideRenderer: React.FC<SkiaSlideRendererProps> = ({
 
   // For now, render a simple fallback until Skia is properly configured
   return (
-    <View style={{ width: slideSize, height: slideSize, backgroundColor: '#f0f0f0', borderRadius: 10, justifyContent: 'center', alignItems: 'center' }}>
+    <View
+      style={{
+        width: slideWidth,
+        height: slideHeight,
+        backgroundColor: '#f0f0f0',
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
+    >
       <View
         style={{
           paddingHorizontal: Math.max(12, slide.fontSize * 0.55),
@@ -86,24 +105,42 @@ const SkiaSlideRenderer: React.FC<SkiaSlideRendererProps> = ({
           position: 'relative',
         }}
       >
-        {preparedEffectLayers.length > 0 ? previewEffects.underlayElements : null}
-        <Text style={{ 
-          fontSize: slide.fontSize, 
-          color: previewEffects.textStyle.color ?? slide.color, 
-          textAlign: slide.textAlign,
-          fontWeight: resolvedFontFamily ? undefined : slide.fontWeight,
-          fontFamily: resolvedFontFamily,
-          textShadowColor: previewEffects.textStyle.textShadowColor,
-          textShadowOffset: previewEffects.textStyle.textShadowOffset,
-          textShadowRadius: previewEffects.textStyle.textShadowRadius,
-        }}>
+        {preparedEffectLayers.length > 0
+          ? previewEffects.underlayElements
+          : null}
+        <Text
+          style={{
+            fontSize: slide.fontSize,
+            color: previewEffects.textStyle.color ?? slide.color,
+            textAlign: slide.textAlign,
+            fontWeight: resolvedFontFamily ? undefined : slide.fontWeight,
+            fontFamily: resolvedFontFamily,
+            textShadowColor: previewEffects.textStyle.textShadowColor,
+            textShadowOffset: previewEffects.textStyle.textShadowOffset,
+            textShadowRadius: previewEffects.textStyle.textShadowRadius,
+          }}
+        >
           {slide.text}
         </Text>
-        {preparedEffectLayers.length > 0 ? previewEffects.overlayElements : null}
+        {preparedEffectLayers.length > 0
+          ? previewEffects.overlayElements
+          : null}
       </View>
       {preparedEffectLayers.length > 0 ? (
-        <View style={{ position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(0,0,0,0.4)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 }}>
-          <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '600' }}>Effects Pending</Text>
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 10,
+            right: 10,
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 12,
+          }}
+        >
+          <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: '600' }}>
+            Effects Pending
+          </Text>
         </View>
       ) : null}
     </View>

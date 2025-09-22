@@ -3,9 +3,22 @@
  * Handles image picking, camera functionality, and image processing
  */
 
-import { launchImageLibrary, launchCamera, ImagePickerResponse, MediaType } from 'react-native-image-picker';
-import RNImageManipulator, { RNImageManipulatorResult } from 'react-native-image-manipulator';
-import { check, request, PERMISSIONS, RESULTS, Permission } from 'react-native-permissions';
+import {
+  launchImageLibrary,
+  launchCamera,
+  ImagePickerResponse,
+  MediaType,
+} from 'react-native-image-picker';
+import RNImageManipulator, {
+  RNImageManipulatorResult,
+} from 'react-native-image-manipulator';
+import {
+  check,
+  request,
+  PERMISSIONS,
+  RESULTS,
+  Permission,
+} from 'react-native-permissions';
 import { Platform, Alert } from 'react-native';
 
 export interface ImagePickerOptions {
@@ -38,12 +51,13 @@ class ImageService {
    * Check and request camera permission
    */
   private async checkCameraPermission(): Promise<boolean> {
-    const permission: Permission = Platform.OS === 'ios' 
-      ? PERMISSIONS.IOS.CAMERA 
-      : PERMISSIONS.ANDROID.CAMERA;
+    const permission: Permission =
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.CAMERA
+        : PERMISSIONS.ANDROID.CAMERA;
 
     const result = await check(permission);
-    
+
     if (result === RESULTS.GRANTED) {
       return true;
     }
@@ -60,9 +74,10 @@ class ImageService {
    * Check photo library permission status without requesting
    */
   public async checkPhotoLibraryPermissionStatus(): Promise<string> {
-    const permission: Permission = Platform.OS === 'ios' 
-      ? PERMISSIONS.IOS.PHOTO_LIBRARY 
-      : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+    const permission: Permission =
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.PHOTO_LIBRARY
+        : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
 
     try {
       const result = await check(permission);
@@ -77,14 +92,15 @@ class ImageService {
    * Check and request photo library permission
    */
   private async checkPhotoLibraryPermission(): Promise<boolean> {
-    const permission: Permission = Platform.OS === 'ios' 
-      ? PERMISSIONS.IOS.PHOTO_LIBRARY 
-      : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
+    const permission: Permission =
+      Platform.OS === 'ios'
+        ? PERMISSIONS.IOS.PHOTO_LIBRARY
+        : PERMISSIONS.ANDROID.READ_EXTERNAL_STORAGE;
 
     try {
       const result = await check(permission);
       console.log('Permission check result:', result);
-      
+
       if (result === RESULTS.GRANTED) {
         return true;
       }
@@ -115,26 +131,22 @@ class ImageService {
    * Show image picker options (camera or gallery)
    */
   public async showImagePickerOptions(): Promise<string | null> {
-    return new Promise((resolve) => {
-      Alert.alert(
-        'Select Image',
-        'Choose an option',
-        [
-          {
-            text: 'Camera',
-            onPress: () => this.pickFromCamera().then(resolve),
-          },
-          {
-            text: 'Photo Library',
-            onPress: () => this.pickFromGallery().then(resolve),
-          },
-          {
-            text: 'Cancel',
-            style: 'cancel',
-            onPress: () => resolve(null),
-          },
-        ]
-      );
+    return new Promise(resolve => {
+      Alert.alert('Select Image', 'Choose an option', [
+        {
+          text: 'Camera',
+          onPress: () => this.pickFromCamera().then(resolve),
+        },
+        {
+          text: 'Photo Library',
+          onPress: () => this.pickFromGallery().then(resolve),
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+          onPress: () => resolve(null),
+        },
+      ]);
     });
   }
 
@@ -143,22 +155,20 @@ class ImageService {
    */
   public async pickFromCamera(): Promise<string | null> {
     const hasPermission = await this.checkCameraPermission();
-    
+
     if (!hasPermission) {
       Alert.alert(
         'Permission Required',
         'Camera permission is required to take photos. Please enable it in Settings.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
       return null;
     }
 
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const options: ImagePickerOptions = {
         mediaType: 'photo',
-        quality: 0.8,
-        maxWidth: 1080,
-        maxHeight: 1080,
+        quality: 1.0, // Use highest quality to preserve original image
       };
 
       launchCamera(options, (response: ImagePickerResponse) => {
@@ -182,37 +192,38 @@ class ImageService {
   public async pickFromGallery(): Promise<string | null> {
     try {
       const hasPermission = await this.checkPhotoLibraryPermission();
-      
+
       if (!hasPermission) {
         Alert.alert(
           'Permission Required',
           'Photo library permission is required to select images. Please enable it in Settings.',
           [
             { text: 'Cancel', style: 'cancel' },
-            { 
-              text: 'Open Settings', 
+            {
+              text: 'Open Settings',
               onPress: () => {
                 // On iOS, this will open the app settings
                 // On Android, this will open the system settings
                 console.log('Opening settings...');
-              }
-            }
-          ]
+              },
+            },
+          ],
         );
         return null;
       }
 
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         const options: ImagePickerOptions = {
           mediaType: 'photo',
-          quality: 0.8,
-          maxWidth: 1080,
-          maxHeight: 1080,
+          quality: 1.0, // Use highest quality to preserve original image
         };
 
         launchImageLibrary(options, (response: ImagePickerResponse) => {
           if (response.didCancel || response.errorMessage) {
-            console.log('Image picker cancelled or error:', response.errorMessage);
+            console.log(
+              'Image picker cancelled or error:',
+              response.errorMessage,
+            );
             resolve(null);
             return;
           }
@@ -231,7 +242,7 @@ class ImageService {
       Alert.alert(
         'Error',
         'Failed to access photo library. Please try again.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
       return null;
     }
@@ -241,8 +252,8 @@ class ImageService {
    * Process image (resize, compress, format conversion)
    */
   public async processImage(
-    imageUri: string, 
-    options: ImageProcessingOptions = {}
+    imageUri: string,
+    options: ImageProcessingOptions = {},
   ): Promise<string | null> {
     try {
       const {
@@ -253,16 +264,16 @@ class ImageService {
         compress = 0.8,
       } = options;
 
-      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
-        imageUri,
-        [
-          { resize: { width, height } },
-        ],
-        {
-          compress,
-          format,
-        }
-      );
+      // Only compress the image, don't resize to maintain original aspect ratio
+      const result: RNImageManipulatorResult =
+        await RNImageManipulator.manipulate(
+          imageUri,
+          [], // No resize operations - keep original dimensions
+          {
+            compress,
+            format,
+          },
+        );
 
       return result.uri;
     } catch (error) {
@@ -276,16 +287,15 @@ class ImageService {
    */
   public async cropToSquare(imageUri: string): Promise<string | null> {
     try {
-      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
-        imageUri,
-        [
-          { crop: { originX: 0, originY: 0, width: 1080, height: 1080 } },
-        ],
-        {
-          compress: 0.8,
-          format: 'jpeg',
-        }
-      );
+      const result: RNImageManipulatorResult =
+        await RNImageManipulator.manipulate(
+          imageUri,
+          [{ crop: { originX: 0, originY: 0, width: 1080, height: 1080 } }],
+          {
+            compress: 0.8,
+            format: 'jpeg',
+          },
+        );
 
       return result.uri;
     } catch (error) {
@@ -298,8 +308,15 @@ class ImageService {
    * Apply filters to image
    */
   public async applyFilter(
-    imageUri: string, 
-    filter: 'none' | 'grayscale' | 'sepia' | 'vintage' | 'blur' | 'brightness' | 'contrast'
+    imageUri: string,
+    filter:
+      | 'none'
+      | 'grayscale'
+      | 'sepia'
+      | 'vintage'
+      | 'blur'
+      | 'brightness'
+      | 'contrast',
   ): Promise<string | null> {
     try {
       let actions: any[] = [];
@@ -327,14 +344,11 @@ class ImageService {
           actions = [];
       }
 
-      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
-        imageUri,
-        actions,
-        {
+      const result: RNImageManipulatorResult =
+        await RNImageManipulator.manipulate(imageUri, actions, {
           compress: 0.8,
           format: 'jpeg',
-        }
-      );
+        });
 
       return result.uri;
     } catch (error) {
@@ -354,7 +368,7 @@ class ImageService {
       saturation?: number;
       blur?: number;
       sharpen?: number;
-    }
+    },
   ): Promise<string | null> {
     try {
       const actions: any[] = [];
@@ -373,14 +387,11 @@ class ImageService {
         return imageUri;
       }
 
-      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
-        imageUri,
-        actions,
-        {
+      const result: RNImageManipulatorResult =
+        await RNImageManipulator.manipulate(imageUri, actions, {
           compress: 0.8,
           format: 'jpeg',
-        }
-      );
+        });
 
       return result.uri;
     } catch (error) {
@@ -399,26 +410,27 @@ class ImageService {
       originY: number;
       width: number;
       height: number;
-    }
+    },
   ): Promise<string | null> {
     try {
-      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
-        imageUri,
-        [
-          { 
-            crop: {
-              originX: cropOptions.originX,
-              originY: cropOptions.originY,
-              width: cropOptions.width,
-              height: cropOptions.height,
-            }
-          }
-        ],
-        {
-          compress: 0.8,
-          format: 'jpeg',
-        }
-      );
+      const result: RNImageManipulatorResult =
+        await RNImageManipulator.manipulate(
+          imageUri,
+          [
+            {
+              crop: {
+                originX: cropOptions.originX,
+                originY: cropOptions.originY,
+                width: cropOptions.width,
+                height: cropOptions.height,
+              },
+            },
+          ],
+          {
+            compress: 0.8,
+            format: 'jpeg',
+          },
+        );
 
       return result.uri;
     } catch (error) {
@@ -430,16 +442,16 @@ class ImageService {
   /**
    * Rotate image
    */
-  public async rotateImage(imageUri: string, degrees: number): Promise<string | null> {
+  public async rotateImage(
+    imageUri: string,
+    degrees: number,
+  ): Promise<string | null> {
     try {
-      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
-        imageUri,
-        [{ rotate: degrees }],
-        {
+      const result: RNImageManipulatorResult =
+        await RNImageManipulator.manipulate(imageUri, [{ rotate: degrees }], {
           compress: 0.8,
           format: 'jpeg',
-        }
-      );
+        });
 
       return result.uri;
     } catch (error) {
@@ -451,16 +463,16 @@ class ImageService {
   /**
    * Flip image horizontally or vertically
    */
-  public async flipImage(imageUri: string, direction: 'horizontal' | 'vertical'): Promise<string | null> {
+  public async flipImage(
+    imageUri: string,
+    direction: 'horizontal' | 'vertical',
+  ): Promise<string | null> {
     try {
-      const result: RNImageManipulatorResult = await RNImageManipulator.manipulate(
-        imageUri,
-        [{ flip: direction }],
-        {
+      const result: RNImageManipulatorResult =
+        await RNImageManipulator.manipulate(imageUri, [{ flip: direction }], {
           compress: 0.8,
           format: 'jpeg',
-        }
-      );
+        });
 
       return result.uri;
     } catch (error) {
@@ -475,7 +487,10 @@ class ImageService {
   public getFilterPresets() {
     return {
       none: { name: 'None', description: 'No filter applied' },
-      grayscale: { name: 'Grayscale', description: 'Convert to black and white' },
+      grayscale: {
+        name: 'Grayscale',
+        description: 'Convert to black and white',
+      },
       sepia: { name: 'Sepia', description: 'Vintage sepia tone' },
       vintage: { name: 'Vintage', description: 'Aged vintage look' },
       blur: { name: 'Blur', description: 'Soft blur effect' },
@@ -515,9 +530,15 @@ class ImageService {
   /**
    * Generate a placeholder image with text
    */
-  public generatePlaceholderImage(width: number, height: number, text?: string): string {
+  public generatePlaceholderImage(
+    width: number,
+    height: number,
+    text?: string,
+  ): string {
     if (text) {
-      return `https://placehold.co/${width}x${height}?text=${encodeURIComponent(text)}`;
+      return `https://placehold.co/${width}x${height}?text=${encodeURIComponent(
+        text,
+      )}`;
     }
     return `https://placehold.co/${width}x${height}`;
   }
@@ -529,12 +550,12 @@ class ImageService {
     if (!uri || typeof uri !== 'string') {
       return false;
     }
-    
+
     // Check if it's a local file URI
     if (uri.startsWith('file://') || uri.startsWith('content://')) {
       return true;
     }
-    
+
     // Check if it's a valid URL
     try {
       new URL(uri);

@@ -143,7 +143,7 @@ const ImageSelectionScreen: React.FC = () => {
         // Try to process the image in the background (optional)
         ImageService.processImage(imageUri, {
           width: 1080,
-          height: 1080,
+          height: 1920, // Use different dimensions to avoid forcing square
           quality: 0.8,
         })
           .then(processedUri => {
@@ -261,7 +261,7 @@ const ImageSelectionScreen: React.FC = () => {
                   <Image
                     source={{ uri: selectedImages[index] }}
                     style={styles.previewImage}
-                    resizeMode="cover"
+                    resizeMode="contain"
                   />
                 ) : (
                   <View style={styles.plainBackgroundPreview}>
