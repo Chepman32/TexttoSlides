@@ -35,20 +35,20 @@ export const buildPreviewEffects = (
     const params = effect.parameters || {};
     switch (effect.type) {
       case 'softShadow': {
-        const color = typeof params.shadowColor === 'string' ? params.shadowColor : 'rgba(0,0,0,0.6)';
+        const color =
+          typeof params.shadowColor === 'string'
+            ? params.shadowColor
+            : 'rgba(0,0,0,0.6)';
         const offset = params.offset || { x: 8, y: 12 };
         const blur = typeof params.blur === 'number' ? params.blur : 18;
-        overlayStyle.shadowColor = color;
-        overlayStyle.shadowOffset = { width: offset.x, height: offset.y };
-        overlayStyle.shadowOpacity = 1;
-        overlayStyle.shadowRadius = Math.max(blur, 12);
-        overlayStyle.elevation = Math.max(overlayStyle.elevation ?? 0, blur / 2);
-        overlayStyle.borderColor = color;
-        overlayStyle.borderWidth = Math.max(overlayStyle.borderWidth ?? 0, 1);
+
+        // Apply shadow effects only to text, not to the container
         textStyle.textShadowColor = color;
         textStyle.textShadowOffset = { width: offset.x, height: offset.y };
         textStyle.textShadowRadius = Math.max(blur, 12);
         textStyle.opacity = Math.min(1, (textStyle.opacity ?? 1) + 0.05);
+
+        // Create shadow underlay element that matches text size
         underlayElements.push(
           <Text
             key={`${effect.instanceId}-softShadow`}
@@ -67,29 +67,62 @@ export const buildPreviewEffects = (
             }}
           >
             {options.text}
-          </Text>
+          </Text>,
         );
         break;
       }
       case 'neonGlow': {
-        const glowColor = typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
-        const intensity = typeof params.intensity === 'number' ? params.intensity : 0.8;
+        const glowColor =
+          typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
+        const intensity =
+          typeof params.intensity === 'number' ? params.intensity : 0.8;
         const spread = typeof params.spread === 'number' ? params.spread : 12;
+
+        // Apply glow effects only to text
         textStyle.textShadowColor = glowColor;
         textStyle.textShadowOffset = { width: 0, height: 0 };
         textStyle.textShadowRadius = Math.max(12, spread * 1.5);
         textStyle.color = glowColor;
         textStyle.opacity = Math.min(1, 0.85 + intensity * 0.15);
-        overlayStyle.borderColor = glowColor;
-        overlayStyle.borderWidth = Math.max(overlayStyle.borderWidth ?? 0, 2);
-        overlayStyle.backgroundColor = 'rgba(0,0,0,0.25)';
+
+        // Create additional glow layers for enhanced neon effect
+        for (let i = 0; i < 3; i++) {
+          const glowRadius = Math.max(8, spread * (1 + i * 0.5));
+          const glowOpacity = (intensity * 0.3) / (i + 1);
+
+          underlayElements.push(
+            <Text
+              key={`${effect.instanceId}-neonGlow-${i}`}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                color: glowColor,
+                opacity: glowOpacity,
+                fontSize: options.fontSize,
+                fontFamily: options.fontFamily,
+                fontWeight: options.fontWeight,
+                textShadowColor: glowColor,
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: glowRadius,
+              }}
+            >
+              {options.text}
+            </Text>,
+          );
+        }
         break;
       }
       case 'longShadow': {
         const length = Math.max(4, Math.min(120, Number(params.length) || 24));
-        const angle = degToRad(typeof params.angle === 'number' ? params.angle : 135);
+        const angle = degToRad(
+          typeof params.angle === 'number' ? params.angle : 135,
+        );
         const fade = typeof params.fade === 'number' ? params.fade : 0.6;
-        const shadowColor = typeof params.shadowColor === 'string' ? params.shadowColor : 'rgba(0,0,0,0.7)';
+        const shadowColor =
+          typeof params.shadowColor === 'string'
+            ? params.shadowColor
+            : 'rgba(0,0,0,0.7)';
         const steps = Math.min(25, Math.max(6, Math.round(length / 4)));
         const stepX = (Math.cos(angle) * length) / steps;
         const stepY = (Math.sin(angle) * length) / steps;
@@ -119,7 +152,8 @@ export const buildPreviewEffects = (
       }
       case 'bloom': {
         const radius = typeof params.radius === 'number' ? params.radius : 16;
-        const intensity = typeof params.intensity === 'number' ? params.intensity : 0.75;
+        const intensity =
+          typeof params.intensity === 'number' ? params.intensity : 0.75;
         textStyle.opacity = Math.min(1, 0.9 + intensity * 0.08);
         overlayStyle.backgroundColor = 'rgba(255,255,255,0.05)';
         overlayStyle.borderColor = 'rgba(255,255,255,0.25)';
@@ -148,8 +182,12 @@ export const buildPreviewEffects = (
         break;
       }
       case 'glassmorphism': {
-        const borderColor = typeof params.borderColor === 'string' ? params.borderColor : 'rgba(255,255,255,0.4)';
-        const borderWidth = typeof params.borderWidth === 'number' ? params.borderWidth : 1;
+        const borderColor =
+          typeof params.borderColor === 'string'
+            ? params.borderColor
+            : 'rgba(255,255,255,0.4)';
+        const borderWidth =
+          typeof params.borderWidth === 'number' ? params.borderWidth : 1;
         overlayStyle.backgroundColor = 'rgba(255,255,255,0.18)';
         overlayStyle.borderWidth = borderWidth;
         overlayStyle.borderColor = borderColor;
@@ -158,7 +196,8 @@ export const buildPreviewEffects = (
       }
       case 'letterpress': {
         const depth = typeof params.depth === 'number' ? params.depth : 4;
-        const highlight = typeof params.highlight === 'number' ? params.highlight : 0.4;
+        const highlight =
+          typeof params.highlight === 'number' ? params.highlight : 0.4;
         textStyle.textShadowColor = 'rgba(0,0,0,0.35)';
         textStyle.textShadowOffset = { width: -depth / 3, height: depth / 3 };
         textStyle.textShadowRadius = depth * 1.2;
@@ -181,12 +220,15 @@ export const buildPreviewEffects = (
             }}
           >
             {options.text}
-          </Text>
+          </Text>,
         );
         break;
       }
       case 'shineSweep': {
-        const shineColor = typeof params.shineColor === 'string' ? params.shineColor : 'rgba(255,255,255,0.8)';
+        const shineColor =
+          typeof params.shineColor === 'string'
+            ? params.shineColor
+            : 'rgba(255,255,255,0.8)';
         overlayElements.push(
           <Text
             key={`${effect.instanceId}-shine`}
@@ -202,7 +244,7 @@ export const buildPreviewEffects = (
             }}
           >
             / / / / /
-          </Text>
+          </Text>,
         );
         break;
       }

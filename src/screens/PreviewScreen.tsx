@@ -181,8 +181,21 @@ const PreviewScreen: React.FC = () => {
               paddingVertical,
               borderRadius,
               maxWidth: slideSize * 0.9,
+              alignSelf: 'flex-start', // Size container to content
             },
-            previewEffects.overlayStyle,
+            // Only apply overlay styles that don't create large masks
+            {
+              shadowColor: previewEffects.overlayStyle.shadowColor,
+              shadowOffset: previewEffects.overlayStyle.shadowOffset,
+              shadowOpacity: previewEffects.overlayStyle.shadowOpacity,
+              shadowRadius: previewEffects.overlayStyle.shadowRadius,
+              elevation: previewEffects.overlayStyle.elevation,
+              backgroundColor:
+                previewEffects.overlayStyle.backgroundColor ||
+                item.backgroundColor ||
+                'rgba(0,0,0,0.5)',
+              overflow: previewEffects.overlayStyle.overflow,
+            },
           ]}
         >
           {previewEffects.underlayElements}
@@ -350,6 +363,7 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
     overflow: 'visible',
     zIndex: 2,
+    alignSelf: 'flex-start', // Size to content
   },
   slideText: {
     color: '#fff',

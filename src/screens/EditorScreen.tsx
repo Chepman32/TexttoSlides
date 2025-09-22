@@ -1101,8 +1101,20 @@ const EditorScreen: React.FC = () => {
                   paddingHorizontal: overlayPaddingHorizontal,
                   paddingVertical: overlayPaddingVertical,
                   borderRadius: overlayBorderRadius,
+                  alignSelf: 'flex-start', // Size container to content
                 },
-                previewEffects.overlayStyle,
+                // Only apply overlay styles that don't create large masks
+                {
+                  shadowColor: previewEffects.overlayStyle.shadowColor,
+                  shadowOffset: previewEffects.overlayStyle.shadowOffset,
+                  shadowOpacity: previewEffects.overlayStyle.shadowOpacity,
+                  shadowRadius: previewEffects.overlayStyle.shadowRadius,
+                  elevation: previewEffects.overlayStyle.elevation,
+                  backgroundColor:
+                    previewEffects.overlayStyle.backgroundColor ||
+                    currentSlide.backgroundColor,
+                  overflow: previewEffects.overlayStyle.overflow,
+                },
               ]}
             >
               {/* Render text effects using Skia if font is loaded and effects exist */}
@@ -1634,6 +1646,7 @@ const styles = StyleSheet.create({
     maxWidth: '90%',
     overflow: 'visible',
     zIndex: 2,
+    alignSelf: 'flex-start', // Size to content
   },
   slideText: {
     color: '#fff',
