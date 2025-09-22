@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -23,7 +29,11 @@ import Animated, {
 import StorageService, { ProjectState } from '../services/StorageService';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import { smartSplit, optimizeForSlides, getOptimalSlideCount } from '../utils/textUtils';
+import {
+  smartSplit,
+  optimizeForSlides,
+  getOptimalSlideCount,
+} from '../utils/textUtils';
 import FeedbackService from '../services/FeedbackService';
 import {
   SLIDE_FONT_OPTIONS,
@@ -48,7 +58,11 @@ import {
   isTextEffectSupported,
   createTextEffectInstance,
 } from '../constants/textEffects';
-import ColorPicker from "../assets/icons/ColorPicker.png"
+import { useFont } from '@shopify/react-native-skia';
+import { EffectPipeline } from '../textfx/render/pipeline';
+import { convertToNewFormat } from '../textfx/utils/effectConverter';
+import type { EffectInstance } from '../textfx/types';
+import ColorPicker from '../assets/icons/ColorPicker.png';
 
 const SLIDER_HEIGHT = 200;
 const MIN_FONT_SIZE = 12;
@@ -98,7 +112,9 @@ type Slide = {
   textEffects: TextEffectInstance[];
 };
 
-const filterSupportedEffects = (effects?: TextEffectInstance[]): TextEffectInstance[] =>
+const filterSupportedEffects = (
+  effects?: TextEffectInstance[],
+): TextEffectInstance[] =>
   (effects ?? []).filter(effect => isTextEffectSupported(effect.type));
 
 const EditorScreen: React.FC = () => {
@@ -157,11 +173,14 @@ const EditorScreen: React.FC = () => {
   const [isColorPaletteVisible, setColorPaletteVisible] = useState(false);
   const [isOpacityPaletteVisible, setOpacityPaletteVisible] = useState(false);
   const [isFontPaletteVisible, setFontPaletteVisible] = useState(false);
-  const [isTextEffectsPanelVisible, setTextEffectsPanelVisible] = useState(false);
-  const [activeTextEffectsCategory, setActiveTextEffectsCategory] = useState<TextEffectCategory>(
-    getDefaultSupportedTextEffectCategory(),
-  );
-  const [selectedTextEffectId, setSelectedTextEffectId] = useState<string | null>(null);
+  const [isTextEffectsPanelVisible, setTextEffectsPanelVisible] =
+    useState(false);
+  const [isEffectsPaletteVisible, setEffectsPaletteVisible] = useState(false);
+  const [activeTextEffectsCategory, setActiveTextEffectsCategory] =
+    useState<TextEffectCategory>('lighting'); // Default to "Light & Glow" category which has supported effects
+  const [selectedTextEffectId, setSelectedTextEffectId] = useState<
+    string | null
+  >(null);
 
   // Undo/Redo history management
   const [, setHistory] = useState<Slide[][]>([initialSlides]);
@@ -174,7 +193,9 @@ const EditorScreen: React.FC = () => {
     [currentSlide?.textEffects],
   );
   const selectedTextEffect = selectedTextEffectId
-    ? currentSlideEffects.find(effect => effect.instanceId === selectedTextEffectId) || null
+    ? currentSlideEffects.find(
+        effect => effect.instanceId === selectedTextEffectId,
+      ) || null
     : null;
   const selectedTextEffectDefinition = selectedTextEffect
     ? TEXT_EFFECT_DEFINITIONS[selectedTextEffect.type]
@@ -182,15 +203,25 @@ const EditorScreen: React.FC = () => {
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth * 0.99, screenWidth - 10); // Use 99% of screen width
 
-  const overlayPaddingHorizontal = Math.max(12, currentSlide?.fontSize * 0.55 || 0);
-  const overlayPaddingVertical = Math.max(16, currentSlide?.fontSize * 0.65 || 0);
+  const overlayPaddingHorizontal = Math.max(
+    12,
+    currentSlide?.fontSize * 0.55 || 0,
+  );
+  const overlayPaddingVertical = Math.max(
+    16,
+    currentSlide?.fontSize * 0.65 || 0,
+  );
   const overlayBorderRadius = Math.min(
     Math.max(12, currentSlide?.fontSize * 0.6 || 0),
     30,
   );
 
   const platformKey =
-    Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
+    Platform.OS === 'ios'
+      ? 'ios'
+      : Platform.OS === 'android'
+      ? 'android'
+      : 'default';
 
   const normalizedFontId =
     currentSlide?.fontId === LEGACY_SYSTEM_FONT_ID
@@ -203,15 +234,33 @@ const EditorScreen: React.FC = () => {
       : getSlideFontByFamily(currentSlide.fontFamily)
     : getSlideFontById(DEFAULT_SLIDE_FONT_ID);
   const activeFontId = activeFontOption.id;
-  const resolvedFontFamily = resolveFontFamilyForPlatform(activeFontOption, platformKey);
+  const resolvedFontFamily = resolveFontFamilyForPlatform(
+    activeFontOption,
+    platformKey,
+  );
   const previewEffects = buildPreviewEffects(currentSlideEffects, {
     text: currentSlide?.text || '',
     fontSize: currentSlide?.fontSize || 24,
     textColor: currentSlide?.color || '#FFFFFF',
     fontFamily: resolvedFontFamily,
-    fontWeight: activeFontOption?.supportsWeightToggle ? currentSlide?.fontWeight : undefined,
+    fontWeight: activeFontOption?.supportsWeightToggle
+      ? currentSlide?.fontWeight
+      : undefined,
   });
-  
+
+  // Load Skia font for text effects rendering
+  const skiaFont = useFont(
+    require('../assets/fonts/Fira_Sans/FiraSans-Bold.ttf'),
+    currentSlide?.fontSize || 24,
+  );
+
+  // Convert old text effects to new format for Skia rendering
+  const newFormatEffects: EffectInstance[] = React.useMemo(() => {
+    return currentSlideEffects
+      .map(effect => convertToNewFormat(effect))
+      .filter((effect): effect is EffectInstance => effect !== null);
+  }, [currentSlideEffects]);
+
   // Calculate available height for image container
   const headerHeight = Math.max(insets.top, 20) + 60; // Safe area + title height
   const previewButtonHeight = 80; // Height for preview button + margins
@@ -237,7 +286,8 @@ const EditorScreen: React.FC = () => {
   const sliderTranslateY = useSharedValue(
     (() => {
       const progress = currentSlide
-        ? (currentSlide.fontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)
+        ? (currentSlide.fontSize - MIN_FONT_SIZE) /
+          (MAX_FONT_SIZE - MIN_FONT_SIZE)
         : 0;
       const clampedProgress = Math.max(0, Math.min(1, progress));
       return (1 - clampedProgress) * SLIDER_HEIGHT;
@@ -423,9 +473,12 @@ const EditorScreen: React.FC = () => {
   useEffect(() => {
     if (currentSlide) {
       const progress =
-        (currentSlide.fontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE);
+        (currentSlide.fontSize - MIN_FONT_SIZE) /
+        (MAX_FONT_SIZE - MIN_FONT_SIZE);
       const clampedProgress = Math.max(0, Math.min(1, progress));
-      sliderTranslateY.value = withSpring((1 - clampedProgress) * SLIDER_HEIGHT);
+      sliderTranslateY.value = withSpring(
+        (1 - clampedProgress) * SLIDER_HEIGHT,
+      );
 
       console.log('Slider initialized:', {
         fontSize: currentSlide.fontSize,
@@ -519,7 +572,8 @@ const EditorScreen: React.FC = () => {
       // Update the shared value for gesture handling
       currentFontSize.value = slide.fontSize;
       sliderTranslateY.value = withSpring(
-        (1 - (clampedFontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)) *
+        (1 -
+          (clampedFontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)) *
           SLIDER_HEIGHT,
       );
       newSlides[currentSlideIndex] = slide;
@@ -544,7 +598,8 @@ const EditorScreen: React.FC = () => {
         currentFontSize.value = slide.fontSize;
         sliderTranslateY.value = withSpring(
           (1 -
-            (clampedFontSize - MIN_FONT_SIZE) / (MAX_FONT_SIZE - MIN_FONT_SIZE)) *
+            (clampedFontSize - MIN_FONT_SIZE) /
+              (MAX_FONT_SIZE - MIN_FONT_SIZE)) *
             SLIDER_HEIGHT,
         );
         newSlides[currentSlideIndex] = slide;
@@ -694,7 +749,6 @@ const EditorScreen: React.FC = () => {
     transform: [{ translateY: sliderTranslateY.value - 12 }], // Adjusted for larger thumb
   }));
 
-
   // Safety check for currentSlide
   if (!currentSlide) {
     return (
@@ -782,12 +836,17 @@ const EditorScreen: React.FC = () => {
       if (!slide) {
         return prevSlides;
       }
-      const nextFontFamily = resolveFontFamilyForPlatform(fontOption, platformKey);
+      const nextFontFamily = resolveFontFamilyForPlatform(
+        fontOption,
+        platformKey,
+      );
       const updatedSlide = {
         ...slide,
         fontId: fontOption.id,
         fontFamily: nextFontFamily,
-        fontWeight: fontOption.supportsWeightToggle ? slide.fontWeight : 'normal',
+        fontWeight: fontOption.supportsWeightToggle
+          ? slide.fontWeight
+          : 'normal',
       };
       newSlides[currentSlideIndex] = updatedSlide;
       addToHistory(newSlides);
@@ -820,7 +879,10 @@ const EditorScreen: React.FC = () => {
   const handleAddTextEffect = (effectType: TextEffectType) => {
     FeedbackService.buttonTap();
     if (!isTextEffectSupported(effectType)) {
-      Alert.alert('Coming soon', 'This effect will be available in a future update.');
+      Alert.alert(
+        'Coming soon',
+        'This effect will be available in a future update.',
+      );
       return;
     }
     let createdEffect: TextEffectInstance | null = null;
@@ -845,6 +907,35 @@ const EditorScreen: React.FC = () => {
       setSelectedTextEffectId(createdEffect.instanceId);
       setTextEffectsPanelVisible(true);
     }
+  };
+
+  // Simple function for adding effects from carousel without opening complex panel
+  const handleAddTextEffectSimple = (effectType: TextEffectType) => {
+    FeedbackService.buttonTap();
+    if (!isTextEffectSupported(effectType)) {
+      Alert.alert(
+        'Coming soon',
+        'This effect will be available in a future update.',
+      );
+      return;
+    }
+    setSlides(prevSlides => {
+      const newSlides = [...prevSlides];
+      const slide = newSlides[currentSlideIndex];
+      if (!slide) {
+        return prevSlides;
+      }
+      const instance = createTextEffectInstance(effectType);
+      const updatedSlide: Slide = {
+        ...slide,
+        textEffects: [...(slide.textEffects ?? []), instance],
+      };
+      newSlides[currentSlideIndex] = updatedSlide;
+      addToHistory(newSlides);
+      return newSlides;
+    });
+    setHasUnsavedChanges(true);
+    // Don't open the complex panel - just apply the effect
   };
 
   const handleToggleTextEffect = (instanceId: string) => {
@@ -971,7 +1062,10 @@ const EditorScreen: React.FC = () => {
       {/* Slide preview area */}
       <View style={styles.editorContainer}>
         <View
-          style={[styles.slidePreview, { width: slideSize, height: imageContainerHeight }]}
+          style={[
+            styles.slidePreview,
+            { width: slideSize, height: imageContainerHeight },
+          ]}
         >
           {currentSlide.image ? (
             <Image
@@ -980,11 +1074,20 @@ const EditorScreen: React.FC = () => {
               style={styles.imageBackground}
               resizeMode="contain"
               onError={error => {
-                console.warn('Failed to load slide image', currentSlide.image, error.nativeEvent);
+                console.warn(
+                  'Failed to load slide image',
+                  currentSlide.image,
+                  error.nativeEvent,
+                );
               }}
             />
           ) : (
-            <View style={styles.plainBackground} />
+            <View
+              style={[
+                styles.plainBackground,
+                { backgroundColor: themeDefinition.colors.card },
+              ]}
+            />
           )}
 
           <GestureDetector gesture={composed}>
@@ -1002,27 +1105,43 @@ const EditorScreen: React.FC = () => {
                 previewEffects.overlayStyle,
               ]}
             >
-              {previewEffects.underlayElements}
-              <Text
-                style={[
-                  styles.slideText,
-                  {
-                    fontSize: currentSlide.fontSize,
-                    color: currentSlide.color,
-                    textAlign: currentSlide.textAlign,
-                    fontWeight: activeFontOption?.supportsWeightToggle
-                      ? currentSlide.fontWeight
-                      : undefined,
-                    fontFamily: resolvedFontFamily,
-                    lineHeight: currentSlide.fontSize * 1.35,
-                    // Add wrapping to prevent text from overflowing
-                  },
-                  previewEffects.textStyle,
-                ]}
-              >
-                {currentSlide.text}
-              </Text>
-              {previewEffects.overlayElements}
+              {/* Render text effects using Skia if font is loaded and effects exist */}
+              {skiaFont && newFormatEffects.length > 0 ? (
+                <EffectPipeline
+                  text={currentSlide.text}
+                  x={0}
+                  baselineY={currentSlide.fontSize}
+                  font={skiaFont}
+                  width={slideSize * 0.9}
+                  height={currentSlide.fontSize * 2}
+                  textColor={currentSlide.color}
+                  effects={newFormatEffects}
+                />
+              ) : (
+                <>
+                  {previewEffects.underlayElements}
+                  <Text
+                    style={[
+                      styles.slideText,
+                      {
+                        fontSize: currentSlide.fontSize,
+                        color: currentSlide.color,
+                        textAlign: currentSlide.textAlign,
+                        fontWeight: activeFontOption?.supportsWeightToggle
+                          ? currentSlide.fontWeight
+                          : undefined,
+                        fontFamily: resolvedFontFamily,
+                        lineHeight: currentSlide.fontSize * 1.35,
+                        // Add wrapping to prevent text from overflowing
+                      },
+                      previewEffects.textStyle,
+                    ]}
+                  >
+                    {currentSlide.text}
+                  </Text>
+                  {previewEffects.overlayElements}
+                </>
+              )}
             </Animated.View>
           </GestureDetector>
 
@@ -1031,16 +1150,13 @@ const EditorScreen: React.FC = () => {
             <View
               style={[
                 styles.fontSizeSlider,
-                { top: Math.max(10, (imageContainerHeight - SLIDER_HEIGHT) / 2) },
+                {
+                  top: Math.max(10, (imageContainerHeight - SLIDER_HEIGHT) / 2),
+                },
               ]}
             >
               <View style={styles.sliderTrack}>
-                <Animated.View
-                  style={[
-                    styles.sliderThumb,
-                    sliderThumbStyle,
-                  ]}
-                />
+                <Animated.View style={[styles.sliderThumb, sliderThumbStyle]} />
               </View>
             </View>
           </GestureDetector>
@@ -1078,7 +1194,8 @@ const EditorScreen: React.FC = () => {
           <TouchableOpacity
             style={[
               styles.navArrowRight,
-              currentSlideIndex === slides.length - 1 && styles.navArrowDisabled,
+              currentSlideIndex === slides.length - 1 &&
+                styles.navArrowDisabled,
             ]}
             onPress={() => {
               if (currentSlideIndex < slides.length - 1) {
@@ -1093,12 +1210,187 @@ const EditorScreen: React.FC = () => {
         </>
       )}
 
-      {/* Minimalistic bottom controls */}
-      <View style={[styles.minimalControls, { top: imageContainerHeight - 60 }]}>
-        {!isColorPaletteVisible &&
-        !isOpacityPaletteVisible &&
-        !isFontPaletteVisible &&
-        !isTextEffectsPanelVisible ? (
+      {/* Tool-specific palettes - positioned above main toolbar */}
+      {(isColorPaletteVisible ||
+        isOpacityPaletteVisible ||
+        isFontPaletteVisible ||
+        isEffectsPaletteVisible) && (
+        <View style={[styles.toolPalette, { top: imageContainerHeight - 160 }]}>
+          {isColorPaletteVisible && (
+            <ScrollView
+              ref={colorPaletteScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.colorPaletteScrollContainer}
+              contentContainerStyle={styles.colorPaletteContainer}
+            >
+              {COLOR_OPTIONS.map(color => {
+                const borderColor =
+                  currentSlide?.color === color
+                    ? '#FFFFFF'
+                    : 'rgba(255,255,255,0.3)';
+                return (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.colorOption,
+                      {
+                        backgroundColor: color,
+                        borderColor,
+                      },
+                    ]}
+                    onPress={() => handleTextColorChange(color)}
+                    onLayout={event => {
+                      colorOptionPositions.current[color] =
+                        event.nativeEvent.layout.x;
+                      if (
+                        isColorPaletteVisible &&
+                        currentSlide?.color === color
+                      ) {
+                        ensureSelectedColorVisible();
+                      }
+                    }}
+                  />
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {isEffectsPaletteVisible && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.effectsPaletteScrollContainer}
+              contentContainerStyle={styles.effectsPaletteContainer}
+            >
+              {/* Available effects in simple carousel format */}
+              {Object.values(TEXT_EFFECT_DEFINITIONS)
+                .filter(
+                  definition =>
+                    definition.category === 'lighting' &&
+                    isTextEffectSupported(definition.id),
+                )
+                .map(definition => {
+                  const isActive = currentSlideEffects.some(
+                    effect => effect.type === definition.id,
+                  );
+                  return (
+                    <TouchableOpacity
+                      key={definition.id}
+                      style={[
+                        styles.effectOptionButton,
+                        isActive && styles.activeEffectOption,
+                      ]}
+                      onPress={() => {
+                        if (isActive) {
+                          // Remove effect if already active
+                          const effectToRemove = currentSlideEffects.find(
+                            effect => effect.type === definition.id,
+                          );
+                          if (effectToRemove) {
+                            handleRemoveTextEffect(effectToRemove.instanceId);
+                          }
+                        } else {
+                          // Add effect using simple function (no complex panel)
+                          handleAddTextEffectSimple(definition.id);
+                        }
+                        setEffectsPaletteVisible(false);
+                      }}
+                    >
+                      <Text style={styles.effectOptionLabel}>
+                        {definition.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+            </ScrollView>
+          )}
+
+          {isFontPaletteVisible && (
+            <ScrollView
+              ref={fontPaletteScrollRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.fontPaletteScrollContainer}
+              contentContainerStyle={styles.fontPaletteContainer}
+            >
+              {SLIDE_FONT_OPTIONS.map(option => {
+                const isActive = option.id === activeFontId;
+                const optionFontFamily = resolveFontFamilyForPlatform(
+                  option,
+                  platformKey,
+                );
+                return (
+                  <TouchableOpacity
+                    key={option.id}
+                    style={[
+                      styles.fontOptionButton,
+                      isActive && styles.activeFontOption,
+                    ]}
+                    onPress={() => handleFontChange(option)}
+                    onLayout={event => {
+                      fontOptionPositions.current[option.id] =
+                        event.nativeEvent.layout.x;
+                      if (isFontPaletteVisible && option.id === activeFontId) {
+                        ensureSelectedFontVisible();
+                      }
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.fontOptionSample,
+                        optionFontFamily
+                          ? { fontFamily: optionFontFamily }
+                          : null,
+                      ]}
+                    >
+                      {option.sample || 'Aa'}
+                    </Text>
+                    <Text style={styles.fontOptionLabel}>{option.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          )}
+
+          {isOpacityPaletteVisible && (
+            <View style={styles.opacityPaletteContainer}>
+              {[0, 0.2, 0.4, 0.6, 0.8, 1].map(opacity => {
+                const currentOpacity = parseFloat(
+                  currentSlide.backgroundColor.split(',')[3].replace(')', ''),
+                );
+                const borderColor =
+                  Math.abs(currentOpacity - opacity) < 0.01
+                    ? '#FFFFFF'
+                    : 'rgba(255,255,255,0.3)';
+                return (
+                  <TouchableOpacity
+                    key={opacity}
+                    style={[
+                      styles.opacityOption,
+                      {
+                        backgroundColor: `rgba(0,0,0,${opacity})`,
+                        borderColor,
+                      },
+                    ]}
+                    onPress={() => {
+                      handleBackgroundOpacityChange(opacity);
+                      setOpacityPaletteVisible(false);
+                    }}
+                  />
+                );
+              })}
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* Main toolbar - always visible */}
+      <View
+        style={[styles.minimalControls, { top: imageContainerHeight - 60 }]}
+      >
+        {/* Always show main toolbar buttons */}
+        {
           <>
             {/* Text alignment controls */}
             <View style={styles.alignmentControls}>
@@ -1171,17 +1463,25 @@ const EditorScreen: React.FC = () => {
 
             {/* Color picker */}
             <TouchableOpacity
-              style={styles.colorPickerButton}
+              style={[
+                styles.colorPickerButton,
+                isColorPaletteVisible && styles.activeColorPickerButton,
+              ]}
               onPress={() => {
                 FeedbackService.buttonTap();
-                setColorPaletteVisible(true);
-                setOpacityPaletteVisible(false); // Hide opacity palette if visible
-                setFontPaletteVisible(false);
-                setTextEffectsPanelVisible(false);
-                setSelectedTextEffectId(null);
+                const willShow = !isColorPaletteVisible;
+                setColorPaletteVisible(willShow);
+                if (willShow) {
+                  setOpacityPaletteVisible(false);
+                  setFontPaletteVisible(false);
+                  setEffectsPaletteVisible(false);
+                  setTextEffectsPanelVisible(false);
+                  setSelectedTextEffectId(null);
+                }
               }}
             >
               <Image source={ColorPicker} style={styles.colorWheel} />
+            </TouchableOpacity>
 
             {/* Font picker */}
             <TouchableOpacity
@@ -1193,10 +1493,11 @@ const EditorScreen: React.FC = () => {
                 FeedbackService.buttonTap();
                 const willShow = !isFontPaletteVisible;
                 setFontPaletteVisible(willShow);
-                setColorPaletteVisible(false);
-                setOpacityPaletteVisible(false);
-                setTextEffectsPanelVisible(false);
                 if (willShow) {
+                  setColorPaletteVisible(false);
+                  setOpacityPaletteVisible(false);
+                  setEffectsPaletteVisible(false);
+                  setTextEffectsPanelVisible(false);
                   setSelectedTextEffectId(null);
                 }
               }}
@@ -1208,16 +1509,17 @@ const EditorScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.textEffectsButton,
-                isTextEffectsPanelVisible && styles.activeTextEffectsButton,
+                isEffectsPaletteVisible && styles.activeTextEffectsButton,
               ]}
               onPress={() => {
                 FeedbackService.buttonTap();
-                const willShow = !isTextEffectsPanelVisible;
-                setTextEffectsPanelVisible(willShow);
-                setFontPaletteVisible(false);
-                setColorPaletteVisible(false);
-                setOpacityPaletteVisible(false);
-                if (!willShow) {
+                const willShow = !isEffectsPaletteVisible;
+                setEffectsPaletteVisible(willShow);
+                if (willShow) {
+                  setFontPaletteVisible(false);
+                  setColorPaletteVisible(false);
+                  setOpacityPaletteVisible(false);
+                  setTextEffectsPanelVisible(false);
                   setSelectedTextEffectId(null);
                 }
               }}
@@ -1227,91 +1529,32 @@ const EditorScreen: React.FC = () => {
 
             {/* Background opacity picker */}
             <TouchableOpacity
-              style={styles.opacityButton}
+              style={[
+                styles.opacityButton,
+                isOpacityPaletteVisible && styles.activeOpacityButton,
+              ]}
               onPress={() => {
                 FeedbackService.buttonTap();
-                setOpacityPaletteVisible(true);
-                setColorPaletteVisible(false); // Hide color palette if visible
-                setFontPaletteVisible(false);
-                setTextEffectsPanelVisible(false);
-                setSelectedTextEffectId(null);
+                const willShow = !isOpacityPaletteVisible;
+                setOpacityPaletteVisible(willShow);
+                if (willShow) {
+                  setColorPaletteVisible(false);
+                  setFontPaletteVisible(false);
+                  setEffectsPaletteVisible(false);
+                  setTextEffectsPanelVisible(false);
+                  setSelectedTextEffectId(null);
+                }
               }}
             >
               <Text style={styles.opacityIcon}>◐</Text>
             </TouchableOpacity>
           </>
-        ) : isColorPaletteVisible ? (
-          <ScrollView
-            ref={colorPaletteScrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.colorPaletteScrollContainer}
-            contentContainerStyle={styles.colorPaletteContainer}
-          >
-            {COLOR_OPTIONS.map(color => {
-              const borderColor =
-                currentSlide?.color === color ? '#FFFFFF' : 'rgba(255,255,255,0.3)';
-              return (
-                <TouchableOpacity
-                  key={color}
-                  style={[
-                    styles.colorOption,
-                    {
-                      backgroundColor: color,
-                      borderColor,
-                    },
-                  ]}
-                  onPress={() => handleTextColorChange(color)}
-                  onLayout={event => {
-                    colorOptionPositions.current[color] = event.nativeEvent.layout.x;
-                    if (isColorPaletteVisible && currentSlide?.color === color) {
-                      ensureSelectedColorVisible();
-                    }
-                  }}
-                />
-              );
-            })}
-          </ScrollView>
-        ) : isFontPaletteVisible ? (
-          <ScrollView
-            ref={fontPaletteScrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.fontPaletteScrollContainer}
-            contentContainerStyle={styles.fontPaletteContainer}
-          >
-            {SLIDE_FONT_OPTIONS.map(option => {
-              const isActive = option.id === activeFontId;
-              const optionFontFamily = resolveFontFamilyForPlatform(option, platformKey);
-              return (
-                <TouchableOpacity
-                  key={option.id}
-                  style={[
-                    styles.fontOptionButton,
-                    isActive && styles.activeFontOption,
-                  ]}
-                  onPress={() => handleFontChange(option)}
-                  onLayout={event => {
-                    fontOptionPositions.current[option.id] = event.nativeEvent.layout.x;
-                    if (isFontPaletteVisible && option.id === activeFontId) {
-                      ensureSelectedFontVisible();
-                    }
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.fontOptionSample,
-                      optionFontFamily ? { fontFamily: optionFontFamily } : null,
-                    ]}
-                  >
-                    {option.sample || 'Aa'}
-                  </Text>
-                  <Text style={styles.fontOptionLabel}>{option.label}</Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
-        ) : isTextEffectsPanelVisible ? (
+        }
+      </View>
+
+      {/* Text Effects Panel - positioned to avoid Preview button overlap */}
+      {isTextEffectsPanelVisible && (
+        <View style={styles.textEffectsPanelContainer}>
           <View style={styles.textEffectsStack}>
             <TextEffectsPanel
               activeCategory={activeTextEffectsCategory}
@@ -1328,39 +1571,19 @@ const EditorScreen: React.FC = () => {
                 effect={selectedTextEffect}
                 definition={selectedTextEffectDefinition}
                 onChangeParameter={(parameterId, value) =>
-                  handleChangeTextEffectParameter(selectedTextEffect.instanceId, parameterId, value)
+                  handleChangeTextEffectParameter(
+                    selectedTextEffect.instanceId,
+                    parameterId,
+                    value,
+                  )
                 }
                 onClose={() => setSelectedTextEffectId(null)}
               />
             ) : null}
           </View>
-        ) : (
-          <View style={styles.opacityPaletteContainer}>
-            {[0, 0.2, 0.4, 0.6, 0.8, 1].map(opacity => {
-              const currentOpacity = parseFloat(
-                currentSlide.backgroundColor.split(',')[3].replace(')', ''),
-              );
-              const borderColor = Math.abs(currentOpacity - opacity) < 0.01 ? '#FFFFFF' : 'rgba(255,255,255,0.3)';
-              return (
-                <TouchableOpacity
-                  key={opacity}
-                  style={[
-                    styles.opacityOption,
-                    {
-                      backgroundColor: `rgba(0,0,0,${opacity})`,
-                      borderColor,
-                    },
-                  ]}
-                  onPress={() => {
-                    handleBackgroundOpacityChange(opacity);
-                    setOpacityPaletteVisible(false);
-                  }}
-                />
-              );
-            })}
-          </View>
-        )}
-      </View>
+        </View>
+      )}
+
       {/* Preview button */}
       <TouchableOpacity style={styles.previewButton} onPress={handlePreview}>
         <Text style={styles.previewButtonText}>Preview Slides</Text>
@@ -1394,6 +1617,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
+    zIndex: 1,
   },
   plainBackground: {
     width: '100%',
@@ -1409,6 +1633,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     maxWidth: '90%',
     overflow: 'visible',
+    zIndex: 2,
   },
   slideText: {
     color: '#fff',
@@ -1514,6 +1739,18 @@ const styles = StyleSheet.create({
     left: -8, // Adjusted for wider track
   },
 
+  // Tool palette positioned above main toolbar
+  toolPalette: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 10,
+  },
+
   // Minimalistic bottom controls
   minimalControls: {
     position: 'absolute',
@@ -1566,6 +1803,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
   },
+  activeColorPickerButton: {
+    borderColor: '#FF0000',
+    borderWidth: 2,
+  },
   colorWheel: {
     width: 48,
     height: 48,
@@ -1586,8 +1827,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   activeFontPickerButton: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderColor: 'rgba(255,255,255,0.8)',
+    borderColor: '#FF0000',
+    borderWidth: 2,
   },
   fontPickerIcon: {
     fontSize: 18,
@@ -1607,8 +1848,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   activeTextEffectsButton: {
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderColor: 'rgba(255,255,255,0.8)',
+    borderColor: '#FF0000',
+    borderWidth: 2,
   },
   textEffectsIcon: {
     fontSize: 16,
@@ -1626,6 +1867,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
+  },
+  activeOpacityButton: {
+    borderColor: '#FF0000',
+    borderWidth: 2,
   },
   opacityIcon: {
     fontSize: 18,
@@ -1653,12 +1898,49 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
+  effectsPaletteScrollContainer: {
+    maxWidth: '100%',
+  },
+  effectsPaletteContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 24,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  effectOptionButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
+    marginHorizontal: 6,
+    alignItems: 'center',
+    minWidth: 80,
+  },
+  activeEffectOption: {
+    borderColor: '#00FFCC',
+    backgroundColor: 'rgba(0,255,204,0.15)',
+  },
+  effectOptionLabel: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
   colorOption: {
     width: 32,
     height: 32,
     borderRadius: 16,
     borderWidth: 2,
     marginHorizontal: 4,
+  },
+  textEffectsPanelContainer: {
+    position: 'absolute',
+    bottom: 100, // Position above the Preview button (which has ~80px height + margins)
+    left: 0,
+    right: 0,
+    zIndex: 1000, // Ensure it appears above other elements
   },
   textEffectsStack: {
     width: '100%',

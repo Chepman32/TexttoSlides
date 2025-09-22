@@ -10,6 +10,7 @@ import EditorScreen from '../screens/EditorScreen';
 import PreviewScreen from '../screens/PreviewScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UpgradeScreen from '../screens/UpgradeScreen';
+import TextEffectsTestScreen from '../screens/TextEffectsTestScreen';
 
 export type RootStackParamList = {
   Splash: undefined;
@@ -19,6 +20,7 @@ export type RootStackParamList = {
   Preview: { slides: any[] };
   Settings: undefined;
   Upgrade: undefined;
+  TextEffectsTest: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -47,9 +49,10 @@ const AppNavigator: React.FC = () => {
         initialRouteName="Splash"
         screenOptions={{
           headerShown: false,
-          animationEnabled: true,
+
           gestureEnabled: true,
-        }}>
+        }}
+      >
         <Stack.Screen
           name="Splash"
           component={SplashScreen}
@@ -58,8 +61,8 @@ const AppNavigator: React.FC = () => {
           }}
         />
         <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen 
-          name="ImageSelection" 
+        <Stack.Screen
+          name="ImageSelection"
           component={ImageSelectionScreen}
           options={{
             headerShown: true,
@@ -67,8 +70,8 @@ const AppNavigator: React.FC = () => {
             headerBackTitle: 'Back',
           }}
         />
-        <Stack.Screen 
-          name="Editor" 
+        <Stack.Screen
+          name="Editor"
           component={EditorScreen}
           options={{
             headerShown: true,
@@ -76,8 +79,8 @@ const AppNavigator: React.FC = () => {
             headerBackTitle: 'Back',
           }}
         />
-        <Stack.Screen 
-          name="Preview" 
+        <Stack.Screen
+          name="Preview"
           component={PreviewScreen}
           options={{
             headerShown: true,
@@ -85,8 +88,8 @@ const AppNavigator: React.FC = () => {
             headerBackTitle: 'Back',
           }}
         />
-        <Stack.Screen 
-          name="Settings" 
+        <Stack.Screen
+          name="Settings"
           component={SettingsScreen}
           options={{
             headerShown: true,
@@ -94,13 +97,20 @@ const AppNavigator: React.FC = () => {
             headerBackTitle: 'Back',
           }}
         />
-        <Stack.Screen 
-          name="Upgrade" 
+        <Stack.Screen
+          name="Upgrade"
           component={UpgradeScreen}
           options={{
             headerShown: true,
             title: 'Go Pro',
             headerBackTitle: 'Back',
+          }}
+        />
+        <Stack.Screen
+          name="TextEffectsTest"
+          component={TextEffectsTestScreen}
+          options={{
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

@@ -23,7 +23,10 @@ type RootStackParamList = {
   Settings: undefined;
 };
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'ImageSelection'>;
+type HomeScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'ImageSelection'
+>;
 
 const HomeScreen: React.FC = () => {
   const [text, setText] = useState('');
@@ -60,62 +63,99 @@ const HomeScreen: React.FC = () => {
   const estimatedSlides = estimateSlideCount(text);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: themeDefinition.colors.background }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: themeDefinition.colors.background },
+      ]}
+    >
       <KeyboardAvoidingView
         style={styles.keyboardContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View style={[styles.header, { borderBottomColor: themeDefinition.colors.border }]}>
-        <Text style={[styles.title, { color: themeDefinition.colors.text }]}>{t('app_name')}</Text>
-        <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
-          <Text style={styles.settingsButtonText}>⚙️</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.content}>
-        <Text style={[styles.subtitle, { color: themeDefinition.colors.text }]}>
-          {t('home_subtitle')}
-        </Text>
-
-        <TextInput
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View
           style={[
-            styles.textInput,
-            {
-              backgroundColor: themeDefinition.colors.card,
-              color: themeDefinition.colors.text,
-              borderColor: themeDefinition.colors.border,
-            }
+            styles.header,
+            { borderBottomColor: themeDefinition.colors.border },
           ]}
-          multiline
-          placeholder={t('home_placeholder')}
-          placeholderTextColor={themeDefinition.colors.text + '66'}
-          value={text}
-          onChangeText={setText}
-          textAlignVertical="top"
-        />
-
-        <View style={styles.infoContainer}>
-          <Text style={[styles.infoText, { color: themeDefinition.colors.text }]}>
-            {text.trim().length > 0
-              ? `${t('home_character_count', { count: text.trim().length })} | Estimated slides: ${estimatedSlides}`
-              : t('home_start_typing')}
+        >
+          <Text style={[styles.title, { color: themeDefinition.colors.text }]}>
+            {t('app_name')}
           </Text>
+          <TouchableOpacity
+            onPress={handleSettings}
+            style={styles.settingsButton}
+          >
+            <Text style={styles.settingsButtonText}>⚙️</Text>
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          style={[
-            styles.generateButton,
-            text.trim().length > 0
-              ? { backgroundColor: '#007AFF' }
-              : { backgroundColor: '#ccc' }
-          ]}
-          onPress={handleGenerateSlides}
-          disabled={text.trim().length === 0}>
-          <Text style={[
-            styles.generateButtonText,
-            text.trim().length === 0 && { color: '#999' }
-          ]}>{t('home_generate_button')}</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.content}>
+          <Text
+            style={[styles.subtitle, { color: themeDefinition.colors.text }]}
+          >
+            {t('home_subtitle')}
+          </Text>
+
+          <TextInput
+            style={[
+              styles.textInput,
+              {
+                backgroundColor: themeDefinition.colors.card,
+                color: themeDefinition.colors.text,
+                borderColor: themeDefinition.colors.border,
+              },
+            ]}
+            multiline
+            placeholder={t('home_placeholder')}
+            placeholderTextColor={themeDefinition.colors.text + '66'}
+            value={text}
+            onChangeText={setText}
+            textAlignVertical="top"
+          />
+
+          <View style={styles.infoContainer}>
+            <Text
+              style={[styles.infoText, { color: themeDefinition.colors.text }]}
+            >
+              {text.trim().length > 0
+                ? `${t('home_character_count', {
+                    count: text.trim().length,
+                  })} | Estimated slides: ${estimatedSlides}`
+                : t('home_start_typing')}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={[
+              styles.generateButton,
+              text.trim().length > 0
+                ? { backgroundColor: '#007AFF' }
+                : { backgroundColor: '#ccc' },
+            ]}
+            onPress={handleGenerateSlides}
+            disabled={text.trim().length === 0}
+          >
+            <Text
+              style={[
+                styles.generateButtonText,
+                text.trim().length === 0 && { color: '#999' },
+              ]}
+            >
+              {t('home_generate_button')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.generateButton,
+              { backgroundColor: '#00E5FF', marginTop: 12 },
+            ]}
+            onPress={() => (navigation as any).navigate('TextEffectsTest')}
+          >
+            <Text style={styles.generateButtonText}>Test Text Effects</Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

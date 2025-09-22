@@ -5,6 +5,7 @@
 
 import { DEFAULT_SLIDE_FONT_ID } from '../constants/fonts';
 import type { SlideFontId } from '../constants/fonts';
+import type { TextEffectInstance } from '../constants/textEffects';
 
 export interface TextTemplate {
   id: string;
@@ -21,6 +22,7 @@ export interface TextTemplate {
   maxChars?: number;
   lineHeight?: number;
   padding?: number;
+  textEffects?: TextEffectInstance[];
 }
 
 export interface AutoLayoutOptions {

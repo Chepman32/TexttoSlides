@@ -1,4 +1,5 @@
 import {
+  BlurStyle,
   Canvas,
   CanvasKit,
   Skia,
@@ -23,6 +24,9 @@ import {
   LEGACY_SYSTEM_FONT_ID,
 } from '../constants/fonts';
 import type { SlideFontId } from '../constants/fonts';
+import type { TextEffectInstance } from '../constants/textEffects';
+import { isTextEffectSupported } from '../constants/textEffects';
+import TextEffectsEngine from './TextEffectsEngine';
 
 export interface ExportOptions {
   addWatermark: boolean;
@@ -45,7 +49,112 @@ export interface Slide {
   fontWeight: 'normal' | 'bold';
   fontFamily?: string;
   fontId?: SlideFontId;
+  textEffects?: TextEffectInstance[];
 }
+
+interface TextDrawInstruction {
+  line: string;
+  x: number;
+  y: number;
+}
+
+const applyTextEffectsToCanvas = (
+  canvas: Canvas,
+  font: ReturnType<typeof matchFont>,
+  basePaint: Paint,
+  instructions: TextDrawInstruction[],
+  effects: TextEffectInstance[],
+) => {
+  const enabledEffects = effects.filter(
+    effect => effect.enabled !== false && isTextEffectSupported(effect.type),
+  );
+
+  enabledEffects.forEach(effect => {
+    const params = effect.parameters || {};
+    switch (effect.type) {
+      case 'softShadow': {
+        const color = typeof params.shadowColor === 'string' ? params.shadowColor : 'rgba(0,0,0,0.6)';
+        const offset = params.offset || { x: 8, y: 12 };
+        const blur = typeof params.blur === 'number' ? params.blur : 18;
+        const paint = basePaint.copy();
+        paint.setColor(Skia.Color(color));
+        if (blur > 0) {
+          const maskFilter = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, blur / 2, true);
+          if (maskFilter) {
+            paint.setMaskFilter(maskFilter);
+          }
+        }
+        instructions.forEach(inst => {
+          canvas.drawText(inst.line, inst.x + offset.x, inst.y + offset.y, paint, font);
+        });
+        break;
+      }
+      case 'neonGlow': {
+        const glowColor = typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
+        const spread = typeof params.spread === 'number' ? params.spread : 12;
+        const intensity = typeof params.intensity === 'number' ? params.intensity : 0.8;
+        const paint = basePaint.copy();
+        paint.setColor(Skia.Color(glowColor));
+        paint.setAlphaf(Math.min(1, 0.6 + intensity * 0.4));
+        const maskFilter = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, Math.max(2, spread / 2), true);
+        if (maskFilter) {
+          paint.setMaskFilter(maskFilter);
+        }
+        instructions.forEach(inst => {
+          canvas.drawText(inst.line, inst.x, inst.y, paint, font);
+        });
+        basePaint.setColor(Skia.Color(glowColor));
+        break;
+      }
+      case 'longShadow': {
+        const length = Math.max(4, Math.min(120, Number(params.length) || 24));
+        const angle = ((params.angle ?? 135) * Math.PI) / 180;
+        const fade = typeof params.fade === 'number' ? params.fade : 0.6;
+        const shadowColor = typeof params.shadowColor === 'string' ? params.shadowColor : 'rgba(0,0,0,0.7)';
+        const steps = Math.min(25, Math.max(6, Math.round(length / 4)));
+        const stepX = (Math.cos(angle) * length) / steps;
+        const stepY = (Math.sin(angle) * length) / steps;
+        for (let index = 0; index < steps; index++) {
+          const paint = basePaint.copy();
+          paint.setColor(Skia.Color(shadowColor));
+          const opacity = Math.pow(1 - fade, index);
+          paint.setAlphaf(Math.min(1, 0.7 * opacity));
+          const dx = stepX * (index + 1);
+          const dy = stepY * (index + 1);
+          instructions.forEach(inst => {
+            canvas.drawText(inst.line, inst.x + dx, inst.y + dy, paint, font);
+          });
+        }
+        break;
+      }
+      case 'bloom': {
+        const radius = typeof params.radius === 'number' ? params.radius : 16;
+        const intensity = typeof params.intensity === 'number' ? params.intensity : 0.75;
+        const paint = basePaint.copy();
+        const maskFilter = Skia.MaskFilter.MakeBlur(BlurStyle.Normal, Math.max(4, radius), true);
+        if (maskFilter) {
+          paint.setMaskFilter(maskFilter);
+        }
+        paint.setAlphaf(0.35 + intensity * 0.4);
+        instructions.forEach(inst => {
+          canvas.drawText(inst.line, inst.x, inst.y, paint, font);
+        });
+        break;
+      }
+      case 'letterpress': {
+        const depth = typeof params.depth === 'number' ? params.depth : 4;
+        const paintShadow = basePaint.copy();
+        paintShadow.setColor(Skia.Color('rgba(0,0,0,0.35)'));
+        instructions.forEach(inst => {
+          canvas.drawText(inst.line, inst.x - depth / 3, inst.y + depth / 3, paintShadow, font);
+        });
+        break;
+      }
+      default:
+        break;
+    }
+  });
+};
 
 class ExportService {
   private static instance: ExportService;
@@ -310,6 +419,7 @@ class ExportService {
   ): Promise<{ success: boolean; savedPaths: string[]; error?: string }> {
     const savedPaths: string[] = [];
     const addWatermark = !this.isProUser;
+    const textEffectsEngine = TextEffectsEngine.getInstance();
 
     try {
       const platformKey = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
@@ -367,6 +477,16 @@ class ExportService {
         const textPaint = Skia.Paint();
         textPaint.setColor(Skia.Color(slide.color));
 
+        const slideEffects = (slide.textEffects ?? []).filter(effect =>
+          isTextEffectSupported(effect.type),
+        );
+        const preparedEffectLayers = textEffectsEngine.prepareLayers(slideEffects);
+        if (preparedEffectLayers.length > 0) {
+          // TODO: invoke textEffectsEngine.applyEffects once layer-specific
+          // renderers are implemented. This will require drawing text to an
+          // offscreen surface so we can composite fill/stroke/overlay stacks.
+        }
+
         const lines = slide.text ? slide.text.split('\n') : [''];
         const paddingX = Math.max(12, slide.fontSize * 0.55);
         const paddingY = Math.max(16, slide.fontSize * 0.65);
@@ -393,8 +513,7 @@ class ExportService {
         const roundedRect = Skia.RRectXY(textBgRect, borderRadius, borderRadius);
         canvas.drawRRect(roundedRect, textBackgroundPaint);
 
-        // Draw text
-        lines.forEach((line, index) => {
+        const textDrawInstructions: TextDrawInstruction[] = lines.map((line, index) => {
           const lineWidth = lineWidths[index] ?? 0;
           let textX = slide.position.x + paddingX;
 
@@ -404,10 +523,14 @@ class ExportService {
             textX = slide.position.x + backgroundWidth - paddingX - lineWidth;
           }
 
-          const textY =
-            slide.position.y + paddingY + slide.fontSize + index * lineHeight;
+          const textY = slide.position.y + paddingY + slide.fontSize + index * lineHeight;
+          return { line, x: textX, y: textY };
+        });
 
-          canvas.drawText(line, textX, textY, textPaint, font);
+        applyTextEffectsToCanvas(canvas, font, textPaint, textDrawInstructions, slideEffects);
+
+        textDrawInstructions.forEach(instruction => {
+          canvas.drawText(instruction.line, instruction.x, instruction.y, textPaint, font);
         });
 
         // Add watermark if not Pro

@@ -9,6 +9,8 @@ import {
   SlideFontId,
   LEGACY_SYSTEM_FONT_ID,
 } from '../constants/fonts';
+import type { TextEffectInstance } from '../constants/textEffects';
+import { isTextEffectSupported } from '../constants/textEffects';
 
 const platformKey: 'ios' | 'android' | 'default' =
   Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
@@ -28,6 +30,7 @@ export interface ProjectState {
     fontWeight: 'normal' | 'bold';
     fontFamily?: string;
     fontId?: SlideFontId;
+    textEffects?: TextEffectInstance[];
   }>;
   images: string[];
   lastModified: string;
@@ -44,6 +47,9 @@ export interface AppState {
     hapticsEnabled: boolean;
   };
 }
+
+const sanitizeTextEffects = (effects?: TextEffectInstance[]): TextEffectInstance[] =>
+  (effects ?? []).filter(effect => isTextEffectSupported(effect.type));
 
 class StorageService {
   private static instance: StorageService;
@@ -73,14 +79,21 @@ class StorageService {
   async saveCurrentProject(project: ProjectState): Promise<void> {
     return StorageInitializer.safeStorageOperation(
       async () => {
-        project.lastModified = new Date().toISOString();
+        const normalizedProject: ProjectState = {
+          ...project,
+          lastModified: new Date().toISOString(),
+          slides: project.slides.map(slide => ({
+            ...slide,
+            textEffects: sanitizeTextEffects(slide.textEffects),
+          })),
+        };
         await AsyncStorage.setItem(
           this.STORAGE_KEYS.CURRENT_PROJECT,
-          JSON.stringify(project)
+          JSON.stringify(normalizedProject)
         );
 
         // Also add to recent projects
-        await this.addToRecentProjects(project);
+        await this.addToRecentProjects(normalizedProject);
       },
       undefined,
       'saveCurrentProject'
@@ -113,6 +126,7 @@ class StorageService {
                     ? getSlideFontByFamily(slide.fontFamily).id
                     : DEFAULT_SLIDE_FONT_ID),
                 fontFamily: resolveFontFamilyForPlatform(fontOption, platformKey),
+                textEffects: sanitizeTextEffects(slide.textEffects),
               };
             });
           }
@@ -185,6 +199,7 @@ class StorageService {
                   ? getSlideFontByFamily(slide.fontFamily).id
                   : DEFAULT_SLIDE_FONT_ID),
               fontFamily: resolveFontFamilyForPlatform(fontOption, platformKey),
+              textEffects: sanitizeTextEffects(slide.textEffects),
             };
           }) || [],
         }));

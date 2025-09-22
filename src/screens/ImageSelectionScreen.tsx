@@ -32,22 +32,29 @@ const ImageSelectionScreen: React.FC = () => {
   const { text } = route.params;
   const insets = useSafeAreaInsets();
   const { t } = useLanguage();
-  
-  // Initialize selectedImages array with empty slots for each slide
-  const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const hasRestoredImages = React.useRef(false);
-  
-  // Optimize text for slides and split using advanced algorithms
+
   const optimizedText = optimizeForSlides(text);
   const optimalSlideCount = getOptimalSlideCount(optimizedText);
-  let slides = smartSplit(optimizedText, optimalSlideCount);
-
-  // Ensure we always have at least one slide
-  if (!slides || slides.length === 0) {
-    slides = [optimizedText || text || 'No content'];
-  }
+  const computedSlides = smartSplit(optimizedText, optimalSlideCount);
+  const slides =
+    computedSlides && computedSlides.length > 0
+      ? computedSlides
+      : [optimizedText || text || 'No content'];
 
   const requiredImages = slides.length;
+
+  const ensureCapacity = (images: string[]): string[] => {
+    const truncated = images.slice(0, requiredImages);
+    if (truncated.length < requiredImages) {
+      return [...truncated, ...Array(requiredImages - truncated.length).fill('')];
+    }
+    return truncated;
+  };
+
+  const [selectedImages, setSelectedImages] = useState<string[]>(() =>
+    Array(requiredImages).fill(''),
+  );
+  const hasRestoredImages = React.useRef(false);
 
   useEffect(() => {
     if (hasRestoredImages.current) {
@@ -102,9 +109,12 @@ const ImageSelectionScreen: React.FC = () => {
 
       if (imageUri) {
         console.log('Selected image URI:', imageUri);
-        const newImages = [...selectedImages];
-        newImages[index] = imageUri;
-        setSelectedImages(newImages);
+        setSelectedImages(prevImages => {
+          const normalized = ensureCapacity(prevImages);
+          const next = [...normalized];
+          next[index] = imageUri;
+          return next;
+        });
         FeedbackService.success();
 
         // Try to process the image in the background (optional)
@@ -113,15 +123,19 @@ const ImageSelectionScreen: React.FC = () => {
           height: 1080,
           quality: 0.8,
         }).then(processedUri => {
-          if (processedUri) {
-            console.log('Processed image URI:', processedUri);
-            // Update with processed image if successful
-            const updatedImages = [...selectedImages];
-            if (updatedImages[index] === imageUri) {
-              updatedImages[index] = processedUri;
-              setSelectedImages(updatedImages);
-            }
+          if (!processedUri) {
+            return;
           }
+          console.log('Processed image URI:', processedUri);
+          setSelectedImages(prevImages => {
+            const normalized = ensureCapacity(prevImages);
+            if (normalized[index] !== imageUri) {
+              return prevImages;
+            }
+            const next = [...normalized];
+            next[index] = processedUri;
+            return next;
+          });
         }).catch(err => {
           console.log('Image processing failed, using original:', err);
         });
@@ -135,17 +149,24 @@ const ImageSelectionScreen: React.FC = () => {
 
   const handleUsePlainBackground = (index: number) => {
     FeedbackService.buttonTap();
-    const newImages = [...selectedImages];
-    newImages[index] = ''; // Empty string for plain background
-    setSelectedImages(newImages);
+    setSelectedImages(prevImages => {
+      const normalized = ensureCapacity(prevImages);
+      const next = [...normalized];
+      next[index] = '';
+      return next;
+    });
     FeedbackService.success();
   };
 
   const handleContinue = () => {
     FeedbackService.buttonTap();
 
+    const normalizedImages = ensureCapacity(selectedImages);
+
     // Count how many images have been selected (not empty)
-    const selectedCount = selectedImages.filter(img => img !== '').length;
+    const selectedCount = normalizedImages.filter(
+      img => typeof img === 'string' && img.trim().length > 0,
+    ).length;
 
     if (selectedCount < requiredImages) {
       FeedbackService.error();
@@ -155,7 +176,10 @@ const ImageSelectionScreen: React.FC = () => {
     
     FeedbackService.success();
     // Navigate to editor with text and selected images
-    navigation.navigate('Editor', { text, images: selectedImages });
+    if (normalizedImages.some((img, idx) => selectedImages[idx] !== img)) {
+      setSelectedImages(normalizedImages);
+    }
+    navigation.navigate('Editor', { text, images: normalizedImages });
   };
 
   return (

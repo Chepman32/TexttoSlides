@@ -57,7 +57,7 @@ const PreviewScreen: React.FC = () => {
   const slideRefs = useRef<View[]>([]);
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
   const slideSize = Math.min(screenWidth * 0.99, screenWidth - 10); // Use 99% of screen width
-  
+
   // Calculate available height for image container
   const headerHeight = Math.max(insets.top, 20) + 60; // Safe area + title height
   const exportButtonHeight = 100; // Height for export button + margins
@@ -67,7 +67,7 @@ const PreviewScreen: React.FC = () => {
   useEffect(() => {
     IAPService.isPro().then(setIsProUser);
   }, []);
-  
+
   const handleExport = async () => {
     if (isExporting) return;
 
@@ -86,19 +86,18 @@ const PreviewScreen: React.FC = () => {
           quality: 0.9,
           format: 'png',
           resolution: 1080,
-        }
+        },
       );
 
       if (result.success && result.savedPaths.length > 0) {
         FeedbackService.success();
         ExportService.showExportSuccess(result.savedPaths.length);
-
       } else {
         FeedbackService.error();
         Alert.alert(
           t('preview_export') + ' Failed',
           result.error || 'Failed to export slides. Please try again.',
-          [{ text: 'OK' }]
+          [{ text: 'OK' }],
         );
       }
     } catch (error) {
@@ -107,7 +106,7 @@ const PreviewScreen: React.FC = () => {
       Alert.alert(
         t('preview_export') + ' Failed',
         'An unexpected error occurred. Please try again.',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
     } finally {
       setIsExporting(false);
@@ -116,14 +115,23 @@ const PreviewScreen: React.FC = () => {
 
   const renderSlide = ({ item, index }: { item: any; index: number }) => {
     const fontSize = item.fontSize || 24;
-    const platformKey = Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
-    const legacyFontId = item.fontId === LEGACY_SYSTEM_FONT_ID
-      ? DEFAULT_SLIDE_FONT_ID
-      : item.fontId;
+    const platformKey =
+      Platform.OS === 'ios'
+        ? 'ios'
+        : Platform.OS === 'android'
+        ? 'android'
+        : 'default';
+    const legacyFontId =
+      item.fontId === LEGACY_SYSTEM_FONT_ID
+        ? DEFAULT_SLIDE_FONT_ID
+        : item.fontId;
     const fontOption = legacyFontId
       ? getSlideFontById(legacyFontId)
       : getSlideFontByFamily(item.fontFamily);
-    const resolvedFontFamily = resolveFontFamilyForPlatform(fontOption, platformKey);
+    const resolvedFontFamily = resolveFontFamilyForPlatform(
+      fontOption,
+      platformKey,
+    );
     const paddingHorizontal = Math.max(12, fontSize * 0.5);
     const paddingVertical = Math.max(8, fontSize * 0.35);
     const borderRadius = Math.min(Math.max(12, fontSize * 0.6), 30);
@@ -132,15 +140,20 @@ const PreviewScreen: React.FC = () => {
       fontSize,
       textColor: item.color || '#FFFFFF',
       fontFamily: resolvedFontFamily,
-      fontWeight: fontOption?.supportsWeightToggle ? item.fontWeight : undefined,
+      fontWeight: fontOption?.supportsWeightToggle
+        ? item.fontWeight
+        : undefined,
     });
 
     return (
       <View
-        ref={(ref) => {
+        ref={ref => {
           if (ref) slideRefs.current[index] = ref;
         }}
-        style={[styles.slideContainer, { width: slideSize, height: imageContainerHeight }]}
+        style={[
+          styles.slideContainer,
+          { width: slideSize, height: imageContainerHeight },
+        ]}
       >
         {item.image ? (
           <Image
@@ -149,7 +162,12 @@ const PreviewScreen: React.FC = () => {
             resizeMode="contain"
           />
         ) : (
-          <View style={[styles.plainBackground, { backgroundColor: themeDefinition.colors.card }]} />
+          <View
+            style={[
+              styles.plainBackground,
+              { backgroundColor: themeDefinition.colors.card },
+            ]}
+          />
         )}
 
         <View
@@ -175,7 +193,9 @@ const PreviewScreen: React.FC = () => {
                 fontSize,
                 color: item.color || '#FFFFFF',
                 textAlign: item.textAlign || 'center',
-                fontWeight: resolvedFontFamily ? undefined : item.fontWeight || 'bold',
+                fontWeight: resolvedFontFamily
+                  ? undefined
+                  : item.fontWeight || 'bold',
                 fontFamily: resolvedFontFamily,
                 lineHeight: fontSize * 1.35,
               },
@@ -208,7 +228,15 @@ const PreviewScreen: React.FC = () => {
   }).current;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top, backgroundColor: themeDefinition.colors.background }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          paddingTop: insets.top,
+          backgroundColor: themeDefinition.colors.background,
+        },
+      ]}
+    >
       <View style={styles.previewContainer}>
         {slides.length > 0 ? (
           <AnimatedFlatList
@@ -220,7 +248,7 @@ const PreviewScreen: React.FC = () => {
             showsHorizontalScrollIndicator={false}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-              { useNativeDriver: true }
+              { useNativeDriver: true },
             )}
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={viewabilityConfig}
@@ -229,11 +257,15 @@ const PreviewScreen: React.FC = () => {
           />
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={[styles.emptyText, { color: themeDefinition.colors.text }]}>{t('preview_empty')}</Text>
+            <Text
+              style={[styles.emptyText, { color: themeDefinition.colors.text }]}
+            >
+              {t('preview_empty')}
+            </Text>
           </View>
         )}
       </View>
-      
+
       {/* Slide indicators */}
       <View style={styles.indicatorsContainer}>
         {slides.map((_, index) => (
@@ -246,26 +278,31 @@ const PreviewScreen: React.FC = () => {
           />
         ))}
       </View>
-      
+
       {/* Export button */}
       <TouchableOpacity
         style={[
           styles.exportButton,
-          { backgroundColor: isExporting ? themeDefinition.colors.border : '#34C759' },
-          isExporting && styles.exportButtonDisabled
+          {
+            backgroundColor: isExporting
+              ? themeDefinition.colors.border
+              : '#34C759',
+          },
+          isExporting && styles.exportButtonDisabled,
         ]}
         onPress={handleExport}
-        disabled={isExporting}>
+        disabled={isExporting}
+      >
         {isExporting ? (
           <View style={styles.exportingContainer}>
             <ActivityIndicator size="small" color="#fff" />
-            <Text style={[styles.exportButtonText, { marginLeft: 10 }]}>Exporting...</Text>
+            <Text style={[styles.exportButtonText, { marginLeft: 10 }]}>
+              Exporting...
+            </Text>
           </View>
         ) : (
           <View>
-            <Text style={styles.exportButtonText}>
-              {t('preview_export')}
-            </Text>
+            <Text style={styles.exportButtonText}>{t('preview_export')}</Text>
             {!isProUser && (
               <Text style={styles.watermarkNotice}>Includes watermark</Text>
             )}
@@ -296,6 +333,10 @@ const styles = StyleSheet.create({
   imageBackground: {
     width: '100%',
     height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    zIndex: 1,
   },
   plainBackground: {
     width: '100%',
@@ -308,6 +349,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     maxWidth: '90%',
     overflow: 'visible',
+    zIndex: 2,
   },
   slideText: {
     color: '#fff',
