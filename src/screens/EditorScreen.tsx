@@ -1215,7 +1215,7 @@ const EditorScreen: React.FC = () => {
         isOpacityPaletteVisible ||
         isFontPaletteVisible ||
         isEffectsPaletteVisible) && (
-        <View style={[styles.toolPalette, { top: imageContainerHeight - 160 }]}>
+        <View style={[styles.toolPalette, { top: imageContainerHeight - 120 }]}>
           {isColorPaletteVisible && (
             <ScrollView
               ref={colorPaletteScrollRef}
@@ -1747,7 +1747,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 5,
     marginBottom: 10,
   },
 
