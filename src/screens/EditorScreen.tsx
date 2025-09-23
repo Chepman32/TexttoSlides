@@ -969,6 +969,8 @@ const EditorScreen: React.FC = () => {
       const updatedSlide: Slide = {
         ...slide,
         textEffects: [...(slide.textEffects ?? []), instance],
+        // Set transparent background for neon effects
+        backgroundColor: effectType === 'neonGlow' ? 'rgba(0,0,0,0)' : slide.backgroundColor,
       };
       createdEffect = instance;
       newSlides[currentSlideIndex] = updatedSlide;
@@ -1003,6 +1005,8 @@ const EditorScreen: React.FC = () => {
       const updatedSlide: Slide = {
         ...slide,
         textEffects: [...(slide.textEffects ?? []), instance],
+        // Set transparent background for neon effects
+        backgroundColor: effectType === 'neonGlow' ? 'rgba(0,0,0,0)' : slide.backgroundColor,
       };
       newSlides[currentSlideIndex] = updatedSlide;
       addToHistory(newSlides);
