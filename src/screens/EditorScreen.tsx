@@ -858,19 +858,30 @@ const EditorScreen: React.FC = () => {
     FeedbackService.buttonTap();
     const newSlides = [...slides];
     const slide = newSlides[currentSlideIndex];
+    const oldTextColor = slide.color; // Store the old text color before we change it
+
     slide.color = color;
 
-    // Update neon glow effects to use the new text color if they're using the default glow color
+    // Update neon glow effects to use the new text color unless they have a custom glow color
     if (slide.textEffects) {
       slide.textEffects = slide.textEffects.map(effect => {
-        if (effect.type === 'neonGlow' && (!effect.parameters?.glowColor || effect.parameters.glowColor === '#00FFFF')) {
-          return {
-            ...effect,
-            parameters: {
-              ...effect.parameters,
-              glowColor: color,
-            },
-          };
+        if (effect.type === 'neonGlow') {
+          const currentGlowColor = effect.parameters?.glowColor;
+
+          // Update if: no glow color set, glow color is default cyan, or glow color matches the old text color
+          const shouldUpdate = !currentGlowColor ||
+                             currentGlowColor === '#00FFFF' ||
+                             currentGlowColor === oldTextColor;
+
+          if (shouldUpdate) {
+            return {
+              ...effect,
+              parameters: {
+                ...effect.parameters,
+                glowColor: color,
+              },
+            };
+          }
         }
         return effect;
       });
