@@ -73,22 +73,21 @@ export const buildPreviewEffects = (
       }
       case 'neonGlow': {
         const glowColor =
-          typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
+          typeof params.glowColor === 'string' ? params.glowColor : options.textColor;
         const intensity =
           typeof params.intensity === 'number' ? params.intensity : 0.8;
         const spread = typeof params.spread === 'number' ? params.spread : 12;
 
-        // Apply glow effects only to text
+        // Create a single strong glow effect using text shadow
+        textStyle.color = '#FFFFFF'; // Keep core text white
         textStyle.textShadowColor = glowColor;
         textStyle.textShadowOffset = { width: 0, height: 0 };
-        textStyle.textShadowRadius = Math.max(12, spread * 1.5);
-        textStyle.color = glowColor;
-        textStyle.opacity = Math.min(1, 0.85 + intensity * 0.15);
+        textStyle.textShadowRadius = Math.max(8, spread);
 
-        // Create additional glow layers for enhanced neon effect
-        for (let i = 0; i < 3; i++) {
-          const glowRadius = Math.max(8, spread * (1 + i * 0.5));
-          const glowOpacity = (intensity * 0.3) / (i + 1);
+        // Create glow underlays with transparent text and only shadows
+        for (let i = 0; i < 2; i++) {
+          const shadowRadius = Math.max(4, spread * (2 - i * 0.5));
+          const shadowOpacity = intensity * (0.8 - i * 0.3);
 
           underlayElements.push(
             <Text
@@ -97,14 +96,14 @@ export const buildPreviewEffects = (
                 position: 'absolute',
                 left: 0,
                 top: 0,
-                color: glowColor,
-                opacity: glowOpacity,
+                color: 'transparent', // Make text transparent so only shadow shows
                 fontSize: options.fontSize,
                 fontFamily: options.fontFamily,
                 fontWeight: options.fontWeight,
                 textShadowColor: glowColor,
                 textShadowOffset: { width: 0, height: 0 },
-                textShadowRadius: glowRadius,
+                textShadowRadius: shadowRadius,
+                opacity: shadowOpacity,
               }}
             >
               {options.text}

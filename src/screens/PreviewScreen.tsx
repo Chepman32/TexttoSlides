@@ -68,6 +68,7 @@ const PreviewScreen: React.FC = () => {
     IAPService.isPro().then(setIsProUser);
   }, []);
 
+
   const handleExport = async () => {
     if (isExporting) return;
 
@@ -135,6 +136,7 @@ const PreviewScreen: React.FC = () => {
     const paddingHorizontal = Math.max(12, fontSize * 0.5);
     const paddingVertical = Math.max(8, fontSize * 0.35);
     const borderRadius = Math.min(Math.max(12, fontSize * 0.6), 30);
+
     const previewEffects = buildPreviewEffects(item.textEffects ?? [], {
       text: item.text ?? '',
       fontSize,
@@ -191,6 +193,7 @@ const PreviewScreen: React.FC = () => {
             },
           ]}
         >
+          {/* Use preview effects for now - Skia effects would need proper font handling */}
           {previewEffects.underlayElements}
           <Text
             style={[

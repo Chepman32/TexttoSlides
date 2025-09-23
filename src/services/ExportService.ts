@@ -64,6 +64,7 @@ const applyTextEffectsToCanvas = (
   basePaint: Paint,
   instructions: TextDrawInstruction[],
   effects: TextEffectInstance[],
+  textColor?: string,
 ) => {
   const enabledEffects = effects.filter(
     effect => effect.enabled !== false && isTextEffectSupported(effect.type),
@@ -104,7 +105,7 @@ const applyTextEffectsToCanvas = (
       }
       case 'neonGlow': {
         const glowColor =
-          typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
+          typeof params.glowColor === 'string' ? params.glowColor : (textColor || '#00FFFF');
         const spread = typeof params.spread === 'number' ? params.spread : 12;
         const intensity =
           typeof params.intensity === 'number' ? params.intensity : 0.8;
@@ -602,6 +603,7 @@ class ExportService {
           textPaint,
           textDrawInstructions,
           slideEffects,
+          slide.color,
         );
 
         textDrawInstructions.forEach(instruction => {
