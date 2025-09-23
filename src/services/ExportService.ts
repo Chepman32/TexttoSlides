@@ -154,19 +154,48 @@ const applyTextEffectsToCanvas = (
         const radius = typeof params.radius === 'number' ? params.radius : 16;
         const intensity =
           typeof params.intensity === 'number' ? params.intensity : 0.75;
-        const paint = basePaint.copy();
-        const maskFilter = Skia.MaskFilter.MakeBlur(
+
+        // Create multiple bloom layers with vibrant colors
+        const bloomColors = ['#FF6B35', '#F7931E', '#FF1493', '#00BFFF'];
+
+        bloomColors.forEach((color, index) => {
+          const paint = basePaint.copy();
+          const layerRadius = radius * (2 - index * 0.3);
+          const layerOpacity = (intensity * 0.4) / (index + 1);
+
+          paint.setColor(Skia.Color(color));
+          paint.setAlphaf(layerOpacity);
+
+          const maskFilter = Skia.MaskFilter.MakeBlur(
+            BlurStyle.Normal,
+            Math.max(4, layerRadius),
+            true,
+          );
+          if (maskFilter) {
+            paint.setMaskFilter(maskFilter);
+          }
+
+          instructions.forEach(inst => {
+            canvas.drawText(inst.line, inst.x, inst.y, paint, font);
+          });
+        });
+
+        // Draw final white core text
+        const corePaint = basePaint.copy();
+        corePaint.setColor(Skia.Color('#FFFFFF'));
+        corePaint.setAlphaf(1);
+        const coreBlur = Skia.MaskFilter.MakeBlur(
           BlurStyle.Normal,
-          Math.max(4, radius),
+          Math.max(2, radius * 0.3),
           true,
         );
-        if (maskFilter) {
-          paint.setMaskFilter(maskFilter);
+        if (coreBlur) {
+          corePaint.setMaskFilter(coreBlur);
         }
-        paint.setAlphaf(0.35 + intensity * 0.4);
         instructions.forEach(inst => {
-          canvas.drawText(inst.line, inst.x, inst.y, paint, font);
+          canvas.drawText(inst.line, inst.x, inst.y, corePaint, font);
         });
+
         break;
       }
       case 'letterpress': {

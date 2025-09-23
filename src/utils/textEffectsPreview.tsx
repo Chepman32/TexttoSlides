@@ -153,31 +153,43 @@ export const buildPreviewEffects = (
         const radius = typeof params.radius === 'number' ? params.radius : 16;
         const intensity =
           typeof params.intensity === 'number' ? params.intensity : 0.75;
-        textStyle.opacity = Math.min(1, 0.9 + intensity * 0.08);
-        overlayStyle.backgroundColor = 'rgba(255,255,255,0.05)';
-        overlayStyle.borderColor = 'rgba(255,255,255,0.25)';
-        overlayStyle.borderWidth = Math.max(overlayStyle.borderWidth ?? 0, 0.5);
-        const halo = (
-          <Text
-            key={`${effect.instanceId}-bloom`}
-            style={{
-              position: 'absolute',
-              color: options.textColor,
-              opacity: Math.min(1, 0.25 + intensity * 0.4),
-              fontSize: options.fontSize + radius * 1.2,
-              left: -radius * 0.6,
-              top: -radius * 0.6,
-              fontFamily: options.fontFamily,
-              fontWeight: options.fontWeight,
-              textShadowColor: options.textColor,
-              textShadowOffset: { width: 0, height: 0 },
-              textShadowRadius: radius * 1.2,
-            }}
-          >
-            {options.text}
-          </Text>
-        );
-        overlayElements.push(halo);
+
+        // Enhanced bloom effect with multiple colorful layers
+        const bloomColors = ['#FF6B35', '#F7931E', '#FF1493', '#00BFFF'];
+
+        // Main text gets white color with glow
+        textStyle.color = '#FFFFFF';
+        textStyle.textShadowColor = '#FFFFFF';
+        textStyle.textShadowOffset = { width: 0, height: 0 };
+        textStyle.textShadowRadius = Math.max(4, radius * 0.3);
+        textStyle.opacity = 1;
+
+        // Create multiple bloom layers with different colors
+        bloomColors.forEach((color, index) => {
+          const layerRadius = radius * (2 - index * 0.3);
+          const layerOpacity = (intensity * 0.4) / (index + 1);
+
+          underlayElements.push(
+            <Text
+              key={`${effect.instanceId}-bloom-${index}`}
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                color: 'transparent',
+                fontSize: options.fontSize,
+                fontFamily: options.fontFamily,
+                fontWeight: options.fontWeight,
+                textShadowColor: color,
+                textShadowOffset: { width: 0, height: 0 },
+                textShadowRadius: layerRadius,
+                opacity: layerOpacity,
+              }}
+            >
+              {options.text}
+            </Text>,
+          );
+        });
         break;
       }
       case 'glassmorphism': {
