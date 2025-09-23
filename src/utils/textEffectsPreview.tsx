@@ -73,7 +73,7 @@ export const buildPreviewEffects = (
       }
       case 'neonGlow': {
         const glowColor =
-          typeof params.glowColor === 'string' ? params.glowColor : options.textColor;
+          typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
         const intensity =
           typeof params.intensity === 'number' ? params.intensity : 0.8;
         const spread = typeof params.spread === 'number' ? params.spread : 12;

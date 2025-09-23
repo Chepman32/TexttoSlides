@@ -105,7 +105,7 @@ const applyTextEffectsToCanvas = (
       }
       case 'neonGlow': {
         const glowColor =
-          typeof params.glowColor === 'string' ? params.glowColor : (textColor || '#00FFFF');
+          typeof params.glowColor === 'string' ? params.glowColor : '#00FFFF';
         const spread = typeof params.spread === 'number' ? params.spread : 12;
         const intensity =
           typeof params.intensity === 'number' ? params.intensity : 0.8;

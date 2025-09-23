@@ -27,7 +27,7 @@ export function convertToNewFormat(
 
   switch (oldEffect.type) {
     case 'neonGlow':
-      const defaultGlowColor = textColor || '#00FFFF';
+      const defaultGlowColor = '#00FFFF'; // Default teal/cyan neon color
       values = {
         innerColor: '#FFFFFF',
         glowColor: oldEffect.parameters?.glowColor || defaultGlowColor,

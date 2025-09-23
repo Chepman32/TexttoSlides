@@ -430,7 +430,8 @@ const EditorScreen: React.FC = () => {
         const savedProject = await StorageService.loadCurrentProject();
         if (savedProject && !savedProject.isCompleted) {
           if (savedProject.slides && savedProject.slides.length > 0) {
-            // Check if the images from navigation params are different from saved project
+            // Check if the text or images from navigation params are different from saved project
+            const textChanged = savedProject.text !== text;
             const savedImages = savedProject.slides.map(
               slide => slide.image || '',
             );
@@ -438,24 +439,36 @@ const EditorScreen: React.FC = () => {
               images.length !== savedImages.length ||
               images.some((img, index) => img !== savedImages[index]);
 
-            if (imagesChanged) {
-              // Images have changed, update slides with new images but keep other properties
-              console.log('Images changed, updating slides with new images');
-              const updatedSlides = savedProject.slides.map((slide, index) => ({
-                ...slide,
-                image: images[index] || '',
-                textEffects: filterSupportedEffects(slide.textEffects),
-              }));
+            if (textChanged || imagesChanged) {
+              // Text or images have changed, create new slides with updated content
+              console.log('Text or images changed, creating new slides');
 
-              isRestoringFromStorage.current = true;
-              isRestoringFromHistory.current = true;
-              setSlides(updatedSlides);
-              setHistory([updatedSlides]);
-              setHistoryIndex(0);
-              setCurrentSlideIndex(0);
-              setTimeout(() => {
-                isRestoringFromHistory.current = false;
-              }, 0);
+              if (textChanged) {
+                // Text changed - create completely new slides with new text and images
+                console.log('Text changed from:', savedProject.text, 'to:', text);
+                // Clear the saved project and start fresh
+                StorageService.clearCurrentProject();
+                // Don't restore anything, let the component use the new initialSlides
+                return;
+              } else {
+                // Only images changed, update slides with new images but keep other properties
+                console.log('Images changed, updating slides with new images');
+                const updatedSlides = savedProject.slides.map((slide, index) => ({
+                  ...slide,
+                  image: images[index] || '',
+                  textEffects: filterSupportedEffects(slide.textEffects),
+                }));
+
+                isRestoringFromStorage.current = true;
+                isRestoringFromHistory.current = true;
+                setSlides(updatedSlides);
+                setHistory([updatedSlides]);
+                setHistoryIndex(0);
+                setCurrentSlideIndex(0);
+                setTimeout(() => {
+                  isRestoringFromHistory.current = false;
+                }, 0);
+              }
             } else {
               // Images are the same, restore normally
               isRestoringFromStorage.current = true;
@@ -483,7 +496,7 @@ const EditorScreen: React.FC = () => {
     };
 
     loadSavedProject();
-  }, [images]); // Add images as dependency so it runs when images change
+  }, [images, text]); // Add images and text as dependencies so it runs when either changes
 
   // Update animated values when slide changes
   useEffect(() => {
@@ -862,30 +875,8 @@ const EditorScreen: React.FC = () => {
 
     slide.color = color;
 
-    // Update neon glow effects to use the new text color unless they have a custom glow color
-    if (slide.textEffects) {
-      slide.textEffects = slide.textEffects.map(effect => {
-        if (effect.type === 'neonGlow') {
-          const currentGlowColor = effect.parameters?.glowColor;
-
-          // Update if: no glow color set, glow color is default cyan, or glow color matches the old text color
-          const shouldUpdate = !currentGlowColor ||
-                             currentGlowColor === '#00FFFF' ||
-                             currentGlowColor === oldTextColor;
-
-          if (shouldUpdate) {
-            return {
-              ...effect,
-              parameters: {
-                ...effect.parameters,
-                glowColor: color,
-              },
-            };
-          }
-        }
-        return effect;
-      });
-    }
+    // Keep neon glow effects at their default teal color unless manually customized
+    // No longer automatically change neon glow color when text color changes
 
     newSlides[currentSlideIndex] = slide;
 
@@ -964,8 +955,7 @@ const EditorScreen: React.FC = () => {
       if (!slide) {
         return prevSlides;
       }
-      const instance = createTextEffectInstance(effectType,
-        effectType === 'neonGlow' ? { glowColor: slide.color || '#FFFFFF' } : undefined);
+      const instance = createTextEffectInstance(effectType);
       const updatedSlide: Slide = {
         ...slide,
         textEffects: [...(slide.textEffects ?? []), instance],
@@ -1000,8 +990,7 @@ const EditorScreen: React.FC = () => {
       if (!slide) {
         return prevSlides;
       }
-      const instance = createTextEffectInstance(effectType,
-        effectType === 'neonGlow' ? { glowColor: slide.color || '#FFFFFF' } : undefined);
+      const instance = createTextEffectInstance(effectType);
       const updatedSlide: Slide = {
         ...slide,
         textEffects: [...(slide.textEffects ?? []), instance],
