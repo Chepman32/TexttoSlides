@@ -269,9 +269,9 @@ const EditorScreen: React.FC = () => {
   // Convert old text effects to new format for Skia rendering
   const newFormatEffects: EffectInstance[] = React.useMemo(() => {
     return currentSlideEffects
-      .map(effect => convertToNewFormat(effect))
+      .map(effect => convertToNewFormat(effect, currentSlide?.color))
       .filter((effect): effect is EffectInstance => effect !== null);
-  }, [currentSlideEffects]);
+  }, [currentSlideEffects, currentSlide?.color]);
 
   // Calculate available height for image container
   const headerHeight = Math.max(insets.top, 20) + 60; // Safe area + title height
@@ -859,6 +859,23 @@ const EditorScreen: React.FC = () => {
     const newSlides = [...slides];
     const slide = newSlides[currentSlideIndex];
     slide.color = color;
+
+    // Update neon glow effects to use the new text color if they're using the default glow color
+    if (slide.textEffects) {
+      slide.textEffects = slide.textEffects.map(effect => {
+        if (effect.type === 'neonGlow' && (!effect.parameters?.glowColor || effect.parameters.glowColor === '#00FFFF')) {
+          return {
+            ...effect,
+            parameters: {
+              ...effect.parameters,
+              glowColor: color,
+            },
+          };
+        }
+        return effect;
+      });
+    }
+
     newSlides[currentSlideIndex] = slide;
 
     setSlides(newSlides);
@@ -936,7 +953,8 @@ const EditorScreen: React.FC = () => {
       if (!slide) {
         return prevSlides;
       }
-      const instance = createTextEffectInstance(effectType);
+      const instance = createTextEffectInstance(effectType,
+        effectType === 'neonGlow' ? { glowColor: slide.color || '#FFFFFF' } : undefined);
       const updatedSlide: Slide = {
         ...slide,
         textEffects: [...(slide.textEffects ?? []), instance],
@@ -969,7 +987,8 @@ const EditorScreen: React.FC = () => {
       if (!slide) {
         return prevSlides;
       }
-      const instance = createTextEffectInstance(effectType);
+      const instance = createTextEffectInstance(effectType,
+        effectType === 'neonGlow' ? { glowColor: slide.color || '#FFFFFF' } : undefined);
       const updatedSlide: Slide = {
         ...slide,
         textEffects: [...(slide.textEffects ?? []), instance],

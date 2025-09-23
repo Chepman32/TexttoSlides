@@ -6,6 +6,7 @@ import type { EffectInstance } from '../types';
  */
 export function convertToNewFormat(
   oldEffect: TextEffectInstance,
+  textColor?: string,
 ): EffectInstance | null {
   // Map old effect types to new effect IDs
   const typeMapping: Record<string, string> = {
@@ -26,12 +27,13 @@ export function convertToNewFormat(
 
   switch (oldEffect.type) {
     case 'neonGlow':
+      const defaultGlowColor = textColor || '#00FFFF';
       values = {
         innerColor: '#FFFFFF',
-        glowColor: oldEffect.parameters?.glowColor || '#00FFFF',
+        glowColor: oldEffect.parameters?.glowColor || defaultGlowColor,
         glowRadius: oldEffect.parameters?.spread || 12,
         strokeWidth: 2,
-        strokeColor: oldEffect.parameters?.glowColor || '#00FFFF',
+        strokeColor: oldEffect.parameters?.glowColor || defaultGlowColor,
       };
       break;
     case 'softShadow':
