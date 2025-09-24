@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, forwardRef } from 'react';
 import { Dimensions } from 'react-native';
-import { Canvas, Image, useImage, Text, Skia, Rect, Group, RoundedRect, Shadow } from '@shopify/react-native-skia';
+import { Canvas, Image, useImage, Group, RoundedRect, Shadow, SkiaMutableValue } from '@shopify/react-native-skia';
 import { CompositionState } from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
 
@@ -68,16 +68,47 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
   }, [composition.shadow, themeDefinition.colors.shadow]);
 
   const renderImages = () => {
-    if (!imageA || !imageB) return null;
+    if (!imageA || !imageB) {
+      // Render placeholder rectangles if images aren't loaded
+      return (
+        <Group key="placeholders">
+          <RoundedRect
+            x={0}
+            y={0}
+            width={layout === 'side' ? imageWidth : canvasWidth}
+            height={layout === 'vertical' ? imageHeight : canvasHeight}
+            r={composition.cornerRadius}
+            color={themeDefinition.colors.border}
+          />
+          {layout === 'side' && (
+            <RoundedRect
+              x={imageWidth + composition.spacing}
+              y={0}
+              width={imageWidth}
+              height={imageHeight}
+              r={composition.cornerRadius}
+              color={themeDefinition.colors.border}
+            />
+          )}
+          {layout === 'vertical' && (
+            <RoundedRect
+              x={0}
+              y={imageHeight + composition.spacing}
+              width={imageWidth}
+              height={imageHeight}
+              r={composition.cornerRadius}
+              color={themeDefinition.colors.border}
+            />
+          )}
+        </Group>
+      );
+    }
 
     const elements: JSX.Element[] = [];
     const cornerRadius = composition.cornerRadius;
 
     if (layout === 'side') {
       // Side by side layout
-      const leftImageRect = Rect.Create(0, 0, imageWidth, imageHeight);
-      const rightImageRect = Rect.Create(imageWidth + composition.spacing, 0, imageWidth, imageHeight);
-
       elements.push(
         <Group key="side-images">
           {shadowConfig && (
@@ -86,14 +117,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
               <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
             </>
           )}
-          <Group>
-            <RoundedRect
-              x={0}
-              y={0}
-              width={imageWidth}
-              height={imageHeight}
-              r={cornerRadius}
-            />
+          <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
             <Image
               image={imageA}
               fit="cover"
@@ -103,14 +127,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
               height={imageHeight}
             />
           </Group>
-          <Group>
-            <RoundedRect
-              x={imageWidth + composition.spacing}
-              y={0}
-              width={imageWidth}
-              height={imageHeight}
-              r={cornerRadius}
-            />
+          <Group clip={{ x: imageWidth + composition.spacing, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
             <Image
               image={imageB}
               fit="cover"
@@ -132,14 +149,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
               <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
             </>
           )}
-          <Group>
-            <RoundedRect
-              x={0}
-              y={0}
-              width={imageWidth}
-              height={imageHeight}
-              r={cornerRadius}
-            />
+          <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
             <Image
               image={imageA}
               fit="cover"
@@ -149,14 +159,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
               height={imageHeight}
             />
           </Group>
-          <Group>
-            <RoundedRect
-              x={0}
-              y={imageHeight + composition.spacing}
-              width={imageWidth}
-              height={imageHeight}
-              r={cornerRadius}
-            />
+          <Group clip={{ x: 0, y: imageHeight + composition.spacing, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
             <Image
               image={imageB}
               fit="cover"
@@ -178,14 +181,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
             <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
           )}
           {/* Base image (Before) */}
-          <Group>
-            <RoundedRect
-              x={0}
-              y={0}
-              width={canvasWidth}
-              height={canvasHeight}
-              r={cornerRadius}
-            />
+          <Group clip={{ x: 0, y: 0, width: canvasWidth, height: canvasHeight, rx: cornerRadius, ry: cornerRadius }}>
             <Image
               image={imageA}
               fit="cover"
@@ -196,14 +192,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
             />
           </Group>
           {/* Overlay image (After) with clipping */}
-          <Group>
-            <RoundedRect
-              x={0}
-              y={0}
-              width={sliderPosition}
-              height={canvasHeight}
-              r={cornerRadius}
-            />
+          <Group clip={{ x: 0, y: 0, width: sliderPosition, height: canvasHeight, rx: cornerRadius, ry: cornerRadius }}>
             <Image
               image={imageB}
               fit="cover"
@@ -226,14 +215,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
             <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
           )}
           {/* Main image (After on top) */}
-          <Group>
-            <RoundedRect
-              x={0}
-              y={0}
-              width={canvasWidth}
-              height={adjustedImageHeight}
-              r={cornerRadius}
-            />
+          <Group clip={{ x: 0, y: 0, width: canvasWidth, height: adjustedImageHeight, rx: cornerRadius, ry: cornerRadius }}>
             <Image
               image={imageB}
               fit="cover"
@@ -243,23 +225,17 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
               height={adjustedImageHeight}
             />
           </Group>
-          {/* Label bar with before image thumbnail */}
-          <Rect
+          {/* Label bar */}
+          <RoundedRect
             x={0}
             y={adjustedImageHeight}
             width={canvasWidth}
             height={barHeight}
+            r={0}
             color={composition.background.colors[0] || themeDefinition.colors.surface}
           />
           {/* Small before image in the bar */}
-          <Group>
-            <RoundedRect
-              x={8}
-              y={adjustedImageHeight + 8}
-              width={barHeight - 16}
-              height={barHeight - 16}
-              r={4}
-            />
+          <Group clip={{ x: 8, y: adjustedImageHeight + 8, width: barHeight - 16, height: barHeight - 16, rx: 4, ry: 4 }}>
             <Image
               image={imageA}
               fit="cover"
@@ -374,11 +350,12 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
     if (composition.background.type === 'transparent') return null;
 
     return (
-      <Rect
+      <RoundedRect
         x={0}
         y={0}
         width={canvasWidth}
         height={canvasHeight}
+        r={0}
         color={composition.background.colors[0] || themeDefinition.colors.canvasBg}
       />
     );
@@ -404,18 +381,28 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
   const renderWatermark = () => {
     if (!composition.watermarkOn) return null;
 
-    // Create a simple text watermark
-    const font = Skia.Font(Skia.Typeface.MakeFreeTypeFaceFromData(Skia.Data.fromBytes(new Uint8Array())), 12);
-
+    // Simple watermark using a rounded rectangle overlay
     return (
-      <Text
-        x={canvasWidth - 100}
-        y={20}
-        text="Before/After"
-        font={font}
-        color={themeDefinition.colors.watermark}
-        opacity={0.5}
-      />
+      <Group key="watermark">
+        <RoundedRect
+          x={canvasWidth - 120}
+          y={12}
+          width={110}
+          height={24}
+          r={12}
+          color={themeDefinition.colors.watermark}
+          opacity={0.3}
+        />
+        <RoundedRect
+          x={canvasWidth - 115}
+          y={16}
+          width={100}
+          height={16}
+          r={8}
+          color={themeDefinition.colors.watermark}
+          opacity={0.5}
+        />
+      </Group>
     );
   };
 

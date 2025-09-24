@@ -1,325 +1,263 @@
-# Text-to-Slides Mobile App
+# Before/After - iOS Photo Comparison App
 
-A React Native mobile application that converts plain text posts into beautiful image slides with overlaid text, ideal for Instagram carousel posts. Features a polished UI with animations, multi-theme support, localization, and offline-first functionality.
+**Before/After** is an offline-first iOS app that lets users pick two photos from their device gallery and compose a single image labeled "Before" / "After". The app features gorgeous animations built with React Native Reanimated and react-native-skia, including support for multiple layouts, label customization, and high-quality exports.
 
-## ✅ Project Status: PRODUCTION READY
+## 🚀 Project Overview
 
-All features from the Software Design Document have been successfully implemented. The app provides a complete workflow from text input to slide export with professional-grade features.
+This project was transformed from a TexttoSlides app into a comprehensive Before/After photo comparison editor. The app supports 4 themes (Light, Dark, Solar, Mono), sound & haptics, full localization (10 languages), and exports high-quality composites to Photos.
 
-## 📱 Features Implemented
+### Key Features
+- **Offline-first**: All core operations work offline
+- **4 Layout Types**: Side-by-Side, Vertical Split, Slider Reveal, Stacked with Label Bar
+- **Advanced Label Controls**: Customizable fonts, colors, positions, and sizing
+- **Theme System**: 4 beautiful themes with proper color tokens
+- **Multi-language**: Supports 10 languages (en, ru, es, de, fr, pt, ja, zh, ko, uk)
+- **High-Performance Rendering**: Powered by react-native-skia
+- **Smooth Animations**: React Native Reanimated for 60fps interactions
 
-### Core Features ✅
-- [x] **Text to Image Slides Conversion** - Smart text splitting and slide generation
-- [x] **Instagram Stories-style Editor** - Drag, pinch, and rotate gestures for text positioning
-- [x] **Templates & Auto-Layout** - Pre-defined templates with one-tap application
-- [x] **Advanced Animations** - Skia-powered splash screen with particle effects
-- [x] **Multi-Theme UI** - Light, Dark, Solar, and Mono themes with smooth transitions
-- [x] **Sound & Haptic Feedback** - Interactive feedback for all user actions
-- [x] **Localization** - Support for 10 languages (EN, RU, ES, DE, FR, PT, JA, ZH, KO, UK)
-- [x] **Offline-First Design** - All features work without internet connection
-- [x] **In-App Purchases** - Pro upgrade system with watermark removal
-- [x] **Slide Export** - Save slides to camera roll with optional watermark
-- [x] **Auto-Save & Recovery** - Automatic project state persistence
-- [x] **Settings Management** - Comprehensive preferences with persistence
+## 🏗️ Architecture
 
-### Detailed Feature List
+### Tech Stack
+- **React Native** (0.81.4) with TypeScript
+- **@shopify/react-native-skia** (2.2.15) - High-performance canvas rendering
+- **react-native-reanimated** (4.1.0) - Smooth animations
+- **react-native-image-picker** (8.2.1) - Photo selection
+- **@react-native-camera-roll/camera-roll** (7.10.2) - Photo export
+- **@react-navigation/stack** (7.4.8) - Navigation
+- **i18next** + **react-i18next** - Localization
+- **react-native-haptic-feedback** - Haptic feedback
 
-#### 1. Text Processing & Slide Generation ✅
-- Smart text splitting algorithm
-- Character/word count with slide estimation
-- Sentence and paragraph detection
-- Optimal text distribution across slides
-- Manual slide adjustment capabilities
-
-#### 2. Advanced Slide Editor ✅
-- **Gestures Implemented:**
-  - Pan/Drag for text positioning
-  - Pinch to scale text size
-  - Rotate with two fingers
-  - Boundary detection and constraints
-- **Text Styling:**
-  - Font size adjustment
-  - Text alignment (left/center/right)
-  - Color selection (6 preset colors)
-  - Background opacity control
-- **Templates:**
-  - Center Large Text
-  - Top Title
-  - Bottom Quote
-  - Auto-layout based on content
-
-#### 3. Visual & Animation System ✅
-- **Splash Screen:**
-  - React Native Skia integration
-  - Particle explosion effects
-  - Logo rotation and scaling
-  - Gradient background animation
-  - 3-second intro sequence
-- **UI Animations:**
-  - Spring-based button feedback
-  - Smooth screen transitions
-  - Theme switching cross-fade
-  - Slide swipe animations
-
-#### 4. Theme System ✅
-- **Four Themes:**
-  - Light (white background, dark text)
-  - Dark (dark background, light text)
-  - Solar (warm yellow tones, Solarized-inspired)
-  - Mono (grayscale, newspaper-like)
-- Dynamic theme switching
-- Persistent theme selection
-- All UI elements adapt to current theme
-
-#### 5. Internationalization ✅
-- **Languages Supported:**
-  - English (en)
-  - Russian (ru) - Русский
-  - Spanish (es) - Español
-  - German (de) - Deutsch
-  - French (fr) - Français
-  - Portuguese (pt) - Português
-  - Japanese (ja) - 日本語
-  - Chinese (zh) - 中文
-  - Korean (ko) - 한국어
-  - Ukrainian (uk) - Українська
-- Automatic device language detection
-- In-app language switcher
-- All UI strings translated
-
-#### 6. Monetization ✅
-- **Free Version:**
-  - Core features available
-  - Watermark on exported slides
-  - Limited to 5 slides per project
-- **Pro Version ($4.99):**
-  - Watermark removal
-  - Unlimited slides
-  - Premium templates
-  - Priority support
-- Purchase restoration
-- Offline validation
-
-#### 7. Data Persistence ✅
-- **StorageService Implementation:**
-  - Current project auto-save
-  - Recent projects (last 10)
-  - User preferences
-  - Theme and language settings
-  - Pro status caching
-- **Auto-save Features:**
-  - 30-second interval saving
-  - Recovery on app restart
-  - Export/import for backup
-
-#### 8. Export Functionality ✅
-- **ExportService Implementation:**
-  - Save to camera roll
-  - Watermark for free users
-  - 1080x1080 resolution
-  - PNG/JPG format support
-  - Batch export for all slides
-  - Progress indication
-
-## 🛠 Technical Implementation
-
-### Architecture Overview
+### Project Structure
 ```
 src/
 ├── components/
-│   ├── SkiaSlideRenderer.tsx    # Skia graphics rendering
-│   └── TestGestureComponent.tsx  # Gesture testing
+│   └── CompositionCanvas.tsx      # Main Skia canvas for rendering
 ├── screens/
-│   ├── AnimatedSplashScreen.tsx # Advanced splash with Skia
-│   ├── SplashScreen.tsx         # Basic splash screen
-│   ├── HomeScreen.tsx           # Text input interface
-│   ├── ImageSelectionScreen.tsx # Background selection
-│   ├── EditorScreen.tsx         # Main editor with gestures
-│   ├── PreviewScreen.tsx        # Slide preview
-│   ├── SettingsScreen.tsx       # App settings
-│   └── UpgradeScreen.tsx        # IAP interface
-├── navigation/
-│   └── AppNavigator.tsx         # Navigation configuration
+│   ├── HomeScreen.tsx             # Main entry point with photo picker
+│   ├── ComposerScreen.tsx         # Main editor with layout/label controls
+│   └── SettingsScreen.tsx         # App settings and preferences
 ├── context/
-│   ├── ThemeContext.tsx         # Theme management
-│   └── LanguageContext.tsx      # Localization context
-├── services/
-│   ├── IAPService.ts            # In-app purchase logic
-│   ├── ExportService.ts         # Slide export functionality
-│   ├── StorageService.ts        # Data persistence
-│   ├── FeedbackService.ts       # Sound & haptics
-│   ├── TemplateService.ts       # Template management
-│   ├── ImageService.ts          # Image processing
-│   └── GraphicsService.ts       # Skia graphics
-├── hooks/
-│   ├── useStorage.ts            # Storage hook
-│   └── usePreferences.ts        # Preferences hook
-└── utils/
-    ├── textUtils.ts             # Text processing
-    └── imageUtils.ts            # Image utilities
+│   ├── ThemeContext.tsx           # Theme management (4 themes)
+│   └── LanguageContext.tsx        # Localization (10 languages)
+├── types/
+│   └── composer.ts                # TypeScript interfaces for composition
+├── navigation/
+│   └── AppNavigator.tsx           # React Navigation setup
+└── services/
+    ├── FeedbackService.ts         # Haptic feedback
+    └── IAPService.ts              # In-app purchases (ready for Pro features)
 ```
 
-### Key Dependencies
-```json
-{
-  "react-native": "0.81.4",
-  "react": "19.1.0",
-  "@shopify/react-native-skia": "^2.2.15",
-  "react-native-reanimated": "^4.1.0",
-  "react-native-gesture-handler": "^2.28.0",
-  "@react-navigation/native": "^7.1.17",
-  "@react-navigation/stack": "^7.4.8",
-  "i18next": "^25.5.2",
-  "react-i18next": "^15.7.3",
-  "@react-native-async-storage/async-storage": "^2.2.0",
-  "@react-native-camera-roll/camera-roll": "^7.10.2",
-  "react-native-haptic-feedback": "^2.3.3",
-  "react-native-sound": "^0.12.0",
-  "react-native-view-shot": "^4.0.3"
-}
-```
+## ✅ Completed Features
 
-## 🚀 Getting Started
+### Core Functionality
+- [x] **Navigation System** - Complete React Navigation setup with proper routing
+- [x] **Photo Selection** - Native image picker with support for before/after photos
+- [x] **Home Screen** - Clean UI with primary photo picker action and template previews
+- [x] **Composer Screen** - Full-featured editor with tool panels and real-time preview
+
+### Canvas & Rendering
+- [x] **Skia Canvas Integration** - High-performance rendering engine
+- [x] **4 Layout Types**:
+  - [x] Side-by-Side (horizontal comparison)
+  - [x] Vertical Split (stacked comparison)
+  - [x] Slider Reveal (interactive reveal effect)
+  - [x] Stacked with Label Bar (modern overlay style)
+- [x] **Image Processing** - Proper scaling, cropping, and aspect ratio handling
+- [x] **Shadow System** - 4 shadow intensity levels (None, Low, Med, High)
+- [x] **Corner Radius** - Adjustable rounded corners for modern look
+- [x] **Watermark System** - Geometric overlay for free tier
+
+### Label System
+- [x] **Toggle Labels** - Show/hide before/after text
+- [x] **Text Editing** - Customizable before/after text content
+- [x] **Font Controls**:
+  - [x] Size slider (12-48px with visual feedback)
+  - [x] Weight options (Regular, Medium, Bold)
+  - [x] Color picker (8 preset colors)
+  - [x] Position controls (Top/Bottom Left/Right)
+- [x] **Real-time Preview** - All changes reflect instantly in canvas
+
+### Theme & Localization
+- [x] **4-Theme System** - Light, Dark, Solar, Mono with proper color tokens
+- [x] **Before/After Color Tokens** - Canvas-specific colors (labelBg, watermark, etc.)
+- [x] **10-Language Support** - Complete localization infrastructure
+- [x] **Theme-Aware UI** - All components respect current theme
+
+### Technical Infrastructure
+- [x] **TypeScript Integration** - Full type safety with proper interfaces
+- [x] **State Management** - Composition state with undo/redo history (10 steps)
+- [x] **Error Handling** - Robust Skia rendering with fallbacks
+- [x] **Performance Optimization** - 60fps canvas rendering
+- [x] **Haptic Feedback** - Integrated throughout UI interactions
+
+## 📋 TODO - Remaining Tasks
+
+### High Priority
+- [ ] **Basic Export Functionality**
+  - [ ] Render canvas to image file
+  - [ ] Save to Photos with proper permissions
+  - [ ] Share sheet integration
+  - [ ] Export quality settings
+
+- [ ] **Interactive Slider Handle**
+  - [ ] Draggable handle for slider layout
+  - [ ] Haptic feedback on drag
+  - [ ] Smooth position tracking
+
+### Medium Priority
+- [ ] **Template System**
+  - [ ] Create template presets (Classic, Minimal, Frame, etc.)
+  - [ ] Template modal with live previews
+  - [ ] Save custom templates
+  - [ ] Template categories (Featured, Social, etc.)
+
+- [ ] **Enhanced IAP Integration**
+  - [ ] Connect to StoreKit 2 APIs
+  - [ ] Pro feature gates (watermark removal, HD export)
+  - [ ] Subscription management
+  - [ ] Purchase restoration
+
+### Low Priority
+- [ ] **Advanced Features**
+  - [ ] Custom fonts for labels
+  - [ ] Gradient backgrounds
+  - [ ] Advanced shadow controls
+  - [ ] Batch export mode
+  - [ ] Template sharing
+
+- [ ] **Polish & UX**
+  - [ ] Animated splash screen (physics breakdown/text twist)
+  - [ ] Onboarding flow
+  - [ ] Advanced tutorials
+  - [ ] Accessibility improvements
+
+## 🎨 Design System
+
+### Themes
+The app supports 4 carefully designed themes:
+
+**Light Theme**
+- Background: `#F8FAFC`
+- Surface: `#FFFFFF`
+- Text Primary: `#0F172A`
+- Accent: `#2563EB`
+
+**Dark Theme**
+- Background: `#0B1020`
+- Surface: `#111827`
+- Text Primary: `#E5E7EB`
+- Accent: `#60A5FA`
+
+**Solar Theme**
+- Background: `#FFF8E1`
+- Surface: `#FFFCF2`
+- Text Primary: `#4E342E`
+- Accent: `#F59E0B`
+
+**Mono Theme**
+- Background: `#F3F3F3`
+- Surface: `#FFFFFF`
+- Text Primary: `#1F1F1F`
+- Accent: `#8A8A8A`
+
+### Layout Types
+
+1. **Side-by-Side** - Photos displayed horizontally with adjustable spacing
+2. **Vertical Split** - Photos stacked vertically for before/after progression
+3. **Slider Reveal** - Interactive reveal effect showing transformation
+4. **Stacked** - Main image with small thumbnail and labels in bottom bar
+
+## 🛠️ Development
 
 ### Prerequisites
 - Node.js >= 20
-- Yarn 4.1.1
-- Xcode 14+ (for iOS)
-- Android Studio (for Android)
-- CocoaPods
+- React Native development environment
+- iOS development setup (Xcode, etc.)
 
 ### Installation
-
-1. **Clone the repository:**
-```bash
-git clone <repository-url>
-cd TexttoSlides
-```
-
-2. **Install dependencies:**
 ```bash
 yarn install
-```
-
-3. **iOS Setup:**
-```bash
-cd ios
-pod install
-cd ..
-```
-
-4. **Android Setup:**
-```bash
-# Ensure Android SDK is configured
-yarn android # This will build and install
+cd ios && pod install && cd ..
 ```
 
 ### Running the App
-
-**iOS Simulator:**
 ```bash
 yarn ios
 ```
 
-**Android Emulator:**
-```bash
-yarn android
-```
+### Available Scripts
+- `yarn ios` - Run on iOS simulator
+- `yarn start` - Start Metro bundler
+- `yarn lint` - Run ESLint
+- `yarn test` - Run tests
 
-**Metro Bundler:**
-```bash
-yarn start
-```
+## 📱 Usage
 
-### Development Commands
-- `yarn lint` - Run ESLint checks
-- `yarn test` - Run Jest tests
-- `yarn build` - Build production version
-- `yarn clean` - Clean build artifacts
+1. **Launch App** - See the Before/After home screen
+2. **Pick Photos** - Tap "Pick Two Photos" to select before/after images
+3. **Choose Layout** - Select from 4 layout types in the Layout panel
+4. **Customize Labels** - Adjust text, fonts, colors, and positions in Labels panel
+5. **Style Composition** - Fine-tune shadows, spacing, and aspect ratios
+6. **Export** - Save your comparison to Photos or share with others
 
-## 📝 Task Completion Checklist
+## 🔧 Technical Notes
 
-### Completed Tasks ✅
-- [x] Implement animated splash screen with logo animation
-- [x] Create Home screen with text input and generate slides functionality
-- [x] Implement text splitting algorithm for slide generation
-- [x] Build slide editor with drag, pinch, and rotate gestures
-- [x] Add text style templates and auto-layout system
-- [x] Implement multi-theme support (Light, Dark, Solar, Mono)
-- [x] Add localization for multiple languages
-- [x] Implement sound and haptic feedback
-- [x] Create settings screen with theme, sound, and language options
-- [x] Add In-App Purchase functionality for Pro features
-- [x] Implement slide export to camera roll with watermark for free users
-- [x] Add offline storage for preferences and project state
-- [x] Update README with completed tasks and documentation
+### Skia Canvas Rendering
+The app uses react-native-skia for high-performance canvas rendering. Key implementation details:
+
+- **Group Clipping** - Used for rounded corners and masks
+- **Image Loading** - Async loading with placeholder fallbacks
+- **Shadow System** - GPU-accelerated shadow rendering
+- **Theme Integration** - Dynamic color theming throughout canvas
+
+### State Management
+- **Composition State** - Central state for all editor properties
+- **Undo/Redo History** - 10-step history with structural sharing
+- **Real-time Updates** - Optimized re-rendering for smooth interactions
 
 ### Performance Optimizations
-- UI thread animations via Reanimated
-- Lazy loading for heavy components
-- Image caching and optimization
-- Efficient text rendering
-- Memory management for large projects
+- **60fps Animations** - React Native Reanimated for smooth interactions
+- **Efficient Re-renders** - Minimal canvas updates on state changes
+- **Memory Management** - Proper cleanup of Skia resources
+- **Image Optimization** - Smart scaling and caching
 
-## 🎨 Design System
+## 📊 Implementation Status
 
-### Color Palettes
-**Light Theme:**
-- Background: #FFFFFF
-- Text: #000000
-- Primary: #007AFF
-- Border: #DCDCDC
+### Completed (✅)
+- Core navigation and routing
+- Photo selection and loading
+- 4 layout types with Skia rendering
+- Comprehensive label controls
+- Theme system with 4 themes
+- Localization infrastructure
+- State management with undo/redo
+- Error handling and performance optimization
 
-**Dark Theme:**
-- Background: #121212
-- Text: #FFFFFF
-- Primary: #0A84FF
-- Border: #2C2C2E
+### In Progress (🚧)
+- Export functionality
+- Interactive slider controls
+- Template system
 
-**Solar Theme:**
-- Background: #FDF6E3
-- Text: #373529
-- Primary: #B58900
-- Border: #93A1A1
+### Planned (📋)
+- IAP integration
+- Advanced features
+- Polish and UX improvements
 
-**Mono Theme:**
-- Background: #F0F0F0
-- Text: #000000
-- Primary: #666666
-- Border: #CCCCCC
+## 🚀 Future Enhancements
 
-## 🔒 Privacy & Security
-- No data leaves the device (offline-first)
-- All content stored locally
-- No analytics or tracking
-- Secure purchase validation
-- No external dependencies for core features
-
-## 📈 Future Roadmap
-While the app is feature-complete, potential enhancements could include:
-- [ ] Cloud sync for Pro users
-- [ ] Video export option
-- [ ] Custom fonts upload
-- [ ] Advanced image filters
-- [ ] Collaboration features
-- [ ] Web version
-- [ ] Desktop app
-
-## 🤝 Contributing
-This project is currently maintained as specified in the requirements. For any issues or feature requests, please open an issue in the repository.
+- **AR Integration** - Live camera before/after comparisons
+- **Video Support** - Animated before/after transitions
+- **Cloud Sync** - Template and composition syncing
+- **Social Features** - Share templates with community
+- **Advanced Export** - Multiple formats, watermark customization
 
 ## 📄 License
-This project is proprietary software. All rights reserved.
 
-## 🎉 Acknowledgments
-- React Native community for excellent libraries
-- Shopify for React Native Skia
-- Software Mansion for Reanimated and Gesture Handler
+This project is private and proprietary. All rights reserved.
 
 ---
 
-**Last Updated:** December 2024
-**Version:** 1.0.0
-**Status:** Production Ready
+**Built with ❤️ using React Native, Skia, and Reanimated**
 
-For technical implementation details, see the Software Design Document.
+*Transform your photos into compelling before/after stories* ✨
