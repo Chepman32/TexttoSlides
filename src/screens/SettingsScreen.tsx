@@ -8,6 +8,8 @@ import {
   Alert,
   Modal,
   FlatList,
+  Image,
+  NativeModules,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -18,6 +20,8 @@ import { themes, Theme } from '../context/ThemeContext';
 import { usePreferences } from '../hooks/usePreferences';
 import FeedbackService from '../services/FeedbackService';
 import IAPService from '../services/IAPService';
+
+const { AppIconManager } = NativeModules;
 
 type RootStackParamList = {
   Upgrade: undefined;
@@ -38,6 +42,16 @@ const languages: { code: Language; name: string; nativeName: string }[] = [
   { code: 'uk', name: 'Ukrainian', nativeName: 'Українська' },
 ];
 
+const appIcons: { iconName: string | null; name: string; source: any }[] = [
+  { iconName: 'AppIconCoral', name: 'Coral', source: require('../assets/icons/appIcon/icon_coral_1024.png') },
+  { iconName: 'AppIconBlue', name: 'Blue', source: require('../assets/icons/appIcon/icon_blue_1024.png') },
+  { iconName: 'AppIconDark', name: 'Dark', source: require('../assets/icons/appIcon/icon_dark_1024.png') },
+  { iconName: 'AppIconFuchsia', name: 'Fuchsia', source: require('../assets/icons/appIcon/icon_fuchsia_1024.png') },
+  { iconName: 'AppIconSolar', name: 'Solar', source: require('../assets/icons/appIcon/icon_solar_1024.png') },
+  { iconName: 'AppIconTeal', name: 'Teal', source: require('../assets/icons/appIcon/icon_teal_1024.png') },
+  { iconName: null, name: 'Default', source: require('../assets/icons/appIcon/icon_coral_1024.png') },
+];
+
 const SettingsScreen: React.FC = () => {
   const navigation = useNavigation<SettingsScreenNavigationProp>();
   const { currentTheme, setTheme, themeDefinition } = useTheme();
@@ -45,6 +59,7 @@ const SettingsScreen: React.FC = () => {
   const { preferences, updatePreferences } = usePreferences();
 
   const [showLanguageModal, setShowLanguageModal] = React.useState(false);
+  const [showAppIconModal, setShowAppIconModal] = React.useState(false);
   const [isProUser, setIsProUser] = React.useState(false);
 
   useEffect(() => {
@@ -61,6 +76,20 @@ const SettingsScreen: React.FC = () => {
     setLanguage(language);
     setShowLanguageModal(false);
     FeedbackService.success();
+  };
+
+  const handleAppIconChange = async (iconName: string | null) => {
+    FeedbackService.buttonTap();
+    try {
+      await AppIconManager.changeIcon(iconName);
+      updatePreferences({ appIcon: iconName || 'default' });
+      setShowAppIconModal(false);
+      FeedbackService.success();
+      Alert.alert('Success', 'App icon changed successfully!');
+    } catch (error) {
+      console.error('Failed to change app icon:', error);
+      Alert.alert('Error', 'Failed to change app icon. Please try again.');
+    }
   };
 
 
@@ -85,6 +114,7 @@ const SettingsScreen: React.FC = () => {
   };
 
   const currentLanguageName = languages.find(l => l.code === currentLanguage)?.nativeName || currentLanguage;
+  const currentAppIcon = appIcons.find(icon => icon.iconName === preferences.appIcon) || appIcons[0];
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: themeDefinition.colors.background }]}>
@@ -122,6 +152,22 @@ const SettingsScreen: React.FC = () => {
           <Text style={[styles.settingValue, { color: themeDefinition.colors.text }]}>
             {currentLanguageName} ›
           </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* App Icon Selection */}
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: themeDefinition.colors.text }]}>App Icon</Text>
+        <TouchableOpacity
+          style={[styles.settingRow, { borderBottomColor: themeDefinition.colors.border }]}
+          onPress={() => setShowAppIconModal(true)}>
+          <Text style={[styles.settingLabel, { color: themeDefinition.colors.text }]}>App Icon</Text>
+          <View style={styles.iconPreview}>
+            <Image source={currentAppIcon.source} style={styles.iconImage} />
+            <Text style={[styles.settingValue, { color: themeDefinition.colors.text }]}>
+              {currentAppIcon.name} ›
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
       
@@ -187,6 +233,49 @@ const SettingsScreen: React.FC = () => {
               style={[styles.modalCloseButton, { backgroundColor: themeDefinition.colors.primary }]}
               onPress={() => setShowLanguageModal(false)}>
               <Text style={styles.modalCloseButtonText}>{t('cancel')}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* App Icon Selection Modal */}
+      <Modal
+        visible={showAppIconModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAppIconModal(false)}>
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { backgroundColor: themeDefinition.colors.card }]}>
+            <Text style={[styles.modalTitle, { color: themeDefinition.colors.text }]}>
+              Choose App Icon
+            </Text>
+            <FlatList
+              data={appIcons}
+              numColumns={2}
+              keyExtractor={(item) => item.iconName || item.name}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.iconOption,
+                    { backgroundColor: themeDefinition.colors.background },
+                    preferences.appIcon === item.iconName && styles.selectedIcon
+                  ]}
+                  onPress={() => handleAppIconChange(item.iconName)}>
+                  <Image source={item.source} style={styles.iconOptionImage} />
+                  <Text style={[styles.iconOptionText, { color: themeDefinition.colors.text }]}>
+                    {item.name}
+                  </Text>
+                  {preferences.appIcon === item.iconName && (
+                    <Text style={{ color: themeDefinition.colors.primary, fontSize: 16, marginTop: 4 }}>✓</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={styles.iconGrid}
+            />
+            <TouchableOpacity
+              style={[styles.modalCloseButton, { backgroundColor: themeDefinition.colors.primary }]}
+              onPress={() => setShowAppIconModal(false)}>
+              <Text style={styles.modalCloseButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -332,6 +421,45 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  iconPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconImage: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+  },
+  iconGrid: {
+    padding: 10,
+  },
+  iconOption: {
+    flex: 1,
+    margin: 8,
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+    minHeight: 120,
+    justifyContent: 'center',
+  },
+  selectedIcon: {
+    borderColor: '#007AFF',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
+  },
+  iconOptionImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  iconOptionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
   },
 });
 

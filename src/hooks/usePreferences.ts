@@ -9,6 +9,7 @@ export interface UserPreferences {
   soundEnabled: boolean;
   hapticsEnabled: boolean;
   isProUser: boolean;
+  appIcon: string;
 }
 
 export const defaultPreferences: UserPreferences = {
@@ -17,6 +18,7 @@ export const defaultPreferences: UserPreferences = {
   soundEnabled: true,
   hapticsEnabled: true,
   isProUser: false,
+  appIcon: 'AppIconCoral',
 };
 
 export const usePreferences = () => {
