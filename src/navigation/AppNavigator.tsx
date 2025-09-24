@@ -6,21 +6,24 @@ import SplashScreen from '../screens/SplashScreen';
 import HomeScreen from '../screens/HomeScreen';
 import StorageService from '../services/StorageService';
 import ImageSelectionScreen from '../screens/ImageSelectionScreen';
-import EditorScreen from '../screens/EditorScreen';
+import ComposerScreen from '../screens/ComposerScreen';
 import PreviewScreen from '../screens/PreviewScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UpgradeScreen from '../screens/UpgradeScreen';
 import TextEffectsTestScreen from '../screens/TextEffectsTestScreen';
 
+import { CompositionState } from '../types/composer';
+
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
-  ImageSelection: { text: string };
-  Editor: { text: string; images: string[] };
-  Preview: { slides: any[] };
+  Composer: { photoA?: string; photoB?: string };
+  Templates: { currentComposition: CompositionState };
+  ExportResult: { composition: CompositionState; exportPath: string };
   Settings: undefined;
-  Upgrade: undefined;
-  TextEffectsTest: undefined;
+  Paywall: undefined;
+  Onboarding: undefined;
+  Legal: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -62,29 +65,29 @@ const AppNavigator: React.FC = () => {
         />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen
-          name="ImageSelection"
-          component={ImageSelectionScreen}
+          name="Composer"
+          component={ComposerScreen}
           options={{
-            headerShown: true,
-            title: 'Select Images',
-            headerBackTitle: 'Back',
+            headerShown: false,
           }}
         />
         <Stack.Screen
-          name="Editor"
-          component={EditorScreen}
-          options={{
-            headerShown: true,
-            title: 'Slide Editor',
-            headerBackTitle: 'Back',
-          }}
-        />
-        <Stack.Screen
-          name="Preview"
+          name="Templates"
           component={PreviewScreen}
           options={{
+            presentation: 'modal',
             headerShown: true,
-            title: 'Preview',
+            title: 'Templates',
+            headerBackTitle: 'Cancel',
+          }}
+        />
+        <Stack.Screen
+          name="ExportResult"
+          component={PreviewScreen}
+          options={{
+            presentation: 'modal',
+            headerShown: true,
+            title: 'Export',
             headerBackTitle: 'Back',
           }}
         />
@@ -98,19 +101,30 @@ const AppNavigator: React.FC = () => {
           }}
         />
         <Stack.Screen
-          name="Upgrade"
+          name="Paywall"
           component={UpgradeScreen}
           options={{
+            presentation: 'modal',
             headerShown: true,
-            title: 'Go Pro',
-            headerBackTitle: 'Back',
+            title: 'Pro',
+            headerBackTitle: 'Cancel',
           }}
         />
         <Stack.Screen
-          name="TextEffectsTest"
-          component={TextEffectsTestScreen}
+          name="Onboarding"
+          component={HomeScreen}
           options={{
             headerShown: false,
+            gestureEnabled: false,
+          }}
+        />
+        <Stack.Screen
+          name="Legal"
+          component={SettingsScreen}
+          options={{
+            headerShown: true,
+            title: 'Legal',
+            headerBackTitle: 'Back',
           }}
         />
       </Stack.Navigator>
