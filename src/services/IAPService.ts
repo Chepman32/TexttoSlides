@@ -1,12 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, Platform } from 'react-native';
 
-// Product IDs for App Store and Google Play
-const PRODUCT_IDS = Platform.select({
-  ios: ['com.texttoslides.pro', 'com.texttoslides.pro.monthly'],
-  android: ['com.texttoslides.pro', 'com.texttoslides.pro.monthly'],
-  default: []
-});
+// Product IDs for App Store and Google Play (for future use)
+// const PRODUCT_IDS = Platform.select({
+//   ios: ['com.texttoslides.pro', 'com.texttoslides.pro.monthly'],
+//   android: ['com.texttoslides.pro', 'com.texttoslides.pro.monthly'],
+//   default: []
+// });
 
 interface Product {
   productId: string;
@@ -49,7 +49,6 @@ class IAPService {
       console.log('IAP Service initializing...');
 
       // Load cached purchase status
-      const cachedProStatus = await AsyncStorage.getItem('proStatus');
       const cachedPurchases = await AsyncStorage.getItem('purchases');
 
       if (cachedPurchases) {

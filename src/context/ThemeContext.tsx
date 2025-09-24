@@ -16,6 +16,11 @@ export interface ThemeColors {
   labelText: string;
   watermark: string;
   notification: string;
+  // Additional properties for compatibility
+  background: string;
+  card: string;
+  text: string;
+  primary: string;
 }
 
 export interface ThemeDefinition {
@@ -39,6 +44,11 @@ export const themes: Record<Theme, ThemeDefinition> = {
       labelText: '#0F172A',
       watermark: 'rgba(15,23,42,0.08)',
       notification: '#ff3b30',
+      // Additional properties for compatibility
+      background: '#F8FAFC',
+      card: '#FFFFFF',
+      text: '#0F172A',
+      primary: '#2563EB',
     },
   },
   dark: {
@@ -56,6 +66,11 @@ export const themes: Record<Theme, ThemeDefinition> = {
       labelText: '#F3F4F6',
       watermark: 'rgba(229,231,235,0.08)',
       notification: '#ff453a',
+      // Additional properties for compatibility
+      background: '#0B1020',
+      card: '#111827',
+      text: '#E5E7EB',
+      primary: '#60A5FA',
     },
   },
   solar: {
@@ -73,6 +88,11 @@ export const themes: Record<Theme, ThemeDefinition> = {
       labelText: '#4E342E',
       watermark: 'rgba(78,52,46,0.08)',
       notification: '#dc322f',
+      // Additional properties for compatibility
+      background: '#FFF8E1',
+      card: '#FFFCF2',
+      text: '#4E342E',
+      primary: '#F59E0B',
     },
   },
   mono: {
@@ -90,6 +110,11 @@ export const themes: Record<Theme, ThemeDefinition> = {
       labelText: '#1F1F1F',
       watermark: 'rgba(0,0,0,0.06)',
       notification: '#333333',
+      // Additional properties for compatibility
+      background: '#F3F3F3',
+      card: '#FFFFFF',
+      text: '#1F1F1F',
+      primary: '#8A8A8A',
     },
   },
 };

@@ -1,6 +1,6 @@
-import React, { useMemo, forwardRef } from 'react';
-import { Dimensions } from 'react-native';
-import { Canvas, Image, useImage, Group, RoundedRect, Shadow, SkiaMutableValue } from '@shopify/react-native-skia';
+import React, { useMemo, forwardRef, ReactNode } from 'react';
+import { Dimensions, View, Text as RNText, StyleSheet } from 'react-native';
+import { Canvas, Image, useImage, Group, RoundedRect, Shadow } from '@shopify/react-native-skia';
 import { CompositionState } from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
 
@@ -11,48 +11,50 @@ interface CompositionCanvasProps {
 const { width: screenWidth } = Dimensions.get('window');
 const canvasWidth = screenWidth - 32; // 16px margin on each side
 
-const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) => {
+const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition }, ref) => {
   const { themeDefinition } = useTheme();
 
   const imageA = useImage(composition.photoAUri || '');
   const imageB = useImage(composition.photoBUri || '');
 
+  // Note: Labels are now rendered as React Native Text overlaid on the canvas
+
   const { canvasHeight, imageWidth, imageHeight, layout } = useMemo(() => {
-    let canvasHeight = 400;
-    let imageWidth = canvasWidth;
-    let imageHeight = 300;
+    let calculatedCanvasHeight = 400;
+    let calculatedImageWidth = canvasWidth;
+    let calculatedImageHeight = 300;
 
     // Calculate dimensions based on aspect ratio and layout
     if (composition.aspect !== 'free') {
       switch (composition.aspect) {
         case '1:1':
-          canvasHeight = canvasWidth;
-          imageWidth = canvasWidth;
-          imageHeight = canvasWidth;
+          calculatedCanvasHeight = canvasWidth;
+          calculatedImageWidth = canvasWidth;
+          calculatedImageHeight = canvasWidth;
           break;
         case '4:3':
-          canvasHeight = (canvasWidth * 3) / 4;
-          imageHeight = canvasHeight;
+          calculatedCanvasHeight = (canvasWidth * 3) / 4;
+          calculatedImageHeight = calculatedCanvasHeight;
           break;
         case '16:9':
-          canvasHeight = (canvasWidth * 9) / 16;
-          imageHeight = canvasHeight;
+          calculatedCanvasHeight = (canvasWidth * 9) / 16;
+          calculatedImageHeight = calculatedCanvasHeight;
           break;
       }
     }
 
     // Adjust for layout
-    const layout = composition.layout;
-    if (layout === 'vertical') {
+    const calculatedLayout = composition.layout;
+    if (calculatedLayout === 'vertical') {
       // For vertical layout, each image takes half the height
-      imageHeight = (canvasHeight - composition.spacing) / 2;
-    } else if (layout === 'side') {
+      calculatedImageHeight = (calculatedCanvasHeight - composition.spacing) / 2;
+    } else if (calculatedLayout === 'side') {
       // For side-by-side, each image takes half the width
-      imageWidth = (canvasWidth - composition.spacing) / 2;
+      calculatedImageWidth = (canvasWidth - composition.spacing) / 2;
     }
 
-    return { canvasHeight, imageWidth, imageHeight, layout };
-  }, [composition.aspect, composition.layout, composition.spacing, canvasWidth]);
+    return { canvasHeight: calculatedCanvasHeight, imageWidth: calculatedImageWidth, imageHeight: calculatedImageHeight, layout: calculatedLayout };
+  }, [composition.aspect, composition.layout, composition.spacing]);
 
   const shadowConfig = useMemo(() => {
     switch (composition.shadow) {
@@ -104,7 +106,7 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
       );
     }
 
-    const elements: JSX.Element[] = [];
+    const elements: ReactNode[] = [];
     const cornerRadius = composition.cornerRadius;
 
     if (layout === 'side') {
@@ -255,95 +257,118 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
   const renderLabels = () => {
     if (!composition.labels.show) return null;
 
-    const elements: JSX.Element[] = [];
-    const { textBefore, textAfter, fontSize, color, position, margin, fontWeight } = composition.labels;
+    const { textBefore, textAfter, fontSize, position, margin } = composition.labels;
+
+    const labelStyle = {
+      position: 'absolute' as const,
+      fontSize: fontSize,
+      fontWeight: composition.labels.fontWeight.toLowerCase() as any,
+      color: composition.labels.color,
+      backgroundColor: themeDefinition.colors.labelBg,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 4,
+      textAlign: 'center' as const,
+      textAlignVertical: 'center' as const,
+    };
 
     if (layout === 'side') {
       // Labels for side by side layout
-      const beforeX = position.includes('l') ? margin : imageWidth - margin;
-      const afterX = position.includes('l') ? imageWidth + composition.spacing + margin : canvasWidth - margin;
-      const y = position.includes('t') ? margin + fontSize : imageHeight - margin;
+      const beforeX = position.includes('l') ? margin : imageWidth - margin - 60;
+      const afterX = position.includes('l') ? imageWidth + composition.spacing + margin : canvasWidth - margin - 60;
+      const y = position.includes('t') ? margin : imageHeight - margin - 30;
 
-      elements.push(
-        <Group key="side-labels">
-          {/* Before label background */}
-          <RoundedRect
-            x={beforeX - 8}
-            y={y - fontSize}
-            width={textBefore.length * (fontSize * 0.6) + 16}
-            height={fontSize + 8}
-            r={4}
-            color={composition.labels.show ? themeDefinition.colors.labelBg : 'transparent'}
-          />
-          {/* After label background */}
-          <RoundedRect
-            x={afterX - 8}
-            y={y - fontSize}
-            width={textAfter.length * (fontSize * 0.6) + 16}
-            height={fontSize + 8}
-            r={4}
-            color={composition.labels.show ? themeDefinition.colors.labelBg : 'transparent'}
-          />
-        </Group>
+      return (
+        <>
+          <RNText
+            style={[
+              labelStyle,
+              {
+                left: beforeX,
+                top: y,
+              }
+            ]}
+          >
+            {textBefore}
+          </RNText>
+          <RNText
+            style={[
+              labelStyle,
+              {
+                left: afterX,
+                top: y,
+              }
+            ]}
+          >
+            {textAfter}
+          </RNText>
+        </>
       );
     } else if (layout === 'vertical') {
       // Labels for vertical layout
-      const x = position.includes('l') ? margin : canvasWidth - margin;
-      const beforeY = position.includes('t') ? margin + fontSize : imageHeight - margin;
-      const afterY = position.includes('t') ? imageHeight + composition.spacing + margin + fontSize : canvasHeight - margin;
+      const x = position.includes('l') ? margin : canvasWidth - margin - 60;
+      const beforeY = position.includes('t') ? margin : imageHeight - margin - 30;
+      const afterY = position.includes('t') ? imageHeight + composition.spacing + margin : canvasHeight - margin - 30;
 
-      elements.push(
-        <Group key="vertical-labels">
-          {/* Before label background */}
-          <RoundedRect
-            x={x - 8}
-            y={beforeY - fontSize}
-            width={textBefore.length * (fontSize * 0.6) + 16}
-            height={fontSize + 8}
-            r={4}
-            color={themeDefinition.colors.labelBg}
-          />
-          {/* After label background */}
-          <RoundedRect
-            x={x - 8}
-            y={afterY - fontSize}
-            width={textAfter.length * (fontSize * 0.6) + 16}
-            height={fontSize + 8}
-            r={4}
-            color={themeDefinition.colors.labelBg}
-          />
-        </Group>
+      return (
+        <>
+          <RNText
+            style={[
+              labelStyle,
+              {
+                left: x,
+                top: beforeY,
+              }
+            ]}
+          >
+            {textBefore}
+          </RNText>
+          <RNText
+            style={[
+              labelStyle,
+              {
+                left: x,
+                top: afterY,
+              }
+            ]}
+          >
+            {textAfter}
+          </RNText>
+        </>
       );
     } else if (layout === 'stacked') {
       // Labels in the bottom bar
-      const beforeLabelY = canvasHeight - 20;
-      const afterLabelY = canvasHeight - 20;
+      const beforeLabelY = canvasHeight - 40;
 
-      elements.push(
-        <Group key="stacked-labels">
-          {/* Before label background */}
-          <RoundedRect
-            x={42}
-            y={beforeLabelY - fontSize / 2 - 4}
-            width={textBefore.length * (fontSize * 0.6) + 16}
-            height={fontSize + 8}
-            r={4}
-            color={themeDefinition.colors.labelBg}
-          />
-          {/* After label background */}
-          <RoundedRect
-            x={canvasWidth - textAfter.length * (fontSize * 0.6) - 24}
-            y={afterLabelY - fontSize / 2 - 4}
-            width={textAfter.length * (fontSize * 0.6) + 16}
-            height={fontSize + 8}
-            r={4}
-            color={themeDefinition.colors.labelBg}
-          />
-        </Group>
+      return (
+        <>
+          <RNText
+            style={[
+              labelStyle,
+              {
+                left: 50,
+                top: beforeLabelY,
+              }
+            ]}
+          >
+            {textBefore}
+          </RNText>
+          <RNText
+            style={[
+              labelStyle,
+              {
+                right: 50,
+                top: beforeLabelY,
+              }
+            ]}
+          >
+            {textAfter}
+          </RNText>
+        </>
       );
     }
 
-    return elements;
+    return null;
   };
 
   const renderBackground = () => {
@@ -407,14 +432,18 @@ const CompositionCanvas: React.FC<CompositionCanvasProps> = ({ composition }) =>
   };
 
   return (
-    <Canvas style={{ width: canvasWidth, height: canvasHeight }}>
-      {renderBackground()}
-      {renderImages()}
+    <View style={{ width: canvasWidth, height: canvasHeight, position: 'relative' }}>
+      <Canvas ref={ref} style={{ width: canvasWidth, height: canvasHeight }}>
+        {renderBackground()}
+        {renderImages()}
+        {renderFrame()}
+        {renderWatermark()}
+      </Canvas>
       {renderLabels()}
-      {renderFrame()}
-      {renderWatermark()}
-    </Canvas>
+    </View>
   );
-};
+});
+
+CompositionCanvas.displayName = 'CompositionCanvas';
 
 export default CompositionCanvas;

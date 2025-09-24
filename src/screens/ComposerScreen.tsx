@@ -9,12 +9,15 @@ import {
   ScrollView,
   PermissionsAndroid,
   Platform,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
+import { captureRef } from 'react-native-view-shot';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
@@ -33,6 +36,9 @@ const ComposerScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const { themeDefinition } = useTheme();
   const { t } = useLanguage();
+
+  // Canvas ref for export
+  const canvasRef = useRef<any>(null);
 
   // Initialize composition state
   const [composition, setComposition] = useState<CompositionState>({
@@ -69,6 +75,11 @@ const ComposerScreen: React.FC = () => {
 
   // Active tool panel state
   const [activePanel, setActivePanel] = useState<'layout' | 'labels' | 'style' | 'export'>('layout');
+
+  // Text editing modal state
+  const [showTextModal, setShowTextModal] = useState(false);
+  const [editingField, setEditingField] = useState<'before' | 'after' | null>(null);
+  const [tempText, setTempText] = useState('');
 
   // Undo/Redo functionality
   const [history, setHistory] = useState<CompositionState[]>([composition]);
@@ -129,6 +140,57 @@ const ComposerScreen: React.FC = () => {
     });
   };
 
+  const exportToPhotos = async () => {
+    try {
+      FeedbackService.buttonTap();
+
+      if (!composition.photoAUri || !composition.photoBUri) {
+        Alert.alert('Error', 'Please select both photos first');
+        return;
+      }
+
+      if (!canvasRef.current) {
+        Alert.alert('Error', 'Canvas not ready. Please try again.');
+        return;
+      }
+
+      // Request permissions for saving to Photos
+      if (Platform.OS === 'android') {
+        const permission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+        );
+        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert('Permission Required', 'Please grant storage permission to save photos');
+          return;
+        }
+      }
+
+      Alert.alert(
+        'Export Started',
+        'Capturing your before/after composition...',
+        [{ text: 'OK' }]
+      );
+
+      // Capture the canvas as an image
+      const uri = await captureRef(canvasRef, {
+        format: 'png',
+        quality: 1.0,
+        result: 'tmpfile',
+      });
+
+      // Save to Camera Roll
+      await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
+
+      FeedbackService.success();
+      Alert.alert('Success!', 'Your before/after photo has been saved to Photos');
+
+    } catch (error) {
+      console.error('Export error:', error);
+      FeedbackService.error();
+      Alert.alert('Error', `Failed to export photo: ${error.message || 'Please try again.'}`);
+    }
+  };
+
   const setLayout = (layout: LayoutType) => {
     FeedbackService.buttonTap();
     updateComposition({ layout });
@@ -148,6 +210,30 @@ const ComposerScreen: React.FC = () => {
     updateComposition({
       labels: { ...composition.labels, ...labelUpdates }
     });
+  };
+
+  const openTextEditor = (field: 'before' | 'after') => {
+    const currentText = field === 'before' ? composition.labels.textBefore : composition.labels.textAfter;
+    setTempText(currentText);
+    setEditingField(field);
+    setShowTextModal(true);
+  };
+
+  const saveTextEdit = () => {
+    if (editingField === 'before') {
+      updateLabels({ textBefore: tempText });
+    } else if (editingField === 'after') {
+      updateLabels({ textAfter: tempText });
+    }
+    setShowTextModal(false);
+    setEditingField(null);
+    FeedbackService.success();
+  };
+
+  const cancelTextEdit = () => {
+    setShowTextModal(false);
+    setEditingField(null);
+    setTempText('');
   };
 
   const canvasHeight = screenHeight * 0.45;
@@ -283,8 +369,8 @@ const ComposerScreen: React.FC = () => {
             <TouchableOpacity
               style={[styles.textInput, { borderColor: themeDefinition.colors.border }]}
               onPress={() => {
-                // TODO: Open text editor modal
                 FeedbackService.buttonTap();
+                openTextEditor('before');
               }}
             >
               <Text style={[styles.textInputText, { color: themeDefinition.colors.textPrimary }]}>
@@ -298,8 +384,8 @@ const ComposerScreen: React.FC = () => {
             <TouchableOpacity
               style={[styles.textInput, { borderColor: themeDefinition.colors.border }]}
               onPress={() => {
-                // TODO: Open text editor modal
                 FeedbackService.buttonTap();
+                openTextEditor('after');
               }}
             >
               <Text style={[styles.textInputText, { color: themeDefinition.colors.textPrimary }]}>
@@ -472,10 +558,7 @@ const ComposerScreen: React.FC = () => {
         </Text>
         <TouchableOpacity
           style={[styles.exportButton, { backgroundColor: themeDefinition.colors.accent }]}
-          onPress={() => {
-            // TODO: Implement export
-            Alert.alert('Export', 'Export functionality coming soon!');
-          }}
+          onPress={exportToPhotos}
         >
           <Text style={styles.exportButtonText}>{t('saveToPhotos')}</Text>
         </TouchableOpacity>
@@ -546,7 +629,9 @@ const ComposerScreen: React.FC = () => {
             </View>
           </View>
         ) : (
-          <CompositionCanvas composition={composition} />
+          <View ref={canvasRef} collapsable={false} style={{ alignItems: 'center' }}>
+            <CompositionCanvas composition={composition} />
+          </View>
         )}
       </View>
 
@@ -582,6 +667,54 @@ const ComposerScreen: React.FC = () => {
         {activePanel === 'style' && renderStylePanel()}
         {activePanel === 'export' && renderExportPanel()}
       </View>
+
+      {/* Text Editing Modal */}
+      <Modal
+        visible={showTextModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={cancelTextEdit}
+      >
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { backgroundColor: themeDefinition.colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: themeDefinition.colors.textPrimary }]}>
+              {editingField === 'before' ? t('labels_beforeText') : t('labels_afterText')}
+            </Text>
+            <TextInput
+              style={[styles.modalTextInput, {
+                borderColor: themeDefinition.colors.border,
+                backgroundColor: themeDefinition.colors.bg,
+                color: themeDefinition.colors.textPrimary
+              }]}
+              value={tempText}
+              onChangeText={setTempText}
+              placeholder={editingField === 'before' ? t('before') : t('after')}
+              placeholderTextColor={themeDefinition.colors.textSecondary}
+              multiline
+              autoFocus
+              maxLength={50}
+            />
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton, { backgroundColor: themeDefinition.colors.border }]}
+                onPress={cancelTextEdit}
+              >
+                <Text style={[styles.modalButtonText, { color: themeDefinition.colors.textPrimary }]}>
+                  {t('cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton, { backgroundColor: themeDefinition.colors.accent }]}
+                onPress={saveTextEdit}
+              >
+                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>
+                  {t('apply')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -876,6 +1009,60 @@ const styles = StyleSheet.create({
   positionButtonText: {
     fontSize: 14,
     fontWeight: '500',
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 20,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 400,
+    borderRadius: 12,
+    padding: 24,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalTextInput: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    fontSize: 16,
+    marginBottom: 24,
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    // backgroundColor set dynamically
+  },
+  saveButton: {
+    // backgroundColor set dynamically
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 

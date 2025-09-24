@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import AnimatedSplashScreen from '../screens/AnimatedSplashScreen';
 import SplashScreen from '../screens/SplashScreen';
 import HomeScreen from '../screens/HomeScreen';
 import StorageService from '../services/StorageService';
-import ImageSelectionScreen from '../screens/ImageSelectionScreen';
 import ComposerScreen from '../screens/ComposerScreen';
 import PreviewScreen from '../screens/PreviewScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UpgradeScreen from '../screens/UpgradeScreen';
-import TextEffectsTestScreen from '../screens/TextEffectsTestScreen';
 
 import { CompositionState } from '../types/composer';
 
@@ -29,21 +26,10 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 const AppNavigator: React.FC = () => {
-  const [showAdvancedSplash, setShowAdvancedSplash] = useState(true);
-  const [hasRestoredProject, setHasRestoredProject] = useState(false);
-
   useEffect(() => {
-    // Check if there's a saved project to restore
-    StorageService.loadCurrentProject().then(project => {
-      if (project && !project.isCompleted) {
-        setHasRestoredProject(true);
-      }
-    });
-
-    // Determine which splash screen to show based on first launch
-    StorageService.isFirstLaunch().then(isFirst => {
-      setShowAdvancedSplash(isFirst);
-    });
+    // Initialize storage on app start
+    StorageService.loadCurrentProject();
+    StorageService.isFirstLaunch();
   }, []);
 
   return (
