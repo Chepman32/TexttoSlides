@@ -78,6 +78,22 @@ const SettingsScreen: React.FC = () => {
   const handleAppIconChange = async (iconName: string | null) => {
     FeedbackService.buttonTap();
     try {
+      // Check if we're in a development environment or simulator
+      if (__DEV__ && (!AppIconManager || typeof AppIconManager.changeIcon !== 'function')) {
+        // In development/simulator, just update the preference
+        console.warn('AppIconManager not available in simulator. Only updating preference.');
+        updatePreferences({ appIcon: iconName || 'default' });
+        setShowAppIconModal(false);
+        FeedbackService.success();
+        Alert.alert('Development Mode', 'App icon preference saved. Changes will take effect on physical device.');
+        return;
+      }
+
+      // Check if AppIconManager is available on device
+      if (!AppIconManager || typeof AppIconManager.changeIcon !== 'function') {
+        throw new Error('Icon changing is not available on this device or iOS version.');
+      }
+
       await AppIconManager.changeIcon(iconName);
       updatePreferences({ appIcon: iconName || 'default' });
       setShowAppIconModal(false);
@@ -85,7 +101,8 @@ const SettingsScreen: React.FC = () => {
       Alert.alert('Success', 'App icon changed successfully!');
     } catch (error) {
       console.error('Failed to change app icon:', error);
-      Alert.alert('Error', 'Failed to change app icon. Please try again.');
+      const errorMessage = error.message || 'Failed to change app icon. Please try again.';
+      Alert.alert('Error', errorMessage);
     }
   };
 
