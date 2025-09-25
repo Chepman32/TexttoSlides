@@ -15,6 +15,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { defaultTemplates, Template } from '../constants/templates';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -65,6 +66,15 @@ const HomeScreen: React.FC = () => {
   const handleSettings = () => {
     FeedbackService.buttonTap();
     navigation.navigate('Settings');
+  };
+
+  const handleTemplateSelect = (template: Template) => {
+    FeedbackService.buttonTap();
+    // Navigate to composer with template
+    navigation.navigate('Composer', {
+      template: template,
+      useTemplate: true
+    });
   };
 
   return (
@@ -127,33 +137,53 @@ const HomeScreen: React.FC = () => {
             </TouchableOpacity>
           </View>
 
-          {/* Recent templates section */}
+          {/* Templates section */}
           <View style={styles.recentSection}>
             <Text style={[styles.sectionTitle, { color: themeDefinition.colors.textPrimary }]}>
-              {t('home_recentTemplates')}
+              Templates
             </Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.templatesContainer}
             >
-              {/* Template placeholders */}
-              {[1, 2, 3].map(index => (
+              {defaultTemplates.map(template => (
                 <TouchableOpacity
-                  key={index}
+                  key={template.id}
                   style={[styles.templateCard, { backgroundColor: themeDefinition.colors.surface }]}
-                  onPress={() => {
-                    FeedbackService.buttonTap();
-                    // TODO: Navigate to templates or apply template
-                  }}
+                  onPress={() => handleTemplateSelect(template)}
                 >
-                  <View style={[styles.templatePreview, { backgroundColor: themeDefinition.colors.border }]}>
-                    <Text style={[styles.templatePreviewText, { color: themeDefinition.colors.textSecondary }]}>
-                      Preview
-                    </Text>
+                  <View style={[
+                    styles.templatePreview,
+                    { backgroundColor: template.preview.backgroundColor }
+                  ]}>
+                    {/* Template preview layout */}
+                    <View style={styles.templatePreviewContent}>
+                      {template.preview.layout === 'side' ? (
+                        <View style={styles.previewSide}>
+                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '30' }]} />
+                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '50' }]} />
+                        </View>
+                      ) : template.preview.layout === 'vertical' ? (
+                        <View style={styles.previewVertical}>
+                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '30' }]} />
+                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '50' }]} />
+                        </View>
+                      ) : (
+                        <View style={styles.previewStacked}>
+                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
+                        </View>
+                      )}
+                      {template.preview.hasFrame && (
+                        <View style={[styles.previewFrame, { borderColor: template.preview.accentColor }]} />
+                      )}
+                    </View>
                   </View>
-                  <Text style={[styles.templateName, { color: themeDefinition.colors.textSecondary }]}>
-                    Template {index}
+                  <Text style={[styles.templateName, { color: themeDefinition.colors.textPrimary }]}>
+                    {template.name}
+                  </Text>
+                  <Text style={[styles.templateDescription, { color: themeDefinition.colors.textSecondary }]}>
+                    {template.description}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -291,6 +321,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     textAlign: 'center',
+    marginBottom: 4,
+  },
+  templateDescription: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  templatePreviewContent: {
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+  },
+  previewSide: {
+    flexDirection: 'row',
+    width: '100%',
+    height: '100%',
+    gap: 2,
+  },
+  previewVertical: {
+    flexDirection: 'column',
+    width: '100%',
+    height: '100%',
+    gap: 2,
+  },
+  previewStacked: {
+    width: '100%',
+    height: '100%',
+  },
+  previewBox: {
+    flex: 1,
+    borderRadius: 4,
+  },
+  previewFrame: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderWidth: 2,
+    borderRadius: 8,
   },
   tipCard: {
     padding: 20,

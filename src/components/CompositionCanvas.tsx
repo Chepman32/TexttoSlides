@@ -119,26 +119,54 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
             </>
           )}
-          <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
-            <Image
-              image={imageA}
-              fit="cover"
+          {/* Before image (left) */}
+          {imageA && (
+            <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
+              <Image
+                image={imageA}
+                fit="cover"
+                x={0}
+                y={0}
+                width={imageWidth}
+                height={imageHeight}
+              />
+            </Group>
+          )}
+          {/* After image (right) */}
+          {imageB && (
+            <Group clip={{ x: imageWidth + composition.spacing, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
+              <Image
+                image={imageB}
+                fit="cover"
+                x={imageWidth + composition.spacing}
+                y={0}
+                width={imageWidth}
+                height={imageHeight}
+              />
+            </Group>
+          )}
+
+          {/* Fallback placeholders if images are missing */}
+          {!imageA && (
+            <RoundedRect
               x={0}
               y={0}
               width={imageWidth}
               height={imageHeight}
+              r={cornerRadius}
+              color={themeDefinition.colors.border}
             />
-          </Group>
-          <Group clip={{ x: imageWidth + composition.spacing, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
-            <Image
-              image={imageB}
-              fit="cover"
+          )}
+          {!imageB && (
+            <RoundedRect
               x={imageWidth + composition.spacing}
               y={0}
               width={imageWidth}
               height={imageHeight}
+              r={cornerRadius}
+              color={themeDefinition.colors.border}
             />
-          </Group>
+          )}
         </Group>
       );
     } else if (layout === 'vertical') {
@@ -151,26 +179,54 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
             </>
           )}
-          <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
-            <Image
-              image={imageA}
-              fit="cover"
+          {/* Before image (top) */}
+          {imageA && (
+            <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
+              <Image
+                image={imageA}
+                fit="cover"
+                x={0}
+                y={0}
+                width={imageWidth}
+                height={imageHeight}
+              />
+            </Group>
+          )}
+          {/* After image (bottom) */}
+          {imageB && (
+            <Group clip={{ x: 0, y: imageHeight + composition.spacing, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
+              <Image
+                image={imageB}
+                fit="cover"
+                x={0}
+                y={imageHeight + composition.spacing}
+                width={imageWidth}
+                height={imageHeight}
+              />
+            </Group>
+          )}
+
+          {/* Fallback placeholders if images are missing */}
+          {!imageA && (
+            <RoundedRect
               x={0}
               y={0}
               width={imageWidth}
               height={imageHeight}
+              r={cornerRadius}
+              color={themeDefinition.colors.border}
             />
-          </Group>
-          <Group clip={{ x: 0, y: imageHeight + composition.spacing, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
-            <Image
-              image={imageB}
-              fit="cover"
+          )}
+          {!imageB && (
+            <RoundedRect
               x={0}
               y={imageHeight + composition.spacing}
               width={imageWidth}
               height={imageHeight}
+              r={cornerRadius}
+              color={themeDefinition.colors.border}
             />
-          </Group>
+          )}
         </Group>
       );
     } else if (layout === 'slider') {
@@ -183,27 +239,43 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
             <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
           )}
           {/* Base image (Before) */}
-          <Group clip={{ x: 0, y: 0, width: canvasWidth, height: canvasHeight, rx: cornerRadius, ry: cornerRadius }}>
-            <Image
-              image={imageA}
-              fit="cover"
-              x={0}
-              y={0}
-              width={canvasWidth}
-              height={canvasHeight}
-            />
-          </Group>
+          {imageA && (
+            <Group clip={{ x: 0, y: 0, width: canvasWidth, height: canvasHeight, rx: cornerRadius, ry: cornerRadius }}>
+              <Image
+                image={imageA}
+                fit="cover"
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={canvasHeight}
+              />
+            </Group>
+          )}
           {/* Overlay image (After) with clipping */}
-          <Group clip={{ x: 0, y: 0, width: sliderPosition, height: canvasHeight, rx: cornerRadius, ry: cornerRadius }}>
-            <Image
-              image={imageB}
-              fit="cover"
+          {imageB && (
+            <Group clip={{ x: 0, y: 0, width: sliderPosition, height: canvasHeight, rx: cornerRadius, ry: cornerRadius }}>
+              <Image
+                image={imageB}
+                fit="cover"
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={canvasHeight}
+              />
+            </Group>
+          )}
+
+          {/* Fallback placeholders if images are missing */}
+          {!imageA && (
+            <RoundedRect
               x={0}
               y={0}
               width={canvasWidth}
               height={canvasHeight}
+              r={cornerRadius}
+              color={themeDefinition.colors.border}
             />
-          </Group>
+          )}
         </Group>
       );
     } else if (layout === 'stacked') {
@@ -217,16 +289,27 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
             <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
           )}
           {/* Main image (After on top) */}
-          <Group clip={{ x: 0, y: 0, width: canvasWidth, height: adjustedImageHeight, rx: cornerRadius, ry: cornerRadius }}>
-            <Image
-              image={imageB}
-              fit="cover"
+          {imageB ? (
+            <Group clip={{ x: 0, y: 0, width: canvasWidth, height: adjustedImageHeight, rx: cornerRadius, ry: cornerRadius }}>
+              <Image
+                image={imageB}
+                fit="cover"
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={adjustedImageHeight}
+              />
+            </Group>
+          ) : (
+            <RoundedRect
               x={0}
               y={0}
               width={canvasWidth}
               height={adjustedImageHeight}
+              r={cornerRadius}
+              color={themeDefinition.colors.border}
             />
-          </Group>
+          )}
           {/* Label bar */}
           <RoundedRect
             x={0}
@@ -237,16 +320,27 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
             color={composition.background.colors[0] || themeDefinition.colors.surface}
           />
           {/* Small before image in the bar */}
-          <Group clip={{ x: 8, y: adjustedImageHeight + 8, width: barHeight - 16, height: barHeight - 16, rx: 4, ry: 4 }}>
-            <Image
-              image={imageA}
-              fit="cover"
+          {imageA ? (
+            <Group clip={{ x: 8, y: adjustedImageHeight + 8, width: barHeight - 16, height: barHeight - 16, rx: 4, ry: 4 }}>
+              <Image
+                image={imageA}
+                fit="cover"
+                x={8}
+                y={adjustedImageHeight + 8}
+                width={barHeight - 16}
+                height={barHeight - 16}
+              />
+            </Group>
+          ) : (
+            <RoundedRect
               x={8}
               y={adjustedImageHeight + 8}
               width={barHeight - 16}
               height={barHeight - 16}
+              r={4}
+              color={themeDefinition.colors.border}
             />
-          </Group>
+          )}
         </Group>
       );
     }

@@ -10,11 +10,12 @@ import SettingsScreen from '../screens/SettingsScreen';
 import UpgradeScreen from '../screens/UpgradeScreen';
 
 import { CompositionState } from '../types/composer';
+import { Template } from '../constants/templates';
 
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
-  Composer: { photoA?: string; photoB?: string };
+  Composer: { photoA?: string; photoB?: string; template?: Template; useTemplate?: boolean };
   Templates: { currentComposition: CompositionState };
   ExportResult: { composition: CompositionState; exportPath: string };
   Settings: undefined;

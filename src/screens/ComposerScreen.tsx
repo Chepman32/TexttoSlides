@@ -18,11 +18,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { CameraRoll } from '@react-native-camera-roll/camera-roll';
 import { captureRef } from 'react-native-view-shot';
+import Slider from '@react-native-community/slider';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
 import { CompositionState, LayoutType, LabelStyle } from '../types/composer';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import { defaultTemplates, applyTemplate, Template } from '../constants/templates';
 import CompositionCanvas from '../components/CompositionCanvas';
 
 type ComposerRouteProp = RouteProp<RootStackParamList, 'Composer'>;
@@ -55,7 +57,7 @@ const ComposerScreen: React.FC = () => {
       fontFamily: 'System',
       fontSize: 24,
       fontWeight: 'Bold',
-      color: '#FFFFFF',
+      color: '#000000',
       position: 'bl',
       margin: 16,
       show: true,
@@ -107,6 +109,16 @@ const ComposerScreen: React.FC = () => {
       return newComposition;
     });
   }, [addToHistory]);
+
+  // Apply template if provided in route params
+  useEffect(() => {
+    if (route.params?.template && route.params?.useTemplate) {
+      const templateComposition = applyTemplate(composition, route.params.template);
+      setComposition(templateComposition);
+      setHistory([templateComposition]);
+      setHistoryIndex(0);
+    }
+  }, [route.params?.template, route.params?.useTemplate]);
 
   const pickPhoto = (isPhotoA: boolean) => {
     launchImageLibrary(
@@ -238,8 +250,57 @@ const ComposerScreen: React.FC = () => {
 
   const canvasHeight = screenHeight * 0.45;
 
+  const applyTemplateToComposition = (template: Template) => {
+    FeedbackService.buttonTap();
+    const newComposition = applyTemplate(composition, template);
+    setComposition(newComposition);
+    addToHistory(newComposition);
+  };
+
   const renderLayoutPanel = () => (
     <ScrollView style={styles.toolPanel} showsVerticalScrollIndicator={false}>
+      {/* Templates Section */}
+      <View style={styles.toolSection}>
+        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+          Templates
+        </Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.templatesHorizontalContainer}
+        >
+          {defaultTemplates.slice(0, 4).map(template => (
+            <TouchableOpacity
+              key={template.id}
+              style={[styles.editorTemplateCard, { backgroundColor: themeDefinition.colors.surface }]}
+              onPress={() => applyTemplateToComposition(template)}
+            >
+              <View style={[
+                styles.editorTemplatePreview,
+                { backgroundColor: template.preview.backgroundColor }
+              ]}>
+                <View style={styles.editorTemplatePreviewContent}>
+                  {template.preview.layout === 'side' ? (
+                    <View style={styles.editorPreviewSide}>
+                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
+                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '60' }]} />
+                    </View>
+                  ) : (
+                    <View style={styles.editorPreviewVertical}>
+                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
+                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '60' }]} />
+                    </View>
+                  )}
+                </View>
+              </View>
+              <Text style={[styles.editorTemplateName, { color: themeDefinition.colors.textPrimary }]}>
+                {template.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
       <View style={styles.toolSection}>
         <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
           {t('layout')}
@@ -411,17 +472,23 @@ const ComposerScreen: React.FC = () => {
                   -
                 </Text>
               </TouchableOpacity>
-              <View style={[styles.sliderTrack, { backgroundColor: themeDefinition.colors.border }]}>
-                <View
-                  style={[
-                    styles.sliderFill,
-                    {
-                      backgroundColor: themeDefinition.colors.accent,
-                      width: `${((composition.labels.fontSize - 12) / (48 - 12)) * 100}%`
-                    }
-                  ]}
-                />
-              </View>
+              <Slider
+                style={styles.slider}
+                minimumValue={12}
+                maximumValue={48}
+                value={composition.labels.fontSize}
+                onValueChange={(value) => {
+                  updateLabels({ fontSize: Math.round(value) });
+                }}
+                onSlidingComplete={() => {
+                  FeedbackService.buttonTap();
+                }}
+                minimumTrackTintColor={themeDefinition.colors.accent}
+                maximumTrackTintColor={themeDefinition.colors.border}
+                thumbStyle={{ backgroundColor: themeDefinition.colors.accent }}
+                trackStyle={{ borderRadius: 2 }}
+                step={1}
+              />
               <TouchableOpacity
                 style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
                 onPress={() => {
@@ -541,11 +608,208 @@ const ComposerScreen: React.FC = () => {
 
   const renderStylePanel = () => (
     <ScrollView style={styles.toolPanel} showsVerticalScrollIndicator={false}>
+      {/* Background Section */}
       <View style={styles.toolSection}>
         <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
-          {t('style_background')}
+          Background
         </Text>
-        {/* TODO: Add background controls */}
+        <View style={styles.backgroundOptions}>
+          {[
+            { type: 'solid', color: '#FFFFFF', label: 'White' },
+            { type: 'solid', color: '#F8FAFC', label: 'Light' },
+            { type: 'solid', color: '#111827', label: 'Dark' },
+            { type: 'solid', color: '#FFF8E1', label: 'Warm' },
+            { type: 'gradient', colors: ['#EDE9FE', '#DDD6FE'], label: 'Purple' },
+            { type: 'gradient', colors: ['#FEF3C7', '#FDE68A'], label: 'Gold' },
+            { type: 'transparent', color: 'transparent', label: 'None' },
+          ].map((bg, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.backgroundOption,
+                {
+                  backgroundColor: bg.type === 'gradient' ? bg.colors[0] : bg.color,
+                  borderColor: themeDefinition.colors.border,
+                },
+                composition.background.type === bg.type &&
+                composition.background.colors[0] === (bg.colors?.[0] || bg.color) &&
+                { borderWidth: 2, borderColor: themeDefinition.colors.accent }
+              ]}
+              onPress={() => {
+                FeedbackService.buttonTap();
+                updateComposition({
+                  background: {
+                    type: bg.type as any,
+                    colors: bg.colors || [bg.color],
+                    direction: bg.type === 'gradient' ? 'vertical' : undefined,
+                  }
+                });
+              }}
+            >
+              {bg.type === 'gradient' && (
+                <View style={[
+                  styles.gradientPreview,
+                  { backgroundColor: bg.colors[1] }
+                ]} />
+              )}
+              {bg.type === 'transparent' && (
+                <View style={styles.transparentPattern} />
+              )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+
+      {/* Frame Section */}
+      <View style={styles.toolSection}>
+        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+          Frame
+        </Text>
+        <View style={styles.toggleRow}>
+          <Text style={[styles.toggleLabel, { color: themeDefinition.colors.textPrimary }]}>
+            Show Frame
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.toggle,
+              {
+                backgroundColor: composition.frame.on ? themeDefinition.colors.accent : 'transparent',
+                borderColor: composition.frame.on ? themeDefinition.colors.accent : themeDefinition.colors.border,
+              }
+            ]}
+            onPress={() => {
+              FeedbackService.buttonTap();
+              updateComposition({
+                frame: { ...composition.frame, on: !composition.frame.on }
+              });
+            }}
+          >
+            <View style={[
+              styles.toggleKnob,
+              {
+                backgroundColor: composition.frame.on ? '#FFFFFF' : themeDefinition.colors.border,
+                transform: [{ translateX: composition.frame.on ? 18 : 0 }]
+              }
+            ]} />
+          </TouchableOpacity>
+        </View>
+
+        {composition.frame.on && (
+          <>
+            <Text style={[styles.toolSectionSubtitle, { color: themeDefinition.colors.textPrimary }]}>
+              Frame Color
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.colorOptions}>
+                {['#000000', '#FFFFFF', '#2563EB', '#7C3AED', '#F59E0B', '#059669', '#DC2626'].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.colorOption,
+                      { backgroundColor: color },
+                      composition.frame.color === color && { borderWidth: 3, borderColor: themeDefinition.colors.accent }
+                    ]}
+                    onPress={() => {
+                      FeedbackService.buttonTap();
+                      updateComposition({
+                        frame: { ...composition.frame, color }
+                      });
+                    }}
+                  />
+                ))}
+              </View>
+            </ScrollView>
+
+            <Text style={[styles.toolSectionSubtitle, { color: themeDefinition.colors.textPrimary }]}>
+              Frame Thickness ({composition.frame.thickness}px)
+            </Text>
+            <View style={styles.sliderContainer}>
+              <TouchableOpacity
+                style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+                onPress={() => {
+                  FeedbackService.buttonTap();
+                  updateComposition({
+                    frame: { ...composition.frame, thickness: Math.max(1, composition.frame.thickness - 1) }
+                  });
+                }}
+              >
+                <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>-</Text>
+              </TouchableOpacity>
+              <Slider
+                style={styles.slider}
+                minimumValue={1}
+                maximumValue={8}
+                value={composition.frame.thickness}
+                onValueChange={(value) => {
+                  updateComposition({
+                    frame: { ...composition.frame, thickness: Math.round(value) }
+                  });
+                }}
+                onSlidingComplete={() => FeedbackService.buttonTap()}
+                minimumTrackTintColor={themeDefinition.colors.accent}
+                maximumTrackTintColor={themeDefinition.colors.border}
+                thumbStyle={{ backgroundColor: themeDefinition.colors.accent }}
+                step={1}
+              />
+              <TouchableOpacity
+                style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+                onPress={() => {
+                  FeedbackService.buttonTap();
+                  updateComposition({
+                    frame: { ...composition.frame, thickness: Math.min(8, composition.frame.thickness + 1) }
+                  });
+                }}
+              >
+                <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+
+      {/* Corner Radius Section */}
+      <View style={styles.toolSection}>
+        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+          Corner Radius ({composition.cornerRadius}px)
+        </Text>
+        <View style={styles.sliderContainer}>
+          <TouchableOpacity
+            style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+            onPress={() => {
+              FeedbackService.buttonTap();
+              updateComposition({
+                cornerRadius: Math.max(0, composition.cornerRadius - 2)
+              });
+            }}
+          >
+            <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>-</Text>
+          </TouchableOpacity>
+          <Slider
+            style={styles.slider}
+            minimumValue={0}
+            maximumValue={32}
+            value={composition.cornerRadius}
+            onValueChange={(value) => {
+              updateComposition({ cornerRadius: Math.round(value) });
+            }}
+            onSlidingComplete={() => FeedbackService.buttonTap()}
+            minimumTrackTintColor={themeDefinition.colors.accent}
+            maximumTrackTintColor={themeDefinition.colors.border}
+            thumbStyle={{ backgroundColor: themeDefinition.colors.accent }}
+            step={2}
+          />
+          <TouchableOpacity
+            style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+            onPress={() => {
+              FeedbackService.buttonTap();
+              updateComposition({
+                cornerRadius: Math.min(32, composition.cornerRadius + 2)
+              });
+            }}
+          >
+            <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>+</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </ScrollView>
   );
@@ -607,15 +871,18 @@ const ComposerScreen: React.FC = () => {
         {(!composition.photoAUri || !composition.photoBUri) ? (
           <View style={[styles.photoPlaceholder, { borderColor: themeDefinition.colors.border }]}>
             <Text style={[styles.placeholderText, { color: themeDefinition.colors.textSecondary }]}>
-              {t('pickTwoPhotos')}
+              {composition.layout === 'side' ? 'Select Before & After Photos' :
+               composition.layout === 'vertical' ? 'Select Before (Top) & After (Bottom) Photos' :
+               composition.layout === 'stacked' ? 'Select Before & After Photos' :
+               t('pickTwoPhotos')}
             </Text>
-            <View style={styles.photoButtons}>
+            <View style={composition.layout === 'side' ? styles.photoButtonsSide : styles.photoButtons}>
               <TouchableOpacity
                 style={[styles.photoButton, { backgroundColor: themeDefinition.colors.surface }]}
                 onPress={() => pickPhoto(true)}
               >
                 <Text style={[styles.photoButtonText, { color: themeDefinition.colors.textPrimary }]}>
-                  {composition.photoAUri ? 'Change Before' : 'Pick Before'}
+                  {composition.photoAUri ? '✓ Before' : 'Pick Before'}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -623,7 +890,7 @@ const ComposerScreen: React.FC = () => {
                 onPress={() => pickPhoto(false)}
               >
                 <Text style={[styles.photoButtonText, { color: themeDefinition.colors.textPrimary }]}>
-                  {composition.photoBUri ? 'Change After' : 'Pick After'}
+                  {composition.photoBUri ? '✓ After' : 'Pick After'}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -782,6 +1049,12 @@ const styles = StyleSheet.create({
   photoButtons: {
     flexDirection: 'row',
     gap: 16,
+  },
+  photoButtonsSide: {
+    flexDirection: 'row',
+    gap: 16,
+    justifyContent: 'space-between',
+    width: '100%',
   },
   photoButton: {
     paddingHorizontal: 24,
@@ -958,6 +1231,10 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 2,
   },
+  slider: {
+    flex: 1,
+    height: 40,
+  },
   weightButtons: {
     flexDirection: 'row',
     gap: 8,
@@ -1063,6 +1340,93 @@ const styles = StyleSheet.create({
   modalButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  // Template styles for editor
+  templatesHorizontalContainer: {
+    paddingRight: 16,
+  },
+  editorTemplateCard: {
+    width: 80,
+    marginRight: 12,
+    borderRadius: 8,
+    padding: 8,
+    alignItems: 'center',
+  },
+  editorTemplatePreview: {
+    width: 50,
+    height: 40,
+    borderRadius: 6,
+    marginBottom: 6,
+    overflow: 'hidden',
+  },
+  editorTemplatePreviewContent: {
+    width: '100%',
+    height: '100%',
+    padding: 2,
+  },
+  editorPreviewSide: {
+    flexDirection: 'row',
+    width: '100%',
+    height: '100%',
+    gap: 1,
+  },
+  editorPreviewVertical: {
+    flexDirection: 'column',
+    width: '100%',
+    height: '100%',
+    gap: 1,
+  },
+  editorPreviewBox: {
+    flex: 1,
+    borderRadius: 2,
+  },
+  editorTemplateName: {
+    fontSize: 10,
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  // Style panel specific styles
+  backgroundOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  backgroundOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  gradientPreview: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+  },
+  transparentPattern: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F3F4F6',
+    position: 'relative',
+  },
+  toggleLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  toggleKnob: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    position: 'absolute',
+  },
+  toolSectionSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginTop: 16,
+    marginBottom: 8,
   },
 });
 
