@@ -25,6 +25,7 @@ import FeedbackService from '../services/FeedbackService';
 import { CompositionState, LayoutType, LabelStyle } from '../types/composer';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { defaultTemplates, applyTemplate, Template } from '../constants/templates';
+import { TextEffectInstance, createTextEffectInstance, SUPPORTED_TEXT_EFFECT_TYPES, getTextEffectDefinition } from '../constants/textEffects';
 import CompositionCanvas from '../components/CompositionCanvas';
 
 type ComposerRouteProp = RouteProp<RootStackParamList, 'Composer'>;
@@ -49,7 +50,6 @@ const ComposerScreen: React.FC = () => {
     layout: 'side',
     spacing: 12,
     cornerRadius: 16,
-    shadow: 'low',
     aspect: 'free',
     labels: {
       textBefore: t('before'),
@@ -61,6 +61,7 @@ const ComposerScreen: React.FC = () => {
       position: 'bl',
       margin: 16,
       show: true,
+      textEffects: [],
     },
     background: {
       type: 'solid',
@@ -213,9 +214,22 @@ const ComposerScreen: React.FC = () => {
     updateComposition({ aspect });
   };
 
-  const setShadow = (shadow: CompositionState['shadow']) => {
+  const toggleTextEffect = (effectType: string) => {
     FeedbackService.buttonTap();
-    updateComposition({ shadow });
+    const currentEffects = composition.labels.textEffects || [];
+    const existingEffectIndex = currentEffects.findIndex(effect => effect.type === effectType);
+
+    let newEffects: TextEffectInstance[];
+    if (existingEffectIndex >= 0) {
+      // Remove existing effect
+      newEffects = currentEffects.filter((_, index) => index !== existingEffectIndex);
+    } else {
+      // Add new effect
+      const newEffect = createTextEffectInstance(effectType as any);
+      newEffects = [...currentEffects, newEffect];
+    }
+
+    updateLabels({ textEffects: newEffects });
   };
 
   const updateLabels = (labelUpdates: Partial<LabelStyle>) => {
@@ -363,34 +377,38 @@ const ComposerScreen: React.FC = () => {
         </View>
       </View>
 
+      {/* Text Effects Section */}
       <View style={styles.toolSection}>
         <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
-          {t('composer_shadow')}
+          Text Effects
         </Text>
-        <View style={styles.shadowButtons}>
-          {([
-            { key: 'none', label: t('composer_shadowNone') },
-            { key: 'low', label: t('composer_shadowLow') },
-            { key: 'med', label: t('composer_shadowMed') },
-            { key: 'high', label: t('composer_shadowHigh') },
-          ] as const).map(({ key, label }) => (
-            <TouchableOpacity
-              key={key}
-              style={[
-                styles.shadowButton,
-                composition.shadow === key && styles.activeShadowButton,
-                { borderColor: themeDefinition.colors.border }
-              ]}
-              onPress={() => setShadow(key)}
-            >
-              <Text style={[
-                styles.shadowButtonText,
-                { color: composition.shadow === key ? themeDefinition.colors.accent : themeDefinition.colors.textSecondary }
-              ]}>
-                {label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        <View style={styles.textEffectsContainer}>
+          {SUPPORTED_TEXT_EFFECT_TYPES.map(effectType => {
+            const definition = getTextEffectDefinition(effectType);
+            const isActive = composition.labels.textEffects?.some(effect => effect.type === effectType);
+
+            return (
+              <TouchableOpacity
+                key={effectType}
+                style={[
+                  styles.textEffectButton,
+                  isActive && styles.activeTextEffectButton,
+                  {
+                    borderColor: isActive ? themeDefinition.colors.accent : themeDefinition.colors.border,
+                    backgroundColor: isActive ? themeDefinition.colors.accent + '20' : themeDefinition.colors.surface
+                  }
+                ]}
+                onPress={() => toggleTextEffect(effectType)}
+              >
+                <Text style={[
+                  styles.textEffectButtonText,
+                  { color: isActive ? themeDefinition.colors.accent : themeDefinition.colors.textPrimary }
+                ]}>
+                  {definition?.name || effectType}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
     </ScrollView>
@@ -1163,25 +1181,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  shadowButtons: {
+  textEffectsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  shadowButton: {
-    paddingHorizontal: 16,
+  textEffectButton: {
+    paddingHorizontal: 12,
     paddingVertical: 8,
     borderWidth: 1,
     borderRadius: 8,
-    minWidth: 60,
     alignItems: 'center',
+    minWidth: 80,
   },
-  activeShadowButton: {
+  activeTextEffectButton: {
     // styles set dynamically
   },
-  shadowButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
+  textEffectButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   exportButton: {
     paddingVertical: 16,

@@ -1,4 +1,5 @@
 import { CompositionState } from '../types/composer';
+import { createTextEffectInstance } from './textEffects';
 
 export interface Template {
   id: string;
@@ -28,7 +29,6 @@ export const defaultTemplates: Template[] = [
       layout: 'side',
       spacing: 12,
       cornerRadius: 8,
-      shadow: 'none',
       aspect: 'free',
       labels: {
         textBefore: 'Before',
@@ -40,6 +40,7 @@ export const defaultTemplates: Template[] = [
         position: 'bl',
         margin: 12,
         show: true,
+        textEffects: [],
       },
       background: {
         type: 'solid',
@@ -67,7 +68,6 @@ export const defaultTemplates: Template[] = [
       layout: 'side',
       spacing: 20,
       cornerRadius: 16,
-      shadow: 'medium',
       aspect: '1:1',
       labels: {
         textBefore: 'Before',
@@ -79,6 +79,7 @@ export const defaultTemplates: Template[] = [
         position: 'tc',
         margin: 20,
         show: true,
+        textEffects: [],
       },
       background: {
         type: 'solid',
@@ -106,7 +107,6 @@ export const defaultTemplates: Template[] = [
       layout: 'vertical',
       spacing: 16,
       cornerRadius: 12,
-      shadow: 'high',
       aspect: '4:3',
       labels: {
         textBefore: 'BEFORE',
@@ -118,6 +118,7 @@ export const defaultTemplates: Template[] = [
         position: 'tc',
         margin: 16,
         show: true,
+        textEffects: [createTextEffectInstance('longShadow')],
       },
       background: {
         type: 'solid',
@@ -145,7 +146,6 @@ export const defaultTemplates: Template[] = [
       layout: 'stacked',
       spacing: 8,
       cornerRadius: 8,
-      shadow: 'low',
       aspect: '16:9',
       labels: {
         textBefore: 'Before',
@@ -157,6 +157,7 @@ export const defaultTemplates: Template[] = [
         position: 'bl',
         margin: 12,
         show: true,
+        textEffects: [],
       },
       background: {
         type: 'solid',
@@ -184,7 +185,6 @@ export const defaultTemplates: Template[] = [
       layout: 'side',
       spacing: 16,
       cornerRadius: 20,
-      shadow: 'medium',
       aspect: '1:1',
       labels: {
         textBefore: 'Before',
@@ -192,10 +192,11 @@ export const defaultTemplates: Template[] = [
         fontFamily: 'System',
         fontSize: 18,
         fontWeight: 'Bold',
-        color: '#4C1D95',
+        color: '#8B5CF6',
         position: 'bc',
         margin: 16,
         show: true,
+        textEffects: [createTextEffectInstance('neonGlow')],
       },
       background: {
         type: 'gradient',
@@ -224,7 +225,6 @@ export const defaultTemplates: Template[] = [
       layout: 'vertical',
       spacing: 8,
       cornerRadius: 12,
-      shadow: 'low',
       aspect: '1:1',
       labels: {
         textBefore: 'Before',
@@ -236,6 +236,7 @@ export const defaultTemplates: Template[] = [
         position: 'tl',
         margin: 12,
         show: true,
+        textEffects: [],
       },
       background: {
         type: 'solid',
@@ -267,6 +268,7 @@ export const applyTemplate = (
       ...template.composition.labels,
       textBefore: currentComposition.labels.textBefore || template.composition.labels?.textBefore || 'Before',
       textAfter: currentComposition.labels.textAfter || template.composition.labels?.textAfter || 'After',
+      textEffects: template.composition.labels?.textEffects || [],
     },
   };
 };

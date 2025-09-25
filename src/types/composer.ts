@@ -1,3 +1,5 @@
+import { TextEffectInstance } from '../constants/textEffects';
+
 export type LayoutType = 'side' | 'vertical' | 'slider' | 'stacked';
 
 export interface LabelStyle {
@@ -11,12 +13,7 @@ export interface LabelStyle {
     width: number;
     color: string;
   };
-  shadow?: {
-    dx: number;
-    dy: number;
-    blur: number;
-    color: string;
-  };
+  textEffects?: TextEffectInstance[];
   position: 'tl' | 'tr' | 'bl' | 'br';
   margin: number;
   show: boolean;
@@ -41,7 +38,6 @@ export interface CompositionState {
   layout: LayoutType;
   spacing: number;
   cornerRadius: number;
-  shadow: 'none' | 'low' | 'med' | 'high';
   aspect: 'free' | '1:1' | '3:2' | '4:3' | '16:9';
   labels: LabelStyle;
   background: BackgroundConfig;
