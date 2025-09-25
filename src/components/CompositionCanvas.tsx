@@ -360,7 +360,12 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     const renderTextWithEffects = (text: string, style: any) => {
       if (!hasMultipleLayers) {
         return (
-          <RNText style={style}>
+          <RNText
+            style={style}
+            numberOfLines={1}
+            ellipsizeMode="clip"
+            allowFontScaling={false}
+          >
             {text}
           </RNText>
         );
@@ -370,16 +375,31 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       return (
         <View style={{ position: 'relative' }}>
           {effectStyles.shadowStyle && (
-            <RNText style={[style, effectStyles.shadowStyle, { opacity: 0.6 }]}>
+            <RNText
+              style={[style, effectStyles.shadowStyle, { opacity: 0.6 }]}
+              numberOfLines={1}
+              ellipsizeMode="clip"
+              allowFontScaling={false}
+            >
               {text}
             </RNText>
           )}
           {effectStyles.glowStyle && (
-            <RNText style={[style, effectStyles.glowStyle, { opacity: 0.8 }]}>
+            <RNText
+              style={[style, effectStyles.glowStyle, { opacity: 0.8 }]}
+              numberOfLines={1}
+              ellipsizeMode="clip"
+              allowFontScaling={false}
+            >
               {text}
             </RNText>
           )}
-          <RNText style={style}>
+          <RNText
+            style={style}
+            numberOfLines={1}
+            ellipsizeMode="clip"
+            allowFontScaling={false}
+          >
             {text}
           </RNText>
         </View>
@@ -389,34 +409,19 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     const isTop = position === 'tl' || position === 'tr';
     const isLeft = position === 'tl' || position === 'bl';
     const containerPadding = Math.max(0, margin);
-    const verticalAlignment = isTop ? 'flex-start' : 'flex-end';
-    const horizontalAlignment = isLeft ? 'flex-start' : 'flex-end';
+    const anchorHorizontalStyle = isLeft
+      ? { left: containerPadding }
+      : { right: containerPadding };
+    const textAlignment = isLeft ? 'left' : 'right';
 
     if (layout === 'side') {
       // Labels for side by side layout
-      const maxLabelWidth = Math.max(
-        imageWidth - containerPadding * 2,
-        fontSize + labelPaddingHorizontal * 2
-      );
-
       const baseContainerStyle = {
         position: 'absolute' as const,
         top: 0,
         width: imageWidth,
         height: imageHeight,
-        paddingHorizontal: containerPadding,
-        paddingVertical: containerPadding,
-        justifyContent: verticalAlignment as const,
-        alignItems: horizontalAlignment as const,
       };
-
-      const textStyle = [
-        labelStyle,
-        {
-          maxWidth: maxLabelWidth,
-          textAlign: isLeft ? 'left' as const : 'right' as const,
-        },
-      ];
 
       return (
         <>
@@ -427,7 +432,19 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               { left: 0 },
             ]}
           >
-            {renderTextWithEffects(textBefore, textStyle)}
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                [isTop ? 'top' : 'bottom']: containerPadding,
+                ...anchorHorizontalStyle,
+              }}
+            >
+              {renderTextWithEffects(textBefore, [
+                labelStyle,
+                { textAlign: textAlignment as const },
+              ])}
+            </View>
           </View>
           <View
             pointerEvents="none"
@@ -436,35 +453,30 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               { left: imageWidth + composition.spacing },
             ]}
           >
-            {renderTextWithEffects(textAfter, textStyle)}
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                [isTop ? 'top' : 'bottom']: containerPadding,
+                ...anchorHorizontalStyle,
+              }}
+            >
+              {renderTextWithEffects(textAfter, [
+                labelStyle,
+                { textAlign: textAlignment as const },
+              ])}
+            </View>
           </View>
         </>
       );
     } else if (layout === 'vertical') {
       // Labels for vertical layout
-      const maxLabelWidth = Math.max(
-        canvasWidth - containerPadding * 2,
-        fontSize + labelPaddingHorizontal * 2
-      );
-
       const baseContainerStyle = {
         position: 'absolute' as const,
         left: 0,
         width: canvasWidth,
         height: imageHeight,
-        paddingHorizontal: containerPadding,
-        paddingVertical: containerPadding,
-        justifyContent: verticalAlignment as const,
-        alignItems: horizontalAlignment as const,
       };
-
-      const textStyle = [
-        labelStyle,
-        {
-          maxWidth: maxLabelWidth,
-          textAlign: isLeft ? 'left' as const : 'right' as const,
-        },
-      ];
 
       return (
         <>
@@ -475,7 +487,19 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               { top: 0 },
             ]}
           >
-            {renderTextWithEffects(textBefore, textStyle)}
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                [isTop ? 'top' : 'bottom']: containerPadding,
+                ...anchorHorizontalStyle,
+              }}
+            >
+              {renderTextWithEffects(textBefore, [
+                labelStyle,
+                { textAlign: textAlignment as const },
+              ])}
+            </View>
           </View>
           <View
             pointerEvents="none"
@@ -484,7 +508,19 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               { top: imageHeight + composition.spacing },
             ]}
           >
-            {renderTextWithEffects(textAfter, textStyle)}
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                [isTop ? 'top' : 'bottom']: containerPadding,
+                ...anchorHorizontalStyle,
+              }}
+            >
+              {renderTextWithEffects(textAfter, [
+                labelStyle,
+                { textAlign: textAlignment as const },
+              ])}
+            </View>
           </View>
         </>
       );
