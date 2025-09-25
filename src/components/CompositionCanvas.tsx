@@ -59,6 +59,22 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
 
   // Text effects will be handled directly on the label text components
 
+  const canvasCornerRadius = composition.cornerRadius;
+  const clipRect = useMemo(() => {
+    if (canvasCornerRadius <= 0) {
+      return undefined;
+    }
+
+    return {
+      x: 0,
+      y: 0,
+      width: canvasWidth,
+      height: canvasHeight,
+      rx: canvasCornerRadius,
+      ry: canvasCornerRadius,
+    };
+  }, [canvasHeight, canvasCornerRadius]);
+
   const renderImages = () => {
     if (!imageA || !imageB) {
       // Render placeholder rectangles if images aren't loaded
@@ -97,7 +113,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     }
 
     const elements: ReactNode[] = [];
-    const cornerRadius = composition.cornerRadius;
+    const cornerRadius = canvasCornerRadius;
 
     if (layout === 'side') {
       // Side by side layout
@@ -567,7 +583,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
         y={0}
         width={canvasWidth}
         height={canvasHeight}
-        r={0}
+        r={canvasCornerRadius}
         color={composition.background.colors[0] || themeDefinition.colors.canvasBg}
       />
     );
@@ -621,10 +637,12 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
   return (
     <View style={{ width: canvasWidth, height: canvasHeight, position: 'relative' }}>
       <Canvas ref={ref} style={{ width: canvasWidth, height: canvasHeight }}>
-        {renderBackground()}
-        {renderImages()}
+        <Group clip={clipRect}>
+          {renderBackground()}
+          {renderImages()}
+          {renderWatermark()}
+        </Group>
         {renderFrame()}
-        {renderWatermark()}
       </Canvas>
       {renderLabels()}
     </View>

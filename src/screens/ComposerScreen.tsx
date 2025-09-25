@@ -886,9 +886,22 @@ const ComposerScreen: React.FC = () => {
       </View>
 
       {/* Canvas area */}
-      <View style={[styles.canvasContainer, { height: canvasHeight }]}>
+      <View
+        style={[
+          styles.canvasContainer,
+          { height: canvasHeight, borderRadius: composition.cornerRadius }
+        ]}
+      >
         {(!composition.photoAUri || !composition.photoBUri) ? (
-          <View style={[styles.photoPlaceholder, { borderColor: themeDefinition.colors.border }]}>
+          <View
+            style={[
+              styles.photoPlaceholder,
+              {
+                borderColor: themeDefinition.colors.border,
+                borderRadius: composition.cornerRadius
+              }
+            ]}
+          >
             <Text style={[styles.placeholderText, { color: themeDefinition.colors.textSecondary }]}>
               {composition.layout === 'side' ? 'Select Before & After Photos' :
                composition.layout === 'vertical' ? 'Select Before (Top) & After (Bottom) Photos' :
@@ -915,7 +928,11 @@ const ComposerScreen: React.FC = () => {
             </View>
           </View>
         ) : (
-          <View ref={canvasRef} collapsable={false} style={{ alignItems: 'center' }}>
+          <View
+            ref={canvasRef}
+            collapsable={false}
+            style={{ alignItems: 'center', borderRadius: composition.cornerRadius, overflow: 'hidden' }}
+          >
             <CompositionCanvas composition={composition} />
           </View>
         )}
