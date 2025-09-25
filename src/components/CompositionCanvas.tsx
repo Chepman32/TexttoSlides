@@ -1,7 +1,7 @@
 import React, { useMemo, forwardRef, ReactNode } from 'react';
-import { Dimensions, View, Text as RNText, StyleSheet } from 'react-native';
+import { Dimensions, View, Text as RNText } from 'react-native';
 import { renderTextEffects, needsMultipleLayers } from '../utils/textEffectsRenderer';
-import { Canvas, Image, useImage, Group, RoundedRect, Shadow } from '@shopify/react-native-skia';
+import { Canvas, Image, useImage, Group, RoundedRect } from '@shopify/react-native-skia';
 import { CompositionState } from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
 
@@ -68,7 +68,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
             x={0}
             y={0}
             width={layout === 'side' ? imageWidth : canvasWidth}
-            height={layout === 'vertical' ? imageHeight : canvasHeight}
+            height={layout === 'side' || layout === 'vertical' ? imageHeight : canvasHeight}
             r={composition.cornerRadius}
             color={themeDefinition.colors.border}
           />
@@ -347,7 +347,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     const labelPaddingVertical = 4;
 
     const labelStyle = {
-      position: 'absolute' as const,
       fontSize: fontSize,
       fontWeight: getFontWeight(composition.labels.fontWeight) as any,
       color: composition.labels.color,
@@ -355,8 +354,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       paddingHorizontal: labelPaddingHorizontal,
       paddingVertical: labelPaddingVertical,
       borderRadius: 4,
-      textAlign: 'center' as const,
-      textAlignVertical: 'center' as const,
       ...effectStyles.textStyle, // Apply text effects
     };
 
@@ -369,7 +366,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
         );
       }
 
-      // Render multiple layers for complex effects
+      // Render multiple layers for complex effects while keeping overlap aligned
       return (
         <View style={{ position: 'relative' }}>
           {effectStyles.shadowStyle && (
@@ -389,99 +386,106 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       );
     };
 
+    const isTop = position === 'tl' || position === 'tr';
+    const isLeft = position === 'tl' || position === 'bl';
+    const containerPadding = Math.max(0, margin);
+    const verticalAlignment = isTop ? 'flex-start' : 'flex-end';
+    const horizontalAlignment = isLeft ? 'flex-start' : 'flex-end';
+
     if (layout === 'side') {
       // Labels for side by side layout
-      const estimatedLabelHeight = fontSize + labelPaddingVertical * 2; // fontSize + padding
-      const availableWidth = Math.max(
-        imageWidth - margin * 2,
+      const maxLabelWidth = Math.max(
+        imageWidth - containerPadding * 2,
         fontSize + labelPaddingHorizontal * 2
       );
-      const y = (position === 'tl' || position === 'tr')
-        ? margin
-        : Math.max(margin, imageHeight - estimatedLabelHeight - margin);
 
-      const beforePositionStyle = (position === 'tl' || position === 'bl')
-        ? {
-          left: margin,
-          textAlign: 'left' as const,
-        }
-        : {
-          right: canvasWidth - imageWidth + margin,
-          textAlign: 'right' as const,
-        };
+      const baseContainerStyle = {
+        position: 'absolute' as const,
+        top: 0,
+        width: imageWidth,
+        height: imageHeight,
+        paddingHorizontal: containerPadding,
+        paddingVertical: containerPadding,
+        justifyContent: verticalAlignment as const,
+        alignItems: horizontalAlignment as const,
+      };
 
-      const afterPositionStyle = (position === 'tl' || position === 'bl')
-        ? {
-          left: imageWidth + composition.spacing + margin,
-          textAlign: 'left' as const,
-        }
-        : {
-          right: margin,
-          textAlign: 'right' as const,
-        };
+      const textStyle = [
+        labelStyle,
+        {
+          maxWidth: maxLabelWidth,
+          textAlign: isLeft ? 'left' as const : 'right' as const,
+        },
+      ];
 
       return (
         <>
-          {renderTextWithEffects(textBefore, [
-            labelStyle,
-            {
-              top: y,
-              maxWidth: availableWidth,
-              ...beforePositionStyle,
-            }
-          ])}
-          {renderTextWithEffects(textAfter, [
-            labelStyle,
-            {
-              top: y,
-              maxWidth: availableWidth,
-              ...afterPositionStyle,
-            }
-          ])}
+          <View
+            pointerEvents="none"
+            style={[
+              baseContainerStyle,
+              { left: 0 },
+            ]}
+          >
+            {renderTextWithEffects(textBefore, textStyle)}
+          </View>
+          <View
+            pointerEvents="none"
+            style={[
+              baseContainerStyle,
+              { left: imageWidth + composition.spacing },
+            ]}
+          >
+            {renderTextWithEffects(textAfter, textStyle)}
+          </View>
         </>
       );
     } else if (layout === 'vertical') {
       // Labels for vertical layout
-      const estimatedLabelHeight = fontSize + labelPaddingVertical * 2; // fontSize + padding
-      const maxWidth = Math.max(
-        canvasWidth - margin * 2,
+      const maxLabelWidth = Math.max(
+        canvasWidth - containerPadding * 2,
         fontSize + labelPaddingHorizontal * 2
       );
-      const beforeY = (position === 'tl' || position === 'tr')
-        ? margin
-        : Math.max(margin, imageHeight - estimatedLabelHeight - margin);
-      const afterY = (position === 'tl' || position === 'tr')
-        ? imageHeight + composition.spacing + margin
-        : Math.max(imageHeight + composition.spacing + margin, canvasHeight - estimatedLabelHeight - margin);
 
-      const horizontalPositionStyle = (position === 'tl' || position === 'bl')
-        ? {
-          left: margin,
-          textAlign: 'left' as const,
-        }
-        : {
-          right: margin,
-          textAlign: 'right' as const,
-        };
+      const baseContainerStyle = {
+        position: 'absolute' as const,
+        left: 0,
+        width: canvasWidth,
+        height: imageHeight,
+        paddingHorizontal: containerPadding,
+        paddingVertical: containerPadding,
+        justifyContent: verticalAlignment as const,
+        alignItems: horizontalAlignment as const,
+      };
+
+      const textStyle = [
+        labelStyle,
+        {
+          maxWidth: maxLabelWidth,
+          textAlign: isLeft ? 'left' as const : 'right' as const,
+        },
+      ];
 
       return (
         <>
-          {renderTextWithEffects(textBefore, [
-            labelStyle,
-            {
-              top: beforeY,
-              maxWidth: maxWidth,
-              ...horizontalPositionStyle,
-            }
-          ])}
-          {renderTextWithEffects(textAfter, [
-            labelStyle,
-            {
-              top: afterY,
-              maxWidth: maxWidth,
-              ...horizontalPositionStyle,
-            }
-          ])}
+          <View
+            pointerEvents="none"
+            style={[
+              baseContainerStyle,
+              { top: 0 },
+            ]}
+          >
+            {renderTextWithEffects(textBefore, textStyle)}
+          </View>
+          <View
+            pointerEvents="none"
+            style={[
+              baseContainerStyle,
+              { top: imageHeight + composition.spacing },
+            ]}
+          >
+            {renderTextWithEffects(textAfter, textStyle)}
+          </View>
         </>
       );
     } else if (layout === 'stacked') {
@@ -499,6 +503,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               left: 10,
               top: beforeLabelY,
               maxWidth: maxLabelWidth,
+              textAlign: 'left' as const,
             }
           ])}
           {renderTextWithEffects(textAfter, [
@@ -507,6 +512,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               right: 10,
               top: beforeLabelY,
               maxWidth: maxLabelWidth,
+              textAlign: 'right' as const,
             }
           ])}
         </>
