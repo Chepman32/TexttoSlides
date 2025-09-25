@@ -27,6 +27,7 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import { defaultTemplates, applyTemplate, Template } from '../constants/templates';
 import { TextEffectInstance, createTextEffectInstance, SUPPORTED_TEXT_EFFECT_TYPES, getTextEffectDefinition } from '../constants/textEffects';
 import CompositionCanvas from '../components/CompositionCanvas';
+import VerticalPager from '../components/VerticalPager';
 
 type ComposerRouteProp = RouteProp<RootStackParamList, 'Composer'>;
 type ComposerNavigationProp = StackNavigationProp<RootStackParamList, 'ExportResult'>;
@@ -272,7 +273,7 @@ const ComposerScreen: React.FC = () => {
   };
 
   const renderLayoutPanel = () => (
-    <ScrollView style={styles.toolPanel} showsVerticalScrollIndicator={false}>
+    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
       {/* Templates Section */}
       <View style={styles.toolSection}>
         <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
@@ -411,11 +412,11 @@ const ComposerScreen: React.FC = () => {
           })}
         </View>
       </View>
-    </ScrollView>
+    </VerticalPager>
   );
 
   const renderLabelsPanel = () => (
-    <ScrollView style={styles.toolPanel} showsVerticalScrollIndicator={false}>
+    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
       <View style={styles.toolSection}>
         <View style={styles.toggleRow}>
           <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
@@ -621,11 +622,11 @@ const ComposerScreen: React.FC = () => {
           </View>
         </>
       )}
-    </ScrollView>
+    </VerticalPager>
   );
 
   const renderStylePanel = () => (
-    <ScrollView style={styles.toolPanel} showsVerticalScrollIndicator={false}>
+    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
       {/* Background Section */}
       <View style={styles.toolSection}>
         <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
@@ -829,11 +830,11 @@ const ComposerScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+    </VerticalPager>
   );
 
   const renderExportPanel = () => (
-    <ScrollView style={styles.toolPanel} showsVerticalScrollIndicator={false}>
+    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
       <View style={styles.toolSection}>
         <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
           {t('export_title')}
@@ -845,7 +846,7 @@ const ComposerScreen: React.FC = () => {
           <Text style={styles.exportButtonText}>{t('saveToPhotos')}</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </VerticalPager>
   );
 
   return (
@@ -1110,6 +1111,10 @@ const styles = StyleSheet.create({
   toolPanel: {
     flex: 1,
     paddingHorizontal: 16,
+  },
+  toolPanelContent: {
+    paddingVertical: 8,
+    paddingBottom: 32,
   },
   toolSection: {
     marginBottom: 24,
