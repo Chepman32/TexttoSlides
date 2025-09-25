@@ -1,5 +1,6 @@
 import React, { useMemo, forwardRef, ReactNode } from 'react';
 import { Dimensions, View, Text as RNText, StyleSheet } from 'react-native';
+import { renderTextEffects, needsMultipleLayers } from '../utils/textEffectsRenderer';
 import { Canvas, Image, useImage, Group, RoundedRect, Shadow } from '@shopify/react-native-skia';
 import { CompositionState } from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
@@ -56,18 +57,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     return { canvasHeight: calculatedCanvasHeight, imageWidth: calculatedImageWidth, imageHeight: calculatedImageHeight, layout: calculatedLayout };
   }, [composition.aspect, composition.layout, composition.spacing]);
 
-  const shadowConfig = useMemo(() => {
-    switch (composition.shadow) {
-      case 'low':
-        return { blur: 4, dx: 2, dy: 2, color: themeDefinition.colors.shadow };
-      case 'med':
-        return { blur: 8, dx: 4, dy: 4, color: themeDefinition.colors.shadow };
-      case 'high':
-        return { blur: 16, dx: 8, dy: 8, color: themeDefinition.colors.shadow };
-      default:
-        return null;
-    }
-  }, [composition.shadow, themeDefinition.colors.shadow]);
+  // Text effects will be handled directly on the label text components
 
   const renderImages = () => {
     if (!imageA || !imageB) {
@@ -113,12 +103,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       // Side by side layout
       elements.push(
         <Group key="side-images">
-          {shadowConfig && (
-            <>
-              <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
-              <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
-            </>
-          )}
           {/* Before image (left) */}
           {imageA && (
             <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
@@ -173,12 +157,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       // Vertical layout
       elements.push(
         <Group key="vertical-images">
-          {shadowConfig && (
-            <>
-              <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
-              <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
-            </>
-          )}
           {/* Before image (top) */}
           {imageA && (
             <Group clip={{ x: 0, y: 0, width: imageWidth, height: imageHeight, rx: cornerRadius, ry: cornerRadius }}>
@@ -235,9 +213,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
 
       elements.push(
         <Group key="slider-images">
-          {shadowConfig && (
-            <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
-          )}
           {/* Base image (Before) */}
           {imageA && (
             <Group clip={{ x: 0, y: 0, width: canvasWidth, height: canvasHeight, rx: cornerRadius, ry: cornerRadius }}>
@@ -285,9 +260,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
 
       elements.push(
         <Group key="stacked-images">
-          {shadowConfig && (
-            <Shadow blur={shadowConfig.blur} dx={shadowConfig.dx} dy={shadowConfig.dy} color={shadowConfig.color} />
-          )}
           {/* Main image (After on top) */}
           {imageB ? (
             <Group clip={{ x: 0, y: 0, width: canvasWidth, height: adjustedImageHeight, rx: cornerRadius, ry: cornerRadius }}>
@@ -351,113 +323,192 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
   const renderLabels = () => {
     if (!composition.labels.show) return null;
 
-    const { textBefore, textAfter, fontSize, position, margin } = composition.labels;
+    const { textBefore, textAfter, fontSize, position, margin, textEffects = [] } = composition.labels;
+
+    // Render text effects
+    const effectStyles = renderTextEffects(textEffects);
+    const hasMultipleLayers = needsMultipleLayers(textEffects);
+
+    // Map font weight to proper React Native values
+    const getFontWeight = (weight: string) => {
+      switch (weight) {
+        case 'Regular':
+          return '400';
+        case 'Medium':
+          return '500';
+        case 'Bold':
+          return '700';
+        default:
+          return '400';
+      }
+    };
+
+    const labelPaddingHorizontal = 8;
+    const labelPaddingVertical = 4;
 
     const labelStyle = {
       position: 'absolute' as const,
       fontSize: fontSize,
-      fontWeight: composition.labels.fontWeight.toLowerCase() as any,
+      fontWeight: getFontWeight(composition.labels.fontWeight) as any,
       color: composition.labels.color,
       backgroundColor: themeDefinition.colors.labelBg,
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingHorizontal: labelPaddingHorizontal,
+      paddingVertical: labelPaddingVertical,
       borderRadius: 4,
       textAlign: 'center' as const,
       textAlignVertical: 'center' as const,
+      ...effectStyles.textStyle, // Apply text effects
+    };
+
+    const renderTextWithEffects = (text: string, style: any) => {
+      if (!hasMultipleLayers) {
+        return (
+          <RNText style={style}>
+            {text}
+          </RNText>
+        );
+      }
+
+      // Render multiple layers for complex effects
+      return (
+        <View style={{ position: 'relative' }}>
+          {effectStyles.shadowStyle && (
+            <RNText style={[style, effectStyles.shadowStyle, { opacity: 0.6 }]}>
+              {text}
+            </RNText>
+          )}
+          {effectStyles.glowStyle && (
+            <RNText style={[style, effectStyles.glowStyle, { opacity: 0.8 }]}>
+              {text}
+            </RNText>
+          )}
+          <RNText style={style}>
+            {text}
+          </RNText>
+        </View>
+      );
     };
 
     if (layout === 'side') {
       // Labels for side by side layout
-      const beforeX = position.includes('l') ? margin : imageWidth - margin - 60;
-      const afterX = position.includes('l') ? imageWidth + composition.spacing + margin : canvasWidth - margin - 60;
-      const y = position.includes('t') ? margin : imageHeight - margin - 30;
+      const estimatedLabelHeight = fontSize + labelPaddingVertical * 2; // fontSize + padding
+      const availableWidth = Math.max(
+        imageWidth - margin * 2,
+        fontSize + labelPaddingHorizontal * 2
+      );
+      const y = (position === 'tl' || position === 'tr')
+        ? margin
+        : Math.max(margin, imageHeight - estimatedLabelHeight - margin);
+
+      const beforePositionStyle = (position === 'tl' || position === 'bl')
+        ? {
+          left: margin,
+          textAlign: 'left' as const,
+        }
+        : {
+          right: canvasWidth - imageWidth + margin,
+          textAlign: 'right' as const,
+        };
+
+      const afterPositionStyle = (position === 'tl' || position === 'bl')
+        ? {
+          left: imageWidth + composition.spacing + margin,
+          textAlign: 'left' as const,
+        }
+        : {
+          right: margin,
+          textAlign: 'right' as const,
+        };
 
       return (
         <>
-          <RNText
-            style={[
-              labelStyle,
-              {
-                left: beforeX,
-                top: y,
-              }
-            ]}
-          >
-            {textBefore}
-          </RNText>
-          <RNText
-            style={[
-              labelStyle,
-              {
-                left: afterX,
-                top: y,
-              }
-            ]}
-          >
-            {textAfter}
-          </RNText>
+          {renderTextWithEffects(textBefore, [
+            labelStyle,
+            {
+              top: y,
+              maxWidth: availableWidth,
+              ...beforePositionStyle,
+            }
+          ])}
+          {renderTextWithEffects(textAfter, [
+            labelStyle,
+            {
+              top: y,
+              maxWidth: availableWidth,
+              ...afterPositionStyle,
+            }
+          ])}
         </>
       );
     } else if (layout === 'vertical') {
       // Labels for vertical layout
-      const x = position.includes('l') ? margin : canvasWidth - margin - 60;
-      const beforeY = position.includes('t') ? margin : imageHeight - margin - 30;
-      const afterY = position.includes('t') ? imageHeight + composition.spacing + margin : canvasHeight - margin - 30;
+      const estimatedLabelHeight = fontSize + labelPaddingVertical * 2; // fontSize + padding
+      const maxWidth = Math.max(
+        canvasWidth - margin * 2,
+        fontSize + labelPaddingHorizontal * 2
+      );
+      const beforeY = (position === 'tl' || position === 'tr')
+        ? margin
+        : Math.max(margin, imageHeight - estimatedLabelHeight - margin);
+      const afterY = (position === 'tl' || position === 'tr')
+        ? imageHeight + composition.spacing + margin
+        : Math.max(imageHeight + composition.spacing + margin, canvasHeight - estimatedLabelHeight - margin);
+
+      const horizontalPositionStyle = (position === 'tl' || position === 'bl')
+        ? {
+          left: margin,
+          textAlign: 'left' as const,
+        }
+        : {
+          right: margin,
+          textAlign: 'right' as const,
+        };
 
       return (
         <>
-          <RNText
-            style={[
-              labelStyle,
-              {
-                left: x,
-                top: beforeY,
-              }
-            ]}
-          >
-            {textBefore}
-          </RNText>
-          <RNText
-            style={[
-              labelStyle,
-              {
-                left: x,
-                top: afterY,
-              }
-            ]}
-          >
-            {textAfter}
-          </RNText>
+          {renderTextWithEffects(textBefore, [
+            labelStyle,
+            {
+              top: beforeY,
+              maxWidth: maxWidth,
+              ...horizontalPositionStyle,
+            }
+          ])}
+          {renderTextWithEffects(textAfter, [
+            labelStyle,
+            {
+              top: afterY,
+              maxWidth: maxWidth,
+              ...horizontalPositionStyle,
+            }
+          ])}
         </>
       );
     } else if (layout === 'stacked') {
       // Labels in the bottom bar
-      const beforeLabelY = canvasHeight - 40;
+      const estimatedLabelHeight = fontSize + 16; // fontSize + padding
+      const barHeight = 40;
+      const beforeLabelY = canvasHeight - Math.max(barHeight, estimatedLabelHeight + 8);
+      const maxLabelWidth = (canvasWidth / 2) - 20;
 
       return (
         <>
-          <RNText
-            style={[
-              labelStyle,
-              {
-                left: 50,
-                top: beforeLabelY,
-              }
-            ]}
-          >
-            {textBefore}
-          </RNText>
-          <RNText
-            style={[
-              labelStyle,
-              {
-                right: 50,
-                top: beforeLabelY,
-              }
-            ]}
-          >
-            {textAfter}
-          </RNText>
+          {renderTextWithEffects(textBefore, [
+            labelStyle,
+            {
+              left: 10,
+              top: beforeLabelY,
+              maxWidth: maxLabelWidth,
+            }
+          ])}
+          {renderTextWithEffects(textAfter, [
+            labelStyle,
+            {
+              right: 10,
+              top: beforeLabelY,
+              maxWidth: maxLabelWidth,
+            }
+          ])}
         </>
       );
     }
