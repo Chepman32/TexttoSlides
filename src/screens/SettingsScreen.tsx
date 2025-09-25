@@ -43,13 +43,10 @@ const languages: { code: Language; name: string; nativeName: string }[] = [
 ];
 
 const appIcons: { iconName: string | null; name: string; source: any }[] = [
-  { iconName: 'AppIconCoral', name: 'Coral', source: require('../assets/icons/appIcon/icon_coral_1024.png') },
-  { iconName: 'AppIconBlue', name: 'Blue', source: require('../assets/icons/appIcon/icon_blue_1024.png') },
-  { iconName: 'AppIconDark', name: 'Dark', source: require('../assets/icons/appIcon/icon_dark_1024.png') },
-  { iconName: 'AppIconFuchsia', name: 'Fuchsia', source: require('../assets/icons/appIcon/icon_fuchsia_1024.png') },
-  { iconName: 'AppIconSolar', name: 'Solar', source: require('../assets/icons/appIcon/icon_solar_1024.png') },
-  { iconName: 'AppIconTeal', name: 'Teal', source: require('../assets/icons/appIcon/icon_teal_1024.png') },
-  { iconName: null, name: 'Default', source: require('../assets/icons/appIcon/icon_coral_1024.png') },
+  { iconName: null, name: 'Default', source: require('../assets/icons/appIcon/icon_2_white_blue_1024.png') },
+  { iconName: 'AppIconBlueDark', name: 'Blue Dark', source: require('../assets/icons/appIcon/icon_1_blue_dark_1024.png') },
+  { iconName: 'AppIconYellow', name: 'Yellow', source: require('../assets/icons/appIcon/icon_3_yellow_1024.png') },
+  { iconName: 'AppIconGray', name: 'Gray', source: require('../assets/icons/appIcon/icon_4_gray_1024.png') },
 ];
 
 const SettingsScreen: React.FC = () => {
