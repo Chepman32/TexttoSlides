@@ -99,7 +99,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     const bezelY = deviceHeight * 0.082;
     const screenWidth = deviceWidth - bezelX * 2;
     const screenHeight = deviceHeight - bezelY * 2;
-    const notchWidth = screenWidth * 0.46;
+    const notchWidth = screenWidth * 0.52;
     const notchHeight = deviceHeight * 0.085;
     const notchRadius = notchHeight / 2;
     const notchY = bezelY - notchHeight * 0.45;
@@ -963,8 +963,11 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
         alignItems: 'center' as const,
       };
 
+      const dynamicFontSize = Math.max(12, Math.round(fontSize * 0.9));
+
       const deviceLabelStyle = {
         ...labelStyle,
+        fontSize: dynamicFontSize,
         backgroundColor: 'transparent',
         paddingHorizontal: 0,
         paddingVertical: 0,
@@ -979,7 +982,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
         backgroundColor: 'rgba(12, 15, 21, 0.94)',
         justifyContent: 'center' as const,
         alignItems: 'center' as const,
-        paddingHorizontal: notch.width * 0.15,
+        paddingHorizontal: Math.max(6, notch.width * 0.12),
       };
 
       const deviceLabelConfigs = [
@@ -1013,7 +1016,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
                 <View style={dynamicIslandStyle}>
                   {renderTextWithEffects(config.text, [
                     deviceLabelStyle,
-                    { maxWidth: notch.width - notch.width * 0.3 },
+                    { maxWidth: notch.width - Math.max(12, notch.width * 0.24) },
                   ])}
                 </View>
               </View>
