@@ -51,6 +51,7 @@ const resources = {
       composer_layoutSlider: 'Slider Reveal',
       composer_layoutStacked: 'Stacked with Label Bar',
       composer_layoutDiagonal: 'Diagonal Split',
+      composer_layoutPolaroid: 'Polaroid Collage',
       composer_spacing: 'Spacing',
       composer_cornerRadius: 'Corner Radius',
       composer_shadow: 'Shadow',

@@ -274,6 +274,26 @@ const ComposerScreen: React.FC = () => {
                       <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
                       <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '60' }]} />
                     </View>
+                  ) : template.preview.layout === 'vertical' ? (
+                    <View style={styles.editorPreviewVertical}>
+                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
+                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '60' }]} />
+                    </View>
+                  ) : template.preview.layout === 'polaroid' ? (
+                    <View style={styles.editorPreviewPolaroid}>
+                      <View style={[styles.editorPreviewPolaroidCard, styles.editorPreviewPolaroidCardLeft]}>
+                        <View style={styles.editorPreviewPolaroidPhoto} />
+                        <View style={[styles.editorPreviewTape, styles.editorPreviewTapeLeft]}>
+                          <View style={styles.editorPreviewTapeHighlight} />
+                        </View>
+                      </View>
+                      <View style={[styles.editorPreviewPolaroidCard, styles.editorPreviewPolaroidCardRight]}>
+                        <View style={styles.editorPreviewPolaroidPhoto} />
+                        <View style={[styles.editorPreviewTape, styles.editorPreviewTapeRight]}>
+                          <View style={styles.editorPreviewTapeHighlight} />
+                        </View>
+                      </View>
+                    </View>
                   ) : (
                     <View style={styles.editorPreviewVertical}>
                       <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
@@ -301,6 +321,7 @@ const ComposerScreen: React.FC = () => {
             { key: 'slider', label: t('composer_layoutSlider') },
             { key: 'stacked', label: t('composer_layoutStacked') },
             { key: 'diagonal', label: t('composer_layoutDiagonal') },
+            { key: 'polaroid', label: t('composer_layoutPolaroid') },
           ] as const).map(({ key, label }) => (
             <TouchableOpacity
               key={key}
@@ -885,6 +906,7 @@ const ComposerScreen: React.FC = () => {
               {composition.layout === 'side' ? 'Select Before & After Photos' :
                composition.layout === 'vertical' ? 'Select Before (Top) & After (Bottom) Photos' :
                composition.layout === 'stacked' ? 'Select Before & After Photos' :
+               composition.layout === 'polaroid' ? 'Select two photos for the collage' :
                t('pickTwoPhotos')}
             </Text>
             <View style={composition.layout === 'side' ? styles.photoButtonsSide : styles.photoButtons}>
@@ -1353,6 +1375,70 @@ const styles = StyleSheet.create({
   editorPreviewBox: {
     flex: 1,
     borderRadius: 2,
+  },
+  editorPreviewPolaroid: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  editorPreviewPolaroidCard: {
+    position: 'absolute',
+    width: 46,
+    height: 52,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    paddingTop: 6,
+    shadowColor: 'rgba(0,0,0,0.3)',
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  editorPreviewPolaroidCardLeft: {
+    left: 6,
+    top: 6,
+    transform: [{ rotate: '-9deg' }],
+  },
+  editorPreviewPolaroidCardRight: {
+    right: 6,
+    bottom: 6,
+    transform: [{ rotate: '5deg' }],
+    zIndex: 1,
+  },
+  editorPreviewPolaroidPhoto: {
+    width: '68%',
+    height: '58%',
+    borderRadius: 5,
+    backgroundColor: '#1F1F1F',
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  editorPreviewTape: {
+    position: 'absolute',
+    top: -4,
+    height: 9,
+    width: 32,
+    borderRadius: 3,
+    backgroundColor: '#D7B37A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  editorPreviewTapeHighlight: {
+    width: '80%',
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.45)',
+  },
+  editorPreviewTapeLeft: {
+    left: 2,
+    transform: [{ rotate: '-6deg' }],
+  },
+  editorPreviewTapeRight: {
+    right: 2,
+    transform: [{ rotate: '8deg' }],
   },
   editorTemplateName: {
     fontSize: 10,

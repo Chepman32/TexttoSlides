@@ -1,6 +1,6 @@
 import { TextEffectInstance } from '../constants/textEffects';
 
-export type LayoutType = 'side' | 'vertical' | 'slider' | 'stacked' | 'diagonal';
+export type LayoutType = 'side' | 'vertical' | 'slider' | 'stacked' | 'diagonal' | 'polaroid';
 
 export interface LabelStyle {
   textBefore: string;
@@ -23,6 +23,7 @@ export interface BackgroundConfig {
   type: 'transparent' | 'solid' | 'gradient';
   colors: string[];
   angle?: number;
+  direction?: 'horizontal' | 'vertical' | 'diagonal';
 }
 
 export interface FrameConfig {

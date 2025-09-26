@@ -1,7 +1,7 @@
 import React, { useMemo, forwardRef, ReactNode } from 'react';
 import { Dimensions, View, Text as RNText } from 'react-native';
 import { renderTextEffects, needsMultipleLayers } from '../utils/textEffectsRenderer';
-import { Canvas, Image, useImage, Group, RoundedRect, Path, Skia } from '@shopify/react-native-skia';
+import { Canvas, Image, useImage, Group, RoundedRect, Path, Skia, LinearGradient, vec } from '@shopify/react-native-skia';
 import { CompositionState } from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
 
@@ -11,6 +11,8 @@ interface CompositionCanvasProps {
 
 const { width: screenWidth } = Dimensions.get('window');
 const canvasWidth = screenWidth - 32; // 16px margin on each side
+
+const degToRad = (angle: number) => (angle * Math.PI) / 180;
 
 const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition }, ref) => {
   const { themeDefinition } = useTheme();
@@ -331,6 +333,166 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
           )}
         </Group>
       );
+    } else if (layout === 'polaroid') {
+      const baseSize = Math.min(canvasWidth, canvasHeight);
+      const polaroidWidth = baseSize * 0.68;
+      const polaroidHeight = baseSize * 0.72;
+      const sidePadding = polaroidWidth * 0.1;
+      const topPadding = polaroidHeight * 0.08;
+      const bottomPadding = polaroidHeight * 0.22;
+      const photoWidth = polaroidWidth - sidePadding * 2;
+      const photoHeight = polaroidHeight - topPadding - bottomPadding;
+      const photoX = -polaroidWidth / 2 + sidePadding;
+      const photoY = -polaroidHeight / 2 + topPadding;
+      const tapeHeight = polaroidHeight * 0.14;
+      const tapeWidth = polaroidWidth * 0.7;
+      const tapeColor = '#D7B37A';
+      const tapeHighlightColor = '#E9CAA0';
+      const shadowOffset = baseSize * 0.02;
+      const cardRadius = 16;
+      const photoRadius = 10;
+
+      const buildPolaroid = (
+        key: string,
+        image: ReturnType<typeof useImage>,
+        centerX: number,
+        centerY: number,
+        rotationDeg: number,
+        tapeConfig: { shiftX: number; shiftY: number; rotationDeg: number }
+      ) => (
+        <Group
+          key={key}
+          transform={[
+            { translateX: centerX },
+            { translateY: centerY },
+            { rotate: degToRad(rotationDeg) },
+          ]}
+        >
+          <RoundedRect
+            x={-polaroidWidth / 2 + shadowOffset}
+            y={-polaroidHeight / 2 + shadowOffset}
+            width={polaroidWidth}
+            height={polaroidHeight}
+            r={cardRadius}
+            color="rgba(0,0,0,0.14)"
+            opacity={0.35}
+          />
+          <RoundedRect
+            x={-polaroidWidth / 2}
+            y={-polaroidHeight / 2}
+            width={polaroidWidth}
+            height={polaroidHeight}
+            r={cardRadius}
+            color="#FFFFFF"
+          />
+          <RoundedRect
+            x={-polaroidWidth / 2}
+            y={-polaroidHeight / 2}
+            width={polaroidWidth}
+            height={polaroidHeight}
+            r={cardRadius}
+            style="stroke"
+            strokeWidth={2}
+            color="rgba(0,0,0,0.08)"
+          />
+          <Group
+            clip={{
+              x: photoX,
+              y: photoY,
+              width: photoWidth,
+              height: photoHeight,
+              rx: photoRadius,
+              ry: photoRadius,
+            }}
+          >
+            {image ? (
+              <Image
+                image={image}
+                fit="cover"
+                x={photoX}
+                y={photoY}
+                width={photoWidth}
+                height={photoHeight}
+              />
+            ) : (
+              <RoundedRect
+                x={photoX}
+                y={photoY}
+                width={photoWidth}
+                height={photoHeight}
+                r={photoRadius}
+                color="#111111"
+              />
+            )}
+          </Group>
+          <RoundedRect
+            x={photoX}
+            y={photoY}
+            width={photoWidth}
+            height={photoHeight}
+            r={photoRadius}
+            style="stroke"
+            strokeWidth={2}
+            color="rgba(0,0,0,0.12)"
+          />
+          <Group
+            transform={[
+              { translateX: tapeConfig.shiftX },
+              { translateY: -polaroidHeight / 2 + tapeHeight / 2 + tapeConfig.shiftY },
+              { rotate: degToRad(tapeConfig.rotationDeg) },
+            ]}
+          >
+            <RoundedRect
+              x={-tapeWidth / 2}
+              y={-tapeHeight / 2}
+              width={tapeWidth}
+              height={tapeHeight}
+              r={6}
+              color={tapeColor}
+              opacity={0.9}
+            />
+            <RoundedRect
+              x={-tapeWidth * 0.45}
+              y={-tapeHeight / 2 + 3}
+              width={tapeWidth * 0.9}
+              height={tapeHeight / 2}
+              r={4}
+              color={tapeHighlightColor}
+              opacity={0.35}
+            />
+          </Group>
+        </Group>
+      );
+
+      const offsetX = baseSize * 0.16;
+      const offsetY = baseSize * 0.12;
+
+      return [
+        buildPolaroid(
+          'before-polaroid',
+          imageA,
+          canvasWidth / 2 - offsetX,
+          canvasHeight / 2 - offsetY,
+          -8,
+          {
+            shiftX: -polaroidWidth * 0.08,
+            shiftY: -tapeHeight * 0.4,
+            rotationDeg: -6,
+          }
+        ),
+        buildPolaroid(
+          'after-polaroid',
+          imageB,
+          canvasWidth / 2 + offsetX,
+          canvasHeight / 2 + offsetY,
+          5,
+          {
+            shiftX: polaroidWidth * 0.05,
+            shiftY: -tapeHeight * 0.35,
+            rotationDeg: 8,
+          }
+        ),
+      ];
     } else if (layout === 'diagonal') {
       // Diagonal split layout - images split along diagonal line from top-left to bottom-right
       // Using separate clipped groups for each triangle
@@ -662,6 +824,43 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
 
   const renderBackground = () => {
     if (composition.background.type === 'transparent') return null;
+
+    if (composition.background.type === 'gradient') {
+      const colors = composition.background.colors.length
+        ? composition.background.colors
+        : [themeDefinition.colors.canvasBg, themeDefinition.colors.canvasBg];
+      const direction = composition.background.direction || 'vertical';
+      let start = vec(0, 0);
+      let end = vec(0, canvasHeight);
+
+      switch (direction) {
+        case 'horizontal':
+          start = vec(0, 0);
+          end = vec(canvasWidth, 0);
+          break;
+        case 'diagonal':
+          start = vec(0, 0);
+          end = vec(canvasWidth, canvasHeight);
+          break;
+        case 'vertical':
+        default:
+          start = vec(0, 0);
+          end = vec(0, canvasHeight);
+          break;
+      }
+
+      return (
+        <RoundedRect
+          x={0}
+          y={0}
+          width={canvasWidth}
+          height={canvasHeight}
+          r={canvasCornerRadius}
+        >
+          <LinearGradient start={start} end={end} colors={colors} />
+        </RoundedRect>
+      );
+    }
 
     return (
       <RoundedRect

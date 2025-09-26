@@ -8,13 +8,53 @@ export interface Template {
   preview: {
     backgroundColor: string;
     accentColor: string;
-    layout: 'side' | 'vertical' | 'stacked' | 'slider';
+    layout: 'side' | 'vertical' | 'stacked' | 'slider' | 'polaroid';
     hasFrame: boolean;
   };
   composition: Partial<CompositionState>;
 }
 
 export const defaultTemplates: Template[] = [
+  {
+    id: 'polaroid-collage',
+    name: 'Polaroid Collage',
+    description: 'Layered polaroids with tape accents',
+    preview: {
+      backgroundColor: '#C8C9CE',
+      accentColor: '#1F1F1F',
+      layout: 'polaroid',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'polaroid',
+      spacing: 0,
+      cornerRadius: 32,
+      aspect: '1:1',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 18,
+        fontWeight: 'Bold',
+        color: '#FFFFFF',
+        position: 'bl',
+        margin: 16,
+        show: false,
+        textEffects: [],
+      },
+      background: {
+        type: 'gradient',
+        colors: ['#F2F2F5', '#B7B8BE'],
+        direction: 'diagonal',
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#FFFFFF',
+      },
+      watermarkOn: false,
+    },
+  },
   {
     id: 'minimal',
     name: 'Minimal',
