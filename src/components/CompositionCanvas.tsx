@@ -244,18 +244,25 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       const placeholderColor = themeDefinition.colors.border;
 
       const deviceConfigs = [
-        { key: 'device-before', image: imageA, topLeftX: leftX, rotation: -6 },
-        { key: 'device-after', image: imageB, topLeftX: rightX, rotation: 6 },
+        { key: 'device-before', image: imageA, topLeftX: leftX, rotation: -6, isLeft: true },
+        { key: 'device-after', image: imageB, topLeftX: rightX, rotation: 6, isLeft: false },
       ];
 
       const buildDevice = (
         key: string,
         image: ReturnType<typeof useImage>,
         topLeftX: number,
-        rotationDeg: number
+        rotationDeg: number,
+        isLeft: boolean = false
       ) => {
         const originX = topLeftX + deviceWidth / 2;
         const originY = deviceY + deviceHeight / 2;
+
+        // Keep both notches identical vertically but offset horizontally so rotations still look centered
+        const loweredNotchY = bezelY + screenHeight * 0.18;
+        const adjustedNotchY = loweredNotchY;
+        const notchHorizontalOffset = deviceWidth * 0.12;
+        const adjustedNotchX = isLeft ? notch.x - notchHorizontalOffset : notch.x + notchHorizontalOffset;
 
         return (
           <Group
@@ -296,16 +303,16 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               color="rgba(255,255,255,0.04)"
             />
             <RoundedRect
-              x={notch.x}
-              y={notch.y}
+              x={adjustedNotchX}
+              y={adjustedNotchY}
               width={notch.width}
               height={notch.height}
               r={notch.radius}
               color={notchColor}
             />
             <RoundedRect
-              x={notch.x + notch.width * 0.32}
-              y={notch.y + notch.height * 0.24}
+              x={adjustedNotchX + notch.width * 0.32}
+              y={adjustedNotchY + notch.height * 0.24}
               width={notch.width * 0.2}
               height={notch.height * 0.5}
               r={notch.height * 0.25}
@@ -348,7 +355,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       elements.push(
         <Group key="device-mockup">
           {deviceConfigs.map(config =>
-            buildDevice(config.key, config.image, config.topLeftX, config.rotation)
+            buildDevice(config.key, config.image, config.topLeftX, config.rotation, config.isLeft)
           )}
         </Group>
       );
@@ -986,42 +993,51 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       };
 
       const deviceLabelConfigs = [
-        { key: 'before', text: textBefore, left: leftX, rotation: -6 },
-        { key: 'after', text: textAfter, left: rightX, rotation: 6 },
+        { key: 'before', text: textBefore, left: leftX, rotation: -6, isLeft: true },
+        { key: 'after', text: textAfter, left: rightX, rotation: 6, isLeft: false },
       ];
 
       return (
         <>
-          {deviceLabelConfigs.map(config => (
-            <View
-              key={config.key}
-              pointerEvents="none"
-              style={[containerBase, { left: config.left }]}
-            >
+          {deviceLabelConfigs.map(config => {
+            const adjustedLabelY = config.isLeft ? notch.y - deviceHeight * 0.05 : notch.y;
+
+            return (
               <View
+                key={config.key}
                 pointerEvents="none"
-                style={[
-                  labelWrapperStyle,
-                  {
-                    transform: [
-                      { translateX: deviceWidth / 2 },
-                      { translateY: notch.height / 2 },
-                      { rotate: `${config.rotation}deg` },
-                      { translateX: -deviceWidth / 2 },
-                      { translateY: -notch.height / 2 },
-                    ],
-                  },
-                ]}
+                style={[containerBase, { left: config.left }]}
               >
-                <View style={dynamicIslandStyle}>
-                  {renderTextWithEffects(config.text, [
-                    deviceLabelStyle,
-                    { maxWidth: notch.width - Math.max(12, notch.width * 0.24) },
-                  ])}
+                <View
+                  pointerEvents="none"
+                  style={[
+                    {
+                      position: 'absolute' as const,
+                      top: adjustedLabelY,
+                      width: '100%',
+                      alignItems: 'center' as const,
+                    },
+                    {
+                      transform: [
+                        { translateX: deviceWidth / 2 },
+                        { translateY: notch.height / 2 },
+                        { rotate: `${config.rotation}deg` },
+                        { translateX: -deviceWidth / 2 },
+                        { translateY: -notch.height / 2 },
+                      ],
+                    },
+                  ]}
+                >
+                  <View style={dynamicIslandStyle}>
+                    {renderTextWithEffects(config.text, [
+                      deviceLabelStyle,
+                      { maxWidth: notch.width - Math.max(12, notch.width * 0.24) },
+                    ])}
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </>
       );
     } else if (layout === 'vertical') {
