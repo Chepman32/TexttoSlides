@@ -300,6 +300,7 @@ const ComposerScreen: React.FC = () => {
             { key: 'vertical', label: t('composer_layoutVertical') },
             { key: 'slider', label: t('composer_layoutSlider') },
             { key: 'stacked', label: t('composer_layoutStacked') },
+            { key: 'diagonal', label: t('composer_layoutDiagonal') },
           ] as const).map(({ key, label }) => (
             <TouchableOpacity
               key={key}

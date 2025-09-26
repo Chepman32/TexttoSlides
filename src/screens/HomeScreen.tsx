@@ -6,33 +6,39 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Image,
+  Alert,
 } from 'react-native';
+import { Canvas, LinearGradient, Rect, vec } from '@shopify/react-native-skia';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary, launchCamera, ImagePickerResponse } from 'react-native-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { defaultTemplates, Template } from '../constants/templates';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
-const { width: screenWidth } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const { themeDefinition } = useTheme();
   const { t } = useLanguage();
 
-  const [hasInProgressComposition, setHasInProgressComposition] = useState(false);
+  // Recent projects will be loaded from storage
+  const recentProjects = [
+    { id: 1, name: 'Project' },
+    { id: 2, name: 'Project' },
+    { id: 3, name: 'Project' },
+  ];
 
-  useEffect(() => {
-    // TODO: Check for saved composition
-    // For now, just set to false
-    setHasInProgressComposition(false);
-  }, []);
+  const handleSettings = () => {
+    FeedbackService.buttonTap();
+    navigation.navigate('Settings');
+  };
 
   const pickTwoPhotos = () => {
     FeedbackService.buttonTap();
@@ -42,176 +48,232 @@ const HomeScreen: React.FC = () => {
         quality: 0.9,
         maxWidth: 2048,
         maxHeight: 2048,
-        selectionLimit: 2, // Allow picking 2 photos at once if supported
+        selectionLimit: 2,
       },
       response => {
         if (response.didCancel || response.errorMessage) return;
 
         const assets = response.assets;
         if (assets && assets.length >= 1) {
-          // Navigate to Composer with first photo
           const photoA = assets[0]?.uri;
-          const photoB = assets[1]?.uri; // May be undefined if only one selected
+          const photoB = assets[1]?.uri;
           navigation.navigate('Composer', { photoA, photoB });
         }
       }
     );
   };
 
-  const continueEditing = () => {
+  const handleFromCamera = () => {
     FeedbackService.buttonTap();
-    navigation.navigate('Composer', {});
+    launchCamera(
+      {
+        mediaType: 'photo',
+        quality: 0.9,
+        maxWidth: 2048,
+        maxHeight: 2048,
+      },
+      response => {
+        if (response.didCancel || response.errorMessage) return;
+
+        const asset = response.assets?.[0];
+        if (asset?.uri) {
+          navigation.navigate('Composer', { photoA: asset.uri });
+        }
+      }
+    );
   };
 
-  const handleSettings = () => {
+  const handleFromGallery = () => {
     FeedbackService.buttonTap();
-    navigation.navigate('Settings');
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 0.9,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        selectionLimit: 2,
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel || response.errorMessage) return;
+
+        const assets = response.assets;
+        if (assets && assets.length >= 1) {
+          const photoA = assets[0]?.uri;
+          const photoB = assets[1]?.uri;
+          navigation.navigate('Composer', { photoA, photoB });
+        }
+      }
+    );
   };
 
-  const handleTemplateSelect = (template: Template) => {
+  const handleFromFiles = () => {
     FeedbackService.buttonTap();
-    // Navigate to composer with template
-    navigation.navigate('Composer', {
-      template: template,
-      useTemplate: true
-    });
+    // For now, use image library as fallback for file picker
+    // TODO: Implement proper file picker with DocumentPicker when available
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        quality: 0.9,
+        maxWidth: 2048,
+        maxHeight: 2048,
+        selectionLimit: 2,
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel || response.errorMessage) return;
+
+        const assets = response.assets;
+        if (assets && assets.length >= 1) {
+          const photoA = assets[0]?.uri;
+          const photoB = assets[1]?.uri;
+          navigation.navigate('Composer', { photoA, photoB });
+        }
+      }
+    );
+  };
+
+  const handleUseLastPhoto = () => {
+    FeedbackService.buttonTap();
+    // TODO: Implement logic to get last used photo from storage
+    Alert.alert(
+      'Use Last Photo',
+      'This feature will remember your last used photo. For now, please select photos from Gallery or Camera.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleTemplate = () => {
+    FeedbackService.buttonTap();
+    // Navigate to composer without photos to show template selection
+    navigation.navigate('Composer', { showTemplates: true });
+  };
+
+  const handleRecentProject = (projectId: number) => {
+    FeedbackService.buttonTap();
+    // TODO: Open recent project
   };
 
   return (
-    <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: themeDefinition.colors.bg },
-      ]}
-    >
-      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: themeDefinition.colors.textPrimary }]}>
-            {t('appName')}
-          </Text>
-          <TouchableOpacity
-            onPress={handleSettings}
-            style={styles.settingsButton}
-          >
-            <Text style={[styles.settingsButtonText, { color: themeDefinition.colors.textPrimary }]}>
-              ⚙️
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Main content */}
-        <View style={styles.content}>
-          {/* Continue editing section */}
-          {hasInProgressComposition && (
-            <View style={[styles.continueSection, { backgroundColor: themeDefinition.colors.surface }]}>
-              <Text style={[styles.continueTitle, { color: themeDefinition.colors.textPrimary }]}>
-                {t('home_continueEditing')}
-              </Text>
-              <TouchableOpacity
-                style={[styles.continueButton, { backgroundColor: themeDefinition.colors.accent }]}
-                onPress={continueEditing}
-              >
-                <Text style={styles.continueButtonText}>
-                  {t('continue')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Primary action */}
-          <View style={styles.mainSection}>
-            <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: themeDefinition.colors.accent }]}
-              onPress={pickTwoPhotos}
-            >
-              <View style={styles.primaryButtonContent}>
-                <Text style={styles.primaryButtonIcon}>📸</Text>
-                <Text style={styles.primaryButtonText}>
-                  {t('pickTwoPhotos')}
-                </Text>
-                <Text style={styles.primaryButtonSubtext}>
-                  {t('home_tip')}
-                </Text>
-              </View>
+    <View style={styles.container}>
+      <Canvas style={StyleSheet.absoluteFillObject}>
+        <Rect x={0} y={0} width={screenWidth} height={screenHeight}>
+          <LinearGradient
+            start={vec(0, 0)}
+            end={vec(0, screenHeight)}
+            colors={['#E6E6FA', '#87CEEB', '#DDA0DD']}
+          />
+        </Rect>
+      </Canvas>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text style={styles.title}>Before/After</Text>
+            <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
+              <Image
+                source={require('../assets/icons/settings-gear.png')}
+                style={styles.settingsIcon}
+              />
             </TouchableOpacity>
           </View>
 
-          {/* Templates section */}
-          <View style={styles.recentSection}>
-            <Text style={[styles.sectionTitle, { color: themeDefinition.colors.textPrimary }]}>
-              Templates
+          {/* Main Card */}
+          <View style={styles.mainCard}>
+            <View style={styles.cameraIconContainer}>
+              <Text style={styles.cameraIcon}>📷</Text>
+            </View>
+
+            <Text style={styles.mainTitle}>Pick Two Photos</Text>
+
+            <Text style={styles.subtitle}>
+              Pick two photos to create{'\n'}amazing before/after
             </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.templatesContainer}
-            >
-              {defaultTemplates.map(template => (
-                <TouchableOpacity
-                  key={template.id}
-                  style={[styles.templateCard, { backgroundColor: themeDefinition.colors.surface }]}
-                  onPress={() => handleTemplateSelect(template)}
-                >
-                  <View style={[
-                    styles.templatePreview,
-                    { backgroundColor: template.preview.backgroundColor }
-                  ]}>
-                    {/* Template preview layout */}
-                    <View style={styles.templatePreviewContent}>
-                      {template.preview.layout === 'side' ? (
-                        <View style={styles.previewSide}>
-                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '30' }]} />
-                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '50' }]} />
-                        </View>
-                      ) : template.preview.layout === 'vertical' ? (
-                        <View style={styles.previewVertical}>
-                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '30' }]} />
-                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '50' }]} />
-                        </View>
-                      ) : (
-                        <View style={styles.previewStacked}>
-                          <View style={[styles.previewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
-                        </View>
-                      )}
-                      {template.preview.hasFrame && (
-                        <View style={[styles.previewFrame, { borderColor: template.preview.accentColor }]} />
-                      )}
-                    </View>
-                  </View>
-                  <Text style={[styles.templateName, { color: themeDefinition.colors.textPrimary }]}>
-                    {template.name}
-                  </Text>
-                  <Text style={[styles.templateDescription, { color: themeDefinition.colors.textSecondary }]}>
-                    {template.description}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
           </View>
 
-          {/* Tip card */}
-          <View style={[styles.tipCard, { backgroundColor: themeDefinition.colors.surface }]}>
-            <View style={styles.tipContent}>
-              <Text style={styles.tipIcon}>💡</Text>
-              <View style={styles.tipText}>
-                <Text style={[styles.tipTitle, { color: themeDefinition.colors.textPrimary }]}>
-                  Pro Tip
-                </Text>
-                <Text style={[styles.tipDescription, { color: themeDefinition.colors.textSecondary }]}>
-                  Choose photos with similar lighting and composition for the best before/after effect
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.actionButton} onPress={handleFromCamera}>
+              <View style={[styles.actionIcon, { backgroundColor: '#696969' }]}>
+                <Text style={styles.actionIconText}>📷</Text>
+              </View>
+              <Text style={styles.actionLabel}>From{'\n'}Camera</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={handleFromGallery}>
+              <View style={[styles.actionIcon, { backgroundColor: '#666666' }]}>
+                <Text style={styles.actionIconText}>📁</Text>
+              </View>
+              <Text style={styles.actionLabel}>Gallery</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={handleFromFiles}>
+              <View style={[styles.actionIcon, { backgroundColor: '#20B2AA' }]}>
+                <Text style={styles.actionIconText}>📄</Text>
+              </View>
+              <Text style={styles.actionLabel}>From{'\n'}Files</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={handleUseLastPhoto}>
+              <View style={[styles.actionIcon, { backgroundColor: '#4169E1' }]}>
+                <Text style={styles.actionIconText}>↻</Text>
+              </View>
+              <Text style={styles.actionLabel}>Use{'\n'}Last</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={handleTemplate}>
+              <View style={[styles.actionIcon, { backgroundColor: '#9370DB' }]}>
+                <Text style={styles.actionIconText}>⏱</Text>
+              </View>
+              <Text style={styles.actionLabel}>Templates</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Recent Projects */}
+          <View style={styles.recentSection}>
+            <Text style={styles.sectionTitle}>Recent Projects</Text>
+
+            <View style={styles.projectsGrid}>
+              {recentProjects.map((project, index) => (
+                <TouchableOpacity
+                  key={project.id}
+                  style={styles.projectCard}
+                  onPress={() => handleRecentProject(project.id)}
+                >
+                  <View style={styles.projectImage}>
+                    {/* Placeholder for project thumbnail */}
+                    <View style={[
+                      styles.projectImagePlaceholder,
+                      { backgroundColor: index === 0 ? '#98FB98' : index === 1 ? '#87CEEB' : '#DDA0DD' }
+                    ]} />
+                  </View>
+                  <Text style={styles.projectTitle}>{project.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Pro Tip */}
+          <View style={styles.proTipSection}>
+            <View style={styles.proTipContent}>
+              <Text style={styles.proTipIcon}>💡</Text>
+              <View style={styles.proTipText}>
+                <Text style={styles.proTipTitle}>Pro Tip</Text>
+                <Text style={styles.proTipDescription}>
+                  Choose photos with similar lighting and compositionn for the best before/after effect
                 </Text>
               </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  safeArea: {
     flex: 1,
   },
   scrollContainer: {
@@ -221,171 +283,151 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 32,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
+    color: '#333333',
   },
   settingsButton: {
-    padding: 10,
+    padding: 8,
   },
-  settingsButtonText: {
-    fontSize: 24,
+  settingsIcon: {
+    width: 28,
+    height: 28,
+    tintColor: '#666666',
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  continueSection: {
-    padding: 20,
-    borderRadius: 12,
-    marginBottom: 24,
-  },
-  continueTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 12,
-  },
-  continueButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  continueButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  mainSection: {
-    marginBottom: 32,
-  },
-  primaryButton: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  primaryButtonContent: {
-    paddingVertical: 40,
+  mainCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    marginHorizontal: 24,
+    borderRadius: 24,
+    paddingVertical: 48,
     paddingHorizontal: 32,
     alignItems: 'center',
+    marginBottom: 32,
   },
-  primaryButtonIcon: {
-    fontSize: 48,
+  cameraIconContainer: {
+    width: 80,
+    height: 80,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  cameraIcon: {
+    fontSize: 40,
+  },
+  mainTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333333',
     marginBottom: 16,
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+  subtitle: {
+    fontSize: 18,
+    color: '#666666',
     textAlign: 'center',
+    lineHeight: 26,
   },
-  primaryButtonSubtext: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 16,
+  actionButtons: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    marginHorizontal: 24,
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    justifyContent: 'space-around',
+    marginBottom: 40,
+  },
+  actionButton: {
+    alignItems: 'center',
+  },
+  actionIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  actionIconText: {
+    fontSize: 18,
+    color: 'white',
+  },
+  actionLabel: {
+    fontSize: 12,
+    color: '#333333',
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 16,
   },
   recentSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    marginHorizontal: 24,
+    borderRadius: 20,
+    padding: 24,
     marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 16,
-  },
-  templatesContainer: {
-    paddingRight: 20,
-  },
-  templateCard: {
-    width: 120,
-    marginRight: 16,
-    borderRadius: 12,
-    padding: 12,
-  },
-  templatePreview: {
-    width: '100%',
-    height: 80,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  templatePreviewText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  templateName: {
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  templateDescription: {
-    fontSize: 12,
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  templatePreviewContent: {
-    width: '100%',
-    height: '100%',
-    position: 'relative',
-  },
-  previewSide: {
-    flexDirection: 'row',
-    width: '100%',
-    height: '100%',
-    gap: 2,
-  },
-  previewVertical: {
-    flexDirection: 'column',
-    width: '100%',
-    height: '100%',
-    gap: 2,
-  },
-  previewStacked: {
-    width: '100%',
-    height: '100%',
-  },
-  previewBox: {
-    flex: 1,
-    borderRadius: 4,
-  },
-  previewFrame: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderWidth: 2,
-    borderRadius: 8,
-  },
-  tipCard: {
-    padding: 20,
-    borderRadius: 12,
+    color: '#333333',
     marginBottom: 20,
   },
-  tipContent: {
+  projectsGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  projectCard: {
+    alignItems: 'center',
+    width: (screenWidth - 96) / 3,
+  },
+  projectImage: {
+    width: 80,
+    height: 60,
+    borderRadius: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  projectImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+  },
+  projectTitle: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  proTipSection: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    marginHorizontal: 24,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 40,
+  },
+  proTipContent: {
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  tipIcon: {
+  proTipIcon: {
     fontSize: 24,
     marginRight: 12,
-    marginTop: 2,
   },
-  tipText: {
+  proTipText: {
     flex: 1,
   },
-  tipTitle: {
+  proTipTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#333333',
     marginBottom: 4,
   },
-  tipDescription: {
+  proTipDescription: {
     fontSize: 14,
+    color: '#666666',
     lineHeight: 20,
   },
 });

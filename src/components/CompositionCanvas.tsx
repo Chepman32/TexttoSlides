@@ -1,7 +1,7 @@
 import React, { useMemo, forwardRef, ReactNode } from 'react';
 import { Dimensions, View, Text as RNText } from 'react-native';
 import { renderTextEffects, needsMultipleLayers } from '../utils/textEffectsRenderer';
-import { Canvas, Image, useImage, Group, RoundedRect } from '@shopify/react-native-skia';
+import { Canvas, Image, useImage, Group, RoundedRect, Path, Skia } from '@shopify/react-native-skia';
 import { CompositionState } from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
 
@@ -331,6 +331,66 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
           )}
         </Group>
       );
+    } else if (layout === 'diagonal') {
+      // Diagonal split layout - images split along diagonal line from top-left to bottom-right
+      // Using separate clipped groups for each triangle
+      const topLeftTrianglePath = Skia.Path.Make();
+      topLeftTrianglePath.moveTo(0, 0);
+      topLeftTrianglePath.lineTo(canvasWidth, 0);
+      topLeftTrianglePath.lineTo(0, canvasHeight);
+      topLeftTrianglePath.close();
+
+      const bottomRightTrianglePath = Skia.Path.Make();
+      bottomRightTrianglePath.moveTo(canvasWidth, 0);
+      bottomRightTrianglePath.lineTo(canvasWidth, canvasHeight);
+      bottomRightTrianglePath.lineTo(0, canvasHeight);
+      bottomRightTrianglePath.close();
+
+      elements.push(
+        <Group key="diagonal-images">
+          {/* Before image (top-left triangle) */}
+          {imageA && (
+            <Group clip={topLeftTrianglePath}>
+              <Image
+                image={imageA}
+                fit="cover"
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={canvasHeight}
+              />
+            </Group>
+          )}
+
+          {/* After image (bottom-right triangle) */}
+          {imageB && (
+            <Group clip={bottomRightTrianglePath}>
+              <Image
+                image={imageB}
+                fit="cover"
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={canvasHeight}
+              />
+            </Group>
+          )}
+
+          {/* Fallback placeholders if images are missing */}
+          {!imageA && (
+            <Path
+              path={topLeftTrianglePath}
+              color={themeDefinition.colors.border}
+            />
+          )}
+          {!imageB && (
+            <Path
+              path={bottomRightTrianglePath}
+              color={themeDefinition.colors.surface}
+            />
+          )}
+        </Group>
+      );
     }
 
     return elements;
@@ -564,6 +624,32 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               right: 10,
               top: beforeLabelY,
               maxWidth: maxLabelWidth,
+              textAlign: 'right' as const,
+            }
+          ])}
+        </>
+      );
+    } else if (layout === 'diagonal') {
+      // Labels for diagonal layout - Before in top-left, After in bottom-right
+      const margin = composition.labels.margin;
+
+      return (
+        <>
+          {renderTextWithEffects(textBefore, [
+            labelStyle,
+            {
+              position: 'absolute' as const,
+              top: margin,
+              left: margin,
+              textAlign: 'left' as const,
+            }
+          ])}
+          {renderTextWithEffects(textAfter, [
+            labelStyle,
+            {
+              position: 'absolute' as const,
+              bottom: margin,
+              right: margin,
               textAlign: 'right' as const,
             }
           ])}

@@ -1,6 +1,6 @@
 import { TextEffectInstance } from '../constants/textEffects';
 
-export type LayoutType = 'side' | 'vertical' | 'slider' | 'stacked';
+export type LayoutType = 'side' | 'vertical' | 'slider' | 'stacked' | 'diagonal';
 
 export interface LabelStyle {
   textBefore: string;
