@@ -583,8 +583,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
           <RNText
             style={{
               position: 'absolute' as const,
-              left: beforeTapeX - 25,
-              top: beforeTapeY - 20,
+              left: beforeTapeX - 55,
+              top: beforeTapeY - 10,
               color: composition.labels.color || '#FFFFFF',
               fontSize: composition.labels.fontSize || 22,
               fontWeight: 'bold',
