@@ -8,13 +8,54 @@ export interface Template {
   preview: {
     backgroundColor: string;
     accentColor: string;
-    layout: 'side' | 'vertical' | 'stacked' | 'slider' | 'polaroid';
+    layout: 'side' | 'vertical' | 'stacked' | 'slider' | 'polaroid' | 'deviceMockup';
     hasFrame: boolean;
   };
   composition: Partial<CompositionState>;
 }
 
 export const defaultTemplates: Template[] = [
+  {
+    id: 'device-showcase',
+    name: 'Device Showcase',
+    description: 'Phones with before/after comparison',
+    preview: {
+      backgroundColor: '#E6E1D8',
+      accentColor: '#4C627E',
+      layout: 'deviceMockup',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'deviceMockup',
+      spacing: 18,
+      cornerRadius: 40,
+      aspect: '1:1',
+      labels: {
+        textBefore: 'BEFORE',
+        textAfter: 'AFTER',
+        fontFamily: 'System',
+        fontSize: 18,
+        fontWeight: 'Bold',
+        color: '#FFFFFF',
+        position: 'tl',
+        margin: 16,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'gradient',
+        colors: ['#E4DED4', '#F0ECE5'],
+        direction: 'vertical',
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#FFFFFF',
+        padding: 0,
+      },
+      watermarkOn: false,
+    },
+  },
   {
     id: 'polaroid-collage',
     name: 'Polaroid Collage',

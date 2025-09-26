@@ -294,6 +294,14 @@ const ComposerScreen: React.FC = () => {
                         </View>
                       </View>
                     </View>
+                  ) : template.preview.layout === 'deviceMockup' ? (
+                    <View style={styles.editorPreviewDevice}>
+                      {[0, 1].map(index => (
+                        <View key={index} style={styles.editorPreviewPhone}>
+                          <View style={[styles.editorPreviewPhoneScreen, { backgroundColor: template.preview.accentColor + (index === 0 ? '40' : '70') }]} />
+                        </View>
+                      ))}
+                    </View>
                   ) : (
                     <View style={styles.editorPreviewVertical}>
                       <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
@@ -903,13 +911,13 @@ const ComposerScreen: React.FC = () => {
             ]}
           >
             <Text style={[styles.placeholderText, { color: themeDefinition.colors.textSecondary }]}>
-              {composition.layout === 'side' ? 'Select Before & After Photos' :
+              {composition.layout === 'side' || composition.layout === 'deviceMockup' ? 'Select Before & After Photos' :
                composition.layout === 'vertical' ? 'Select Before (Top) & After (Bottom) Photos' :
                composition.layout === 'stacked' ? 'Select Before & After Photos' :
                composition.layout === 'polaroid' ? 'Select two photos for the collage' :
                t('pickTwoPhotos')}
             </Text>
-            <View style={composition.layout === 'side' ? styles.photoButtonsSide : styles.photoButtons}>
+            <View style={(composition.layout === 'side' || composition.layout === 'deviceMockup') ? styles.photoButtonsSide : styles.photoButtons}>
               <TouchableOpacity
                 style={[styles.photoButton, { backgroundColor: themeDefinition.colors.surface }]}
                 onPress={() => pickPhoto(true)}
@@ -1375,6 +1383,26 @@ const styles = StyleSheet.create({
   editorPreviewBox: {
     flex: 1,
     borderRadius: 2,
+  },
+  editorPreviewDevice: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+  },
+  editorPreviewPhone: {
+    width: 22,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: '#121418',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editorPreviewPhoneScreen: {
+    width: '72%',
+    height: '78%',
+    borderRadius: 6,
+    backgroundColor: '#4C627E',
   },
   editorPreviewPolaroid: {
     flex: 1,
