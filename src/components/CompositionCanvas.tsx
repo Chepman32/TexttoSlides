@@ -591,7 +591,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               textAlign: 'center',
               minWidth: 50,
               zIndex: 999,
-              transform: [{ rotate: '-6deg' }],
+              transform: [{ rotate: '-15deg' }],
             }}
           >
             {textBefore}
@@ -600,14 +600,14 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
             style={{
               position: 'absolute' as const,
               left: afterTapeX - 25,
-              top: afterTapeY - 8,
+              top: afterTapeY - 15,
               color: composition.labels.color || '#FFFFFF',
               fontSize: composition.labels.fontSize || 22,
               fontWeight: 'bold',
               textAlign: 'center',
               minWidth: 50,
               zIndex: 999,
-              transform: [{ rotate: '8deg' }],
+              transform: [{ rotate: '10deg' }],
             }}
           >
             {textAfter}
