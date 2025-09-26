@@ -298,6 +298,7 @@ const ComposerScreen: React.FC = () => {
                     <View style={styles.editorPreviewDevice}>
                       {[0, 1].map(index => (
                         <View key={index} style={styles.editorPreviewPhone}>
+                          <View style={styles.editorPreviewPhoneNotch} />
                           <View style={[styles.editorPreviewPhoneScreen, { backgroundColor: template.preview.accentColor + (index === 0 ? '40' : '70') }]} />
                         </View>
                       ))}
@@ -1397,12 +1398,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#121418',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingTop: 4,
   },
   editorPreviewPhoneScreen: {
     width: '72%',
     height: '78%',
     borderRadius: 6,
     backgroundColor: '#4C627E',
+  },
+  editorPreviewPhoneNotch: {
+    position: 'absolute',
+    top: 2,
+    width: 10,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#0C0F15',
   },
   editorPreviewPolaroid: {
     flex: 1,

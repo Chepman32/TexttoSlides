@@ -58,8 +58,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
 
     if (calculatedLayout === 'deviceMockup') {
       // Device mockup layout uses its own sizing for screens
-      calculatedImageWidth = canvasWidth * 0.35;
-      calculatedImageHeight = canvasHeight * 0.78;
+      calculatedImageWidth = canvasWidth * 0.42;
+      calculatedImageHeight = canvasHeight * 0.88;
     }
 
     return { canvasHeight: calculatedCanvasHeight, imageWidth: calculatedImageWidth, imageHeight: calculatedImageHeight, layout: calculatedLayout };
@@ -88,20 +88,41 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       return null;
     }
 
-    const deviceWidth = canvasWidth * 0.36;
-    const deviceHeight = canvasHeight * 0.82;
+    const deviceWidth = canvasWidth * 0.42;
+    const deviceHeight = canvasHeight * 0.9;
     const spacing = composition.spacing;
     const totalWidth = deviceWidth * 2 + spacing;
     const startX = (canvasWidth - totalWidth) / 2;
+    const deviceY = (canvasHeight - deviceHeight) / 2;
+
+    const bezelX = deviceWidth * 0.068;
+    const bezelY = deviceHeight * 0.082;
+    const screenWidth = deviceWidth - bezelX * 2;
+    const screenHeight = deviceHeight - bezelY * 2;
+    const notchWidth = screenWidth * 0.46;
+    const notchHeight = deviceHeight * 0.085;
+    const notchRadius = notchHeight / 2;
+    const notchY = bezelY - notchHeight * 0.45;
 
     return {
       deviceWidth,
       deviceHeight,
-      deviceY: (canvasHeight - deviceHeight) / 2,
+      deviceY,
       leftX: startX,
       rightX: startX + deviceWidth + spacing,
+      bezelX,
+      bezelY,
+      screenWidth,
+      screenHeight,
+      notch: {
+        x: (deviceWidth - notchWidth) / 2,
+        y: notchY,
+        width: notchWidth,
+        height: notchHeight,
+        radius: notchRadius,
+      },
     };
-  }, [composition.layout, composition.spacing, canvasHeight]);
+  }, [canvasHeight, canvasWidth, composition.layout, composition.spacing]);
 
   const renderImages = () => {
     if (layout !== 'deviceMockup' && (!imageA || !imageB)) {
@@ -202,24 +223,29 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
         return elements;
       }
 
-      const { deviceWidth, deviceHeight, deviceY, leftX, rightX } = deviceMetrics;
-      const bezelX = deviceWidth * 0.075;
-      const bezelY = deviceHeight * 0.09;
-      const screenWidth = deviceWidth - bezelX * 2;
-      const screenHeight = deviceHeight - bezelY * 2;
-      const deviceRadius = deviceWidth * 0.2;
-      const screenRadius = screenWidth * 0.2;
-      const notchWidth = screenWidth * 0.42;
-      const notchHeight = deviceHeight * 0.06;
-      const notchRadius = notchHeight / 2;
-      const shadowOffset = deviceWidth * 0.05;
-      const bodyColor = '#121418';
-      const bezelColor = '#0D0F13';
+      const {
+        deviceWidth,
+        deviceHeight,
+        deviceY,
+        leftX,
+        rightX,
+        bezelX,
+        bezelY,
+        screenWidth,
+        screenHeight,
+        notch,
+      } = deviceMetrics;
+
+      const deviceRadius = deviceWidth * 0.22;
+      const screenRadius = screenWidth * 0.22;
+      const shadowOffset = deviceWidth * 0.038;
+      const bodyColor = '#11141B';
+      const notchColor = '#0C0F15';
       const placeholderColor = themeDefinition.colors.border;
 
       const deviceConfigs = [
-        { key: 'device-before', image: imageA, topLeftX: leftX, rotation: -4 },
-        { key: 'device-after', image: imageB, topLeftX: rightX, rotation: 4 },
+        { key: 'device-before', image: imageA, topLeftX: leftX, rotation: -6 },
+        { key: 'device-after', image: imageB, topLeftX: rightX, rotation: 6 },
       ];
 
       const buildDevice = (
@@ -270,12 +296,20 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               color="rgba(255,255,255,0.04)"
             />
             <RoundedRect
-              x={(deviceWidth - notchWidth) / 2}
-              y={bezelY - notchHeight * 0.55}
-              width={notchWidth}
-              height={notchHeight}
-              r={notchRadius}
-              color={bezelColor}
+              x={notch.x}
+              y={notch.y}
+              width={notch.width}
+              height={notch.height}
+              r={notch.radius}
+              color={notchColor}
+            />
+            <RoundedRect
+              x={notch.x + notch.width * 0.32}
+              y={notch.y + notch.height * 0.24}
+              width={notch.width * 0.2}
+              height={notch.height * 0.5}
+              r={notch.height * 0.25}
+              color="rgba(0,0,0,0.35)"
             />
             <Group
               clip={{
@@ -307,14 +341,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
                 />
               )}
             </Group>
-            <RoundedRect
-              x={deviceWidth * 0.42}
-              y={deviceHeight - bezelY * 0.6}
-              width={deviceWidth * 0.16}
-              height={deviceHeight * 0.015}
-              r={deviceHeight * 0.0075}
-              color="rgba(255,255,255,0.08)"
-            />
           </Group>
         );
       };
@@ -922,8 +948,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     } else if (layout === 'deviceMockup') {
       if (!deviceMetrics) return null;
 
-      const { deviceWidth, deviceHeight, deviceY, leftX, rightX } = deviceMetrics;
-      const bezelY = deviceHeight * 0.09;
+      const { deviceWidth, deviceHeight, deviceY, leftX, rightX, notch } = deviceMetrics;
       const containerBase = {
         position: 'absolute' as const,
         top: deviceY,
@@ -933,34 +958,67 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
 
       const labelWrapperStyle = {
         position: 'absolute' as const,
-        top: bezelY + 8,
+        top: notch.y,
         width: '100%',
         alignItems: 'center' as const,
       };
 
-      const deviceLabelStyle = [
-        labelStyle,
-        {
-          backgroundColor: 'rgba(70, 104, 152, 0.95)',
-          borderRadius: 18,
-          paddingHorizontal: 16,
-          paddingVertical: 6,
-          textAlign: 'center' as const,
-        },
+      const deviceLabelStyle = {
+        ...labelStyle,
+        backgroundColor: 'transparent',
+        paddingHorizontal: 0,
+        paddingVertical: 0,
+        textAlign: 'center' as const,
+        color: '#E9EEFF',
+      };
+
+      const dynamicIslandStyle = {
+        width: notch.width,
+        height: notch.height,
+        borderRadius: notch.radius,
+        backgroundColor: 'rgba(12, 15, 21, 0.94)',
+        justifyContent: 'center' as const,
+        alignItems: 'center' as const,
+        paddingHorizontal: notch.width * 0.15,
+      };
+
+      const deviceLabelConfigs = [
+        { key: 'before', text: textBefore, left: leftX, rotation: -6 },
+        { key: 'after', text: textAfter, left: rightX, rotation: 6 },
       ];
 
       return (
         <>
-          <View pointerEvents="none" style={[containerBase, { left: leftX }]}>
-            <View pointerEvents="none" style={labelWrapperStyle}>
-              {renderTextWithEffects(textBefore, deviceLabelStyle)}
+          {deviceLabelConfigs.map(config => (
+            <View
+              key={config.key}
+              pointerEvents="none"
+              style={[containerBase, { left: config.left }]}
+            >
+              <View
+                pointerEvents="none"
+                style={[
+                  labelWrapperStyle,
+                  {
+                    transform: [
+                      { translateX: deviceWidth / 2 },
+                      { translateY: notch.height / 2 },
+                      { rotate: `${config.rotation}deg` },
+                      { translateX: -deviceWidth / 2 },
+                      { translateY: -notch.height / 2 },
+                    ],
+                  },
+                ]}
+              >
+                <View style={dynamicIslandStyle}>
+                  {renderTextWithEffects(config.text, [
+                    deviceLabelStyle,
+                    { maxWidth: notch.width - notch.width * 0.3 },
+                  ])}
+                </View>
+              </View>
             </View>
-          </View>
-          <View pointerEvents="none" style={[containerBase, { left: rightX }]}>
-            <View pointerEvents="none" style={labelWrapperStyle}>
-              {renderTextWithEffects(textAfter, deviceLabelStyle)}
-            </View>
-          </View>
+          ))}
         </>
       );
     } else if (layout === 'vertical') {
