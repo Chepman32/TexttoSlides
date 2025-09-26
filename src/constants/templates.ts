@@ -39,7 +39,7 @@ export const defaultTemplates: Template[] = [
         color: '#FFFFFF',
         position: 'bl',
         margin: 16,
-        show: false,
+        show: true,
         textEffects: [],
       },
       background: {

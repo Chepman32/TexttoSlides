@@ -335,8 +335,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
       );
     } else if (layout === 'polaroid') {
       const baseSize = Math.min(canvasWidth, canvasHeight);
-      const polaroidWidth = baseSize * 0.68;
-      const polaroidHeight = baseSize * 0.72;
+      const polaroidWidth = baseSize * 0.55;
+      const polaroidHeight = baseSize * 0.58;
       const sidePadding = polaroidWidth * 0.1;
       const topPadding = polaroidHeight * 0.08;
       const bottomPadding = polaroidHeight * 0.22;
@@ -464,8 +464,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
         </Group>
       );
 
-      const offsetX = baseSize * 0.16;
-      const offsetY = baseSize * 0.12;
+      const offsetX = baseSize * 0.06;
+      const offsetY = baseSize * 0.04;
 
       return [
         buildPolaroid(
@@ -559,6 +559,71 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
   };
 
   const renderLabels = () => {
+    // Special case: Always show labels for polaroid layout regardless of show setting
+    if (layout === 'polaroid') {
+      const { textBefore, textAfter } = composition.labels;
+      const baseSize = Math.min(canvasWidth, canvasHeight);
+      const offsetX = baseSize * 0.06;
+      const offsetY = baseSize * 0.04;
+      const polaroidHeight = baseSize * 0.58;
+      const beforePolaroidCenterX = canvasWidth / 2 - offsetX;
+      const afterPolaroidCenterX = canvasWidth / 2 + offsetX;
+      const beforePolaroidCenterY = canvasHeight / 2 - offsetY;
+      const afterPolaroidCenterY = canvasHeight / 2 + offsetY;
+
+      // Calculate tape positions (same as in buildPolaroid)
+      const tapeHeight = polaroidHeight * 0.14;
+      const beforeTapeY = beforePolaroidCenterY - (polaroidHeight / 2) + (tapeHeight / 2) - (tapeHeight * 0.4);
+      const afterTapeY = afterPolaroidCenterY - (polaroidHeight / 2) + (tapeHeight / 2) - (tapeHeight * 0.35);
+      const beforeTapeX = beforePolaroidCenterX - (baseSize * 0.55 * 0.08); // polaroidWidth * 0.08
+      const afterTapeX = afterPolaroidCenterX + (baseSize * 0.55 * 0.05); // polaroidWidth * 0.05
+
+      return (
+        <>
+          <RNText
+            style={{
+              position: 'absolute' as const,
+              left: beforeTapeX - 25,
+              top: beforeTapeY - 8,
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              color: '#333333',
+              fontSize: 14,
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              borderRadius: 3,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              minWidth: 50,
+              zIndex: 999,
+              transform: [{ rotate: '-6deg' }],
+            }}
+          >
+            {textBefore}
+          </RNText>
+          <RNText
+            style={{
+              position: 'absolute' as const,
+              left: afterTapeX - 25,
+              top: afterTapeY - 8,
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              color: '#333333',
+              fontSize: 14,
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              borderRadius: 3,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              minWidth: 50,
+              zIndex: 999,
+              transform: [{ rotate: '8deg' }],
+            }}
+          >
+            {textAfter}
+          </RNText>
+        </>
+      );
+    }
+
     if (!composition.labels.show) return null;
 
     const { textBefore, textAfter, fontSize, position, margin, textEffects = [] } = composition.labels;
