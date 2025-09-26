@@ -464,8 +464,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
         </Group>
       );
 
-      const offsetX = baseSize * 0.06;
-      const offsetY = baseSize * 0.04;
+      const offsetX = baseSize * 0.18;
+      const offsetY = baseSize * 0.02;
 
       return [
         buildPolaroid(
@@ -563,8 +563,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
     if (layout === 'polaroid') {
       const { textBefore, textAfter } = composition.labels;
       const baseSize = Math.min(canvasWidth, canvasHeight);
-      const offsetX = baseSize * 0.06;
-      const offsetY = baseSize * 0.04;
+      const offsetX = baseSize * 0.18;
+      const offsetY = baseSize * 0.02;
       const polaroidHeight = baseSize * 0.58;
       const beforePolaroidCenterX = canvasWidth / 2 - offsetX;
       const afterPolaroidCenterX = canvasWidth / 2 + offsetX;
@@ -584,13 +584,9 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
             style={{
               position: 'absolute' as const,
               left: beforeTapeX - 25,
-              top: beforeTapeY - 8,
-              backgroundColor: 'rgba(255,255,255,0.9)',
-              color: '#333333',
-              fontSize: 14,
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-              borderRadius: 3,
+              top: beforeTapeY - 20,
+              color: composition.labels.color || '#FFFFFF',
+              fontSize: composition.labels.fontSize || 22,
               fontWeight: 'bold',
               textAlign: 'center',
               minWidth: 50,
@@ -605,12 +601,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(({ composition
               position: 'absolute' as const,
               left: afterTapeX - 25,
               top: afterTapeY - 8,
-              backgroundColor: 'rgba(255,255,255,0.9)',
-              color: '#333333',
-              fontSize: 14,
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-              borderRadius: 3,
+              color: composition.labels.color || '#FFFFFF',
+              fontSize: composition.labels.fontSize || 22,
               fontWeight: 'bold',
               textAlign: 'center',
               minWidth: 50,
