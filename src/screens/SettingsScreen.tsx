@@ -42,11 +42,11 @@ const languages: { code: Language; name: string; nativeName: string }[] = [
   { code: 'uk', name: 'Ukrainian', nativeName: 'Українська' },
 ];
 
-const appIcons: { iconName: string | null; name: string; source: any }[] = [
-  { iconName: null, name: 'Default', source: require('../assets/icons/appIcon/icon_2_white_blue_1024.png') },
-  { iconName: 'AppIconBlueDark', name: 'Blue Dark', source: require('../assets/icons/appIcon/icon_1_blue_dark_1024.png') },
-  { iconName: 'AppIconYellow', name: 'Yellow', source: require('../assets/icons/appIcon/icon_3_yellow_1024.png') },
-  { iconName: 'AppIconGray', name: 'Gray', source: require('../assets/icons/appIcon/icon_4_gray_1024.png') },
+const appIcons: { iconName: string | null; nameKey: string; source: any }[] = [
+  { iconName: null, nameKey: 'app_icon_default', source: require('../assets/icons/appIcon/icon_2_white_blue_1024.png') },
+  { iconName: 'AppIconBlueDark', nameKey: 'app_icon_blue_dark', source: require('../assets/icons/appIcon/icon_1_blue_dark_1024.png') },
+  { iconName: 'AppIconYellow', nameKey: 'app_icon_yellow', source: require('../assets/icons/appIcon/icon_3_yellow_1024.png') },
+  { iconName: 'AppIconGray', nameKey: 'app_icon_gray', source: require('../assets/icons/appIcon/icon_4_gray_1024.png') },
 ];
 
 const SettingsScreen: React.FC = () => {
@@ -85,7 +85,7 @@ const SettingsScreen: React.FC = () => {
         updatePreferences({ appIcon: iconName || 'default' });
         setShowAppIconModal(false);
         FeedbackService.success();
-        Alert.alert('Development Mode', 'App icon preference saved. Changes will take effect on physical device.');
+        Alert.alert(t('development_mode'), t('app_icon_dev_message'));
         return;
       }
 
@@ -98,11 +98,11 @@ const SettingsScreen: React.FC = () => {
       updatePreferences({ appIcon: iconName || 'default' });
       setShowAppIconModal(false);
       FeedbackService.success();
-      Alert.alert('Success', 'App icon changed successfully!');
+      Alert.alert(t('success'), t('app_icon_success'));
     } catch (error) {
       console.error('Failed to change app icon:', error);
-      const errorMessage = error.message || 'Failed to change app icon. Please try again.';
-      Alert.alert('Error', errorMessage);
+      const errorMessage = error.message || t('app_icon_error');
+      Alert.alert(t('error'), errorMessage);
     }
   };
 
@@ -117,13 +117,13 @@ const SettingsScreen: React.FC = () => {
       const restored = await IAPService.restorePurchases();
       if (restored) {
         setIsProUser(true);
-        Alert.alert('Success', 'Purchases restored successfully!');
+        Alert.alert(t('success'), t('purchases_restored'));
         FeedbackService.success();
       } else {
-        Alert.alert('No Purchases', 'No previous purchases found.');
+        Alert.alert(t('no_purchases'), t('no_previous_purchases'));
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to restore purchases. Please try again.');
+      Alert.alert(t('error'), t('restore_failed'));
     }
   };
 
@@ -149,7 +149,7 @@ const SettingsScreen: React.FC = () => {
               ]}
               onPress={() => handleThemeChange(theme.name as Theme)}>
               <Text style={[styles.themeText, { color: theme.colors.text }]}>
-                {theme.name.charAt(0).toUpperCase() + theme.name.slice(1)}
+                {t(theme.name)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -171,15 +171,15 @@ const SettingsScreen: React.FC = () => {
 
       {/* App Icon Selection */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: themeDefinition.colors.text }]}>App Icon</Text>
+        <Text style={[styles.sectionTitle, { color: themeDefinition.colors.text }]}>{t('app_icon')}</Text>
         <TouchableOpacity
           style={[styles.settingRow, { borderBottomColor: themeDefinition.colors.border }]}
           onPress={() => setShowAppIconModal(true)}>
-          <Text style={[styles.settingLabel, { color: themeDefinition.colors.text }]}>App Icon</Text>
+          <Text style={[styles.settingLabel, { color: themeDefinition.colors.text }]}>{t('app_icon')}</Text>
           <View style={styles.iconPreview}>
             <Image source={currentAppIcon.source} style={styles.iconImage} />
             <Text style={[styles.settingValue, { color: themeDefinition.colors.text }]}>
-              {currentAppIcon.name} ›
+              {t(currentAppIcon.nameKey)} ›
             </Text>
           </View>
         </TouchableOpacity>
@@ -187,10 +187,10 @@ const SettingsScreen: React.FC = () => {
       
       {/* Upgrade Section */}
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: themeDefinition.colors.text }]}>Premium</Text>
+        <Text style={[styles.sectionTitle, { color: themeDefinition.colors.text }]}>{t('premium')}</Text>
         {isProUser ? (
           <View style={styles.proSection}>
-            <Text style={styles.proText}>✓ Pro Version Active</Text>
+            <Text style={styles.proText}>{t('pro_version_active')}</Text>
             <TouchableOpacity
               style={[styles.restoreButton, { backgroundColor: themeDefinition.colors.card }]}
               onPress={handleRestorePurchases}>
@@ -261,12 +261,12 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { backgroundColor: themeDefinition.colors.card }]}>
             <Text style={[styles.modalTitle, { color: themeDefinition.colors.text }]}>
-              Choose App Icon
+              {t('app_icon')}
             </Text>
             <FlatList
               data={appIcons}
               numColumns={2}
-              keyExtractor={(item) => item.iconName || item.name}
+              keyExtractor={(item) => item.iconName || item.nameKey}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={[
@@ -277,7 +277,7 @@ const SettingsScreen: React.FC = () => {
                   onPress={() => handleAppIconChange(item.iconName)}>
                   <Image source={item.source} style={styles.iconOptionImage} />
                   <Text style={[styles.iconOptionText, { color: themeDefinition.colors.text }]}>
-                    {item.name}
+                    {t(item.nameKey)}
                   </Text>
                   {preferences.appIcon === item.iconName && (
                     <Text style={{ color: themeDefinition.colors.primary, fontSize: 16, marginTop: 4 }}>✓</Text>
@@ -289,7 +289,7 @@ const SettingsScreen: React.FC = () => {
             <TouchableOpacity
               style={[styles.modalCloseButton, { backgroundColor: themeDefinition.colors.primary }]}
               onPress={() => setShowAppIconModal(false)}>
-              <Text style={styles.modalCloseButtonText}>Cancel</Text>
+              <Text style={styles.modalCloseButtonText}>{t('cancel')}</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -208,7 +208,7 @@ const HomeScreen: React.FC = () => {
               <Text style={styles.cameraIcon}>📷</Text>
             </View>
 
-            <Text style={styles.mainTitle}>Pick Two Photos</Text>
+            <Text style={styles.mainTitle}>{t('pick_two_photos')}</Text>
 
             <Text style={styles.subtitle}>
               Pick two photos to create{'\n'}amazing before/after
@@ -221,14 +221,14 @@ const HomeScreen: React.FC = () => {
               <View style={[styles.actionIcon, { backgroundColor: '#696969' }]}>
                 <Text style={styles.actionIconText}>📷</Text>
               </View>
-              <Text style={styles.actionLabel}>From{'\n'}Camera</Text>
+              <Text style={styles.actionLabel}>{t('from_camera')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={handleFromGallery}>
               <View style={[styles.actionIcon, { backgroundColor: '#666666' }]}>
                 <Text style={styles.actionIconText}>📁</Text>
               </View>
-              <Text style={styles.actionLabel}>Gallery</Text>
+              <Text style={styles.actionLabel}>{t('gallery')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={handleFromFiles}>
@@ -249,14 +249,14 @@ const HomeScreen: React.FC = () => {
               <View style={[styles.actionIcon, { backgroundColor: '#9370DB' }]}>
                 <Text style={styles.actionIconText}>⏱</Text>
               </View>
-              <Text style={styles.actionLabel}>Templates</Text>
+              <Text style={styles.actionLabel}>{t('templates')}</Text>
             </TouchableOpacity>
           </View>
 
           {/* Recent Projects */}
           {recentProjects.length > 0 && (
             <View style={styles.recentSection}>
-              <Text style={styles.sectionTitle}>Recent Projects</Text>
+              <Text style={styles.sectionTitle}>{t('recent_projects')}</Text>
 
               <ScrollView
                 horizontal

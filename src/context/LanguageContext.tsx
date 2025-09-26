@@ -126,6 +126,49 @@ const resources = {
       pro_lifetime: 'Lifetime',
       pro_monthly: 'Monthly',
       pro_yearly: 'Yearly',
+
+      // Settings Screen
+      settings_title: 'Settings',
+      settings_theme: 'Theme',
+      settings_language: 'Language',
+      settings_upgrade: 'Upgrade to Pro',
+      settings_restore: 'Restore Purchases',
+
+      // Theme names
+      light: 'Light',
+      dark: 'Dark',
+      solar: 'Solar',
+      mono: 'Mono',
+
+      // App Icon section
+      app_icon: 'App Icon',
+      app_icon_default: 'Default',
+      app_icon_blue_dark: 'Blue Dark',
+      app_icon_yellow: 'Yellow',
+      app_icon_gray: 'Gray',
+
+      // Premium section
+      premium: 'Premium',
+      pro_version_active: '✓ Pro Version Active',
+
+      // Alert messages
+      success: 'Success',
+      error: 'Error',
+      no_purchases: 'No Purchases',
+      purchases_restored: 'Purchases restored successfully!',
+      no_previous_purchases: 'No previous purchases found.',
+      restore_failed: 'Failed to restore purchases. Please try again.',
+      development_mode: 'Development Mode',
+      app_icon_dev_message: 'App icon preference saved. Changes will take effect on physical device.',
+      app_icon_success: 'App icon changed successfully!',
+      app_icon_error: 'Failed to change app icon. Please try again.',
+
+      // Home Screen Actions
+      from_camera: 'From\nCamera',
+      gallery: 'Gallery',
+      templates: 'Templates',
+      recent_projects: 'Recent Projects',
+      pick_two_photos: 'Pick Two Photos',
     },
   },
   ru: {
@@ -198,6 +241,42 @@ const resources = {
       settings_haptics: 'Вибрация',
       settings_upgrade: 'Обновить до Pro',
       settings_restore: 'Восстановить покупки',
+
+      // Theme names
+      light: 'Светлая',
+      dark: 'Тёмная',
+      solar: 'Солнечная',
+      mono: 'Монохром',
+
+      // App Icon section
+      app_icon: 'Иконка приложения',
+      app_icon_default: 'По умолчанию',
+      app_icon_blue_dark: 'Синяя тёмная',
+      app_icon_yellow: 'Жёлтая',
+      app_icon_gray: 'Серая',
+
+      // Premium section
+      premium: 'Премиум',
+      pro_version_active: '✓ Pro версия активна',
+
+      // Alert messages
+      success: 'Успех',
+      error: 'Ошибка',
+      no_purchases: 'Нет покупок',
+      purchases_restored: 'Покупки успешно восстановлены!',
+      no_previous_purchases: 'Предыдущие покупки не найдены.',
+      restore_failed: 'Не удалось восстановить покупки. Попробуйте еще раз.',
+      development_mode: 'Режим разработки',
+      app_icon_dev_message: 'Настройки иконки сохранены. Изменения будут применены на реальном устройстве.',
+      app_icon_success: 'Иконка приложения успешно изменена!',
+      app_icon_error: 'Не удалось изменить иконку приложения. Попробуйте еще раз.',
+
+      // Home Screen Actions
+      from_camera: 'Из\nКамеры',
+      gallery: 'Галерея',
+      templates: 'Шаблоны',
+      recent_projects: 'Недавние проекты',
+      pick_two_photos: 'Выберите две фотографии',
     },
   },
   de: {
@@ -263,6 +342,42 @@ const resources = {
       settings_haptics: 'Haptik',
       settings_upgrade: 'Auf Pro upgraden',
       settings_restore: 'Käufe wiederherstellen',
+
+      // Theme names
+      light: 'Hell',
+      dark: 'Dunkel',
+      solar: 'Solar',
+      mono: 'Mono',
+
+      // App Icon section
+      app_icon: 'App-Symbol',
+      app_icon_default: 'Standard',
+      app_icon_blue_dark: 'Blau Dunkel',
+      app_icon_yellow: 'Gelb',
+      app_icon_gray: 'Grau',
+
+      // Premium section
+      premium: 'Premium',
+      pro_version_active: '✓ Pro Version aktiv',
+
+      // Alert messages
+      success: 'Erfolg',
+      error: 'Fehler',
+      no_purchases: 'Keine Käufe',
+      purchases_restored: 'Käufe erfolgreich wiederhergestellt!',
+      no_previous_purchases: 'Keine vorherigen Käufe gefunden.',
+      restore_failed: 'Wiederherstellung fehlgeschlagen. Bitte versuchen Sie es erneut.',
+      development_mode: 'Entwicklungsmodus',
+      app_icon_dev_message: 'App-Symbol-Einstellung gespeichert. Änderungen werden auf dem physischen Gerät wirksam.',
+      app_icon_success: 'App-Symbol erfolgreich geändert!',
+      app_icon_error: 'App-Symbol konnte nicht geändert werden. Bitte versuchen Sie es erneut.',
+
+      // Home Screen Actions
+      from_camera: 'Von\nKamera',
+      gallery: 'Galerie',
+      templates: 'Vorlagen',
+      recent_projects: 'Letzte Projekte',
+      pick_two_photos: 'Zwei Fotos auswählen',
     },
   },
   fr: {
@@ -328,6 +443,42 @@ const resources = {
       settings_haptics: 'Haptique',
       settings_upgrade: 'Passer à Pro',
       settings_restore: 'Restaurer les achats',
+
+      // Theme names
+      light: 'Clair',
+      dark: 'Sombre',
+      solar: 'Solaire',
+      mono: 'Mono',
+
+      // App Icon section
+      app_icon: 'Icône d\'app',
+      app_icon_default: 'Par défaut',
+      app_icon_blue_dark: 'Bleu foncé',
+      app_icon_yellow: 'Jaune',
+      app_icon_gray: 'Gris',
+
+      // Premium section
+      premium: 'Premium',
+      pro_version_active: '✓ Version Pro active',
+
+      // Alert messages
+      success: 'Succès',
+      error: 'Erreur',
+      no_purchases: 'Aucun achat',
+      purchases_restored: 'Achats restaurés avec succès!',
+      no_previous_purchases: 'Aucun achat précédent trouvé.',
+      restore_failed: 'Échec de la restauration. Veuillez réessayer.',
+      development_mode: 'Mode Développement',
+      app_icon_dev_message: 'Préférence d\'icône sauvegardée. Les changements prendront effet sur l\'appareil physique.',
+      app_icon_success: 'Icône d\'app changée avec succès!',
+      app_icon_error: 'Échec du changement d\'icône. Veuillez réessayer.',
+
+      // Home Screen Actions
+      from_camera: 'De la\nCaméra',
+      gallery: 'Galerie',
+      templates: 'Modèles',
+      recent_projects: 'Projets récents',
+      pick_two_photos: 'Choisir deux photos',
     },
   },
   pt: {
@@ -393,6 +544,42 @@ const resources = {
       settings_haptics: 'Háptico',
       settings_upgrade: 'Atualizar para Pro',
       settings_restore: 'Restaurar Compras',
+
+      // Theme names
+      light: 'Claro',
+      dark: 'Escuro',
+      solar: 'Solar',
+      mono: 'Mono',
+
+      // App Icon section
+      app_icon: 'Ícone do App',
+      app_icon_default: 'Padrão',
+      app_icon_blue_dark: 'Azul Escuro',
+      app_icon_yellow: 'Amarelo',
+      app_icon_gray: 'Cinza',
+
+      // Premium section
+      premium: 'Premium',
+      pro_version_active: '✓ Versão Pro Ativa',
+
+      // Alert messages
+      success: 'Sucesso',
+      error: 'Erro',
+      no_purchases: 'Sem Compras',
+      purchases_restored: 'Compras restauradas com sucesso!',
+      no_previous_purchases: 'Nenhuma compra anterior encontrada.',
+      restore_failed: 'Falha ao restaurar compras. Tente novamente.',
+      development_mode: 'Modo de Desenvolvimento',
+      app_icon_dev_message: 'Preferência de ícone salva. As mudanças terão efeito no dispositivo físico.',
+      app_icon_success: 'Ícone do app alterado com sucesso!',
+      app_icon_error: 'Falha ao alterar ícone do app. Tente novamente.',
+
+      // Home Screen Actions
+      from_camera: 'Da\nCâmera',
+      gallery: 'Galeria',
+      templates: 'Modelos',
+      recent_projects: 'Projetos recentes',
+      pick_two_photos: 'Escolha duas fotos',
     },
   },
   ja: {
@@ -458,6 +645,42 @@ const resources = {
       settings_haptics: 'ハプティック',
       settings_upgrade: 'Proにアップグレード',
       settings_restore: '購入を復元',
+
+      // Theme names
+      light: 'ライト',
+      dark: 'ダーク',
+      solar: 'ソーラー',
+      mono: 'モノ',
+
+      // App Icon section
+      app_icon: 'アプリアイコン',
+      app_icon_default: 'デフォルト',
+      app_icon_blue_dark: 'ブルーダーク',
+      app_icon_yellow: 'イエロー',
+      app_icon_gray: 'グレー',
+
+      // Premium section
+      premium: 'プレミアム',
+      pro_version_active: '✓ Pro版アクティブ',
+
+      // Alert messages
+      success: '成功',
+      error: 'エラー',
+      no_purchases: '購入なし',
+      purchases_restored: '購入が正常に復元されました！',
+      no_previous_purchases: '以前の購入が見つかりません。',
+      restore_failed: '購入の復元に失敗しました。再試行してください。',
+      development_mode: '開発モード',
+      app_icon_dev_message: 'アプリアイコンの設定が保存されました。物理デバイスで変更が反映されます。',
+      app_icon_success: 'アプリアイコンが正常に変更されました！',
+      app_icon_error: 'アプリアイコンの変更に失敗しました。再試行してください。',
+
+      // Home Screen Actions
+      from_camera: 'カメラ\nから',
+      gallery: 'ギャラリー',
+      templates: 'テンプレート',
+      recent_projects: '最近のプロジェクト',
+      pick_two_photos: '2枚の写真を選択',
     },
   },
   zh: {
@@ -523,6 +746,42 @@ const resources = {
       settings_haptics: '触觉反馈',
       settings_upgrade: '升级到专业版',
       settings_restore: '恢复购买',
+
+      // Theme names
+      light: '浅色',
+      dark: '深色',
+      solar: '太阳',
+      mono: '单色',
+
+      // App Icon section
+      app_icon: '应用图标',
+      app_icon_default: '默认',
+      app_icon_blue_dark: '深蓝色',
+      app_icon_yellow: '黄色',
+      app_icon_gray: '灰色',
+
+      // Premium section
+      premium: '高级版',
+      pro_version_active: '✓ 专业版已激活',
+
+      // Alert messages
+      success: '成功',
+      error: '错误',
+      no_purchases: '无购买记录',
+      purchases_restored: '购买记录恢复成功！',
+      no_previous_purchases: '未找到之前的购买记录。',
+      restore_failed: '恢复购买失败。请重试。',
+      development_mode: '开发模式',
+      app_icon_dev_message: '应用图标偏好已保存。更改将在物理设备上生效。',
+      app_icon_success: '应用图标更改成功！',
+      app_icon_error: '更改应用图标失败。请重试。',
+
+      // Home Screen Actions
+      from_camera: '来自\n相机',
+      gallery: '图库',
+      templates: '模板',
+      recent_projects: '最近项目',
+      pick_two_photos: '选择两张照片',
     },
   },
   ko: {
@@ -588,6 +847,42 @@ const resources = {
       settings_haptics: '햅틱 피드백',
       settings_upgrade: 'Pro로 업그레이드',
       settings_restore: '구매 복원',
+
+      // Theme names
+      light: '라이트',
+      dark: '다크',
+      solar: '솔라',
+      mono: '모노',
+
+      // App Icon section
+      app_icon: '앱 아이콘',
+      app_icon_default: '기본',
+      app_icon_blue_dark: '블루 다크',
+      app_icon_yellow: '옐로우',
+      app_icon_gray: '그레이',
+
+      // Premium section
+      premium: '프리미엄',
+      pro_version_active: '✓ Pro 버전 활성화',
+
+      // Alert messages
+      success: '성공',
+      error: '오류',
+      no_purchases: '구매 없음',
+      purchases_restored: '구매가 성공적으로 복원되었습니다!',
+      no_previous_purchases: '이전 구매를 찾을 수 없습니다.',
+      restore_failed: '구매 복원에 실패했습니다. 다시 시도해주세요.',
+      development_mode: '개발 모드',
+      app_icon_dev_message: '앱 아이콘 설정이 저장되었습니다. 실제 기기에서 변경 사항이 적용됩니다.',
+      app_icon_success: '앱 아이콘이 성공적으로 변경되었습니다!',
+      app_icon_error: '앱 아이콘 변경에 실패했습니다. 다시 시도해주세요.',
+
+      // Home Screen Actions
+      from_camera: '카메라\n에서',
+      gallery: '갤러리',
+      templates: '템플릿',
+      recent_projects: '최근 프로젝트',
+      pick_two_photos: '두 장의 사진 선택',
     },
   },
   uk: {
@@ -653,6 +948,42 @@ const resources = {
       settings_haptics: 'Вібрація',
       settings_upgrade: 'Оновити до Pro',
       settings_restore: 'Відновити покупки',
+
+      // Theme names
+      light: 'Світла',
+      dark: 'Темна',
+      solar: 'Сонячна',
+      mono: 'Моно',
+
+      // App Icon section
+      app_icon: 'Іконка додатку',
+      app_icon_default: 'За замовчуванням',
+      app_icon_blue_dark: 'Синя темна',
+      app_icon_yellow: 'Жовта',
+      app_icon_gray: 'Сіра',
+
+      // Premium section
+      premium: 'Преміум',
+      pro_version_active: '✓ Pro версія активна',
+
+      // Alert messages
+      success: 'Успіх',
+      error: 'Помилка',
+      no_purchases: 'Немає покупок',
+      purchases_restored: 'Покупки успішно відновлено!',
+      no_previous_purchases: 'Попередні покупки не знайдено.',
+      restore_failed: 'Не вдалося відновити покупки. Спробуйте ще раз.',
+      development_mode: 'Режим розробки',
+      app_icon_dev_message: 'Налаштування іконки збережено. Зміни набудуть чинності на фізичному пристрої.',
+      app_icon_success: 'Іконку додатку успішно змінено!',
+      app_icon_error: 'Не вдалося змінити іконку додатку. Спробуйте ще раз.',
+
+      // Home Screen Actions
+      from_camera: 'З\nКамери',
+      gallery: 'Галерея',
+      templates: 'Шаблони',
+      recent_projects: 'Нещодавні проекти',
+      pick_two_photos: 'Виберіть дві фотографії',
     },
   },
   es: {
@@ -705,6 +1036,42 @@ const resources = {
       settings_haptics: 'Hápticos',
       settings_upgrade: 'Actualizar a Pro',
       settings_restore: 'Restaurar Compras',
+
+      // Theme names
+      light: 'Claro',
+      dark: 'Oscuro',
+      solar: 'Solar',
+      mono: 'Mono',
+
+      // App Icon section
+      app_icon: 'Icono de App',
+      app_icon_default: 'Por defecto',
+      app_icon_blue_dark: 'Azul Oscuro',
+      app_icon_yellow: 'Amarillo',
+      app_icon_gray: 'Gris',
+
+      // Premium section
+      premium: 'Premium',
+      pro_version_active: '✓ Versión Pro Activa',
+
+      // Alert messages
+      success: 'Éxito',
+      error: 'Error',
+      no_purchases: 'Sin Compras',
+      purchases_restored: '¡Compras restauradas exitosamente!',
+      no_previous_purchases: 'No se encontraron compras anteriores.',
+      restore_failed: 'Error al restaurar compras. Inténtalo de nuevo.',
+      development_mode: 'Modo de Desarrollo',
+      app_icon_dev_message: 'Preferencia de icono guardada. Los cambios tendrán efecto en el dispositivo físico.',
+      app_icon_success: '¡Icono de app cambiado exitosamente!',
+      app_icon_error: 'Error al cambiar el icono de la app. Inténtalo de nuevo.',
+
+      // Home Screen Actions
+      from_camera: 'De la\nCámara',
+      gallery: 'Galería',
+      templates: 'Plantillas',
+      recent_projects: 'Proyectos recientes',
+      pick_two_photos: 'Elegir dos fotos',
     },
   },
 };
