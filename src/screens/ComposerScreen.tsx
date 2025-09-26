@@ -9,7 +9,6 @@ import {
   ScrollView,
   PermissionsAndroid,
   Platform,
-  Modal,
   TextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -80,10 +79,7 @@ const ComposerScreen: React.FC = () => {
   // Active tool panel state
   const [activePanel, setActivePanel] = useState<'layout' | 'labels' | 'style' | 'export'>('layout');
 
-  // Text editing modal state
-  const [showTextModal, setShowTextModal] = useState(false);
-  const [editingField, setEditingField] = useState<'before' | 'after' | null>(null);
-  const [tempText, setTempText] = useState('');
+  // Text editing modal state (removed - now using inline TextInput)
 
   // Undo/Redo functionality
   const [history, setHistory] = useState<CompositionState[]>([composition]);
@@ -239,29 +235,7 @@ const ComposerScreen: React.FC = () => {
     });
   };
 
-  const openTextEditor = (field: 'before' | 'after') => {
-    const currentText = field === 'before' ? composition.labels.textBefore : composition.labels.textAfter;
-    setTempText(currentText);
-    setEditingField(field);
-    setShowTextModal(true);
-  };
-
-  const saveTextEdit = () => {
-    if (editingField === 'before') {
-      updateLabels({ textBefore: tempText });
-    } else if (editingField === 'after') {
-      updateLabels({ textAfter: tempText });
-    }
-    setShowTextModal(false);
-    setEditingField(null);
-    FeedbackService.success();
-  };
-
-  const cancelTextEdit = () => {
-    setShowTextModal(false);
-    setEditingField(null);
-    setTempText('');
-  };
+  // Modal-based text editing functions removed - now using inline TextInput
 
   const canvasHeight = screenHeight * 0.45;
 
@@ -446,32 +420,36 @@ const ComposerScreen: React.FC = () => {
             <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
               {t('labels_beforeText')}
             </Text>
-            <TouchableOpacity
-              style={[styles.textInput, { borderColor: themeDefinition.colors.border }]}
-              onPress={() => {
-                FeedbackService.buttonTap();
-                openTextEditor('before');
-              }}
-            >
-              <Text style={[styles.textInputText, { color: themeDefinition.colors.textPrimary }]}>
-                {composition.labels.textBefore}
-              </Text>
-            </TouchableOpacity>
+            <TextInput
+              style={[styles.textInput, styles.textInputText, {
+                borderColor: themeDefinition.colors.border,
+                color: themeDefinition.colors.textPrimary,
+                backgroundColor: themeDefinition.colors.surface
+              }]}
+              value={composition.labels.textBefore}
+              onChangeText={(text) => updateLabels({ textBefore: text })}
+              placeholder="Enter before text"
+              placeholderTextColor={themeDefinition.colors.textSecondary}
+              multiline
+              maxLength={50}
+            />
 
             <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary, marginTop: 16 }]}>
               {t('labels_afterText')}
             </Text>
-            <TouchableOpacity
-              style={[styles.textInput, { borderColor: themeDefinition.colors.border }]}
-              onPress={() => {
-                FeedbackService.buttonTap();
-                openTextEditor('after');
-              }}
-            >
-              <Text style={[styles.textInputText, { color: themeDefinition.colors.textPrimary }]}>
-                {composition.labels.textAfter}
-              </Text>
-            </TouchableOpacity>
+            <TextInput
+              style={[styles.textInput, styles.textInputText, {
+                borderColor: themeDefinition.colors.border,
+                color: themeDefinition.colors.textPrimary,
+                backgroundColor: themeDefinition.colors.surface
+              }]}
+              value={composition.labels.textAfter}
+              onChangeText={(text) => updateLabels({ textAfter: text })}
+              placeholder="Enter after text"
+              placeholderTextColor={themeDefinition.colors.textSecondary}
+              multiline
+              maxLength={50}
+            />
           </View>
 
           {/* Font Size */}
@@ -971,53 +949,7 @@ const ComposerScreen: React.FC = () => {
         {activePanel === 'export' && renderExportPanel()}
       </View>
 
-      {/* Text Editing Modal */}
-      <Modal
-        visible={showTextModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={cancelTextEdit}
-      >
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: themeDefinition.colors.surface }]}>
-            <Text style={[styles.modalTitle, { color: themeDefinition.colors.textPrimary }]}>
-              {editingField === 'before' ? t('labels_beforeText') : t('labels_afterText')}
-            </Text>
-            <TextInput
-              style={[styles.modalTextInput, {
-                borderColor: themeDefinition.colors.border,
-                backgroundColor: themeDefinition.colors.bg,
-                color: themeDefinition.colors.textPrimary
-              }]}
-              value={tempText}
-              onChangeText={setTempText}
-              placeholder={editingField === 'before' ? t('before') : t('after')}
-              placeholderTextColor={themeDefinition.colors.textSecondary}
-              multiline
-              autoFocus
-              maxLength={50}
-            />
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton, { backgroundColor: themeDefinition.colors.border }]}
-                onPress={cancelTextEdit}
-              >
-                <Text style={[styles.modalButtonText, { color: themeDefinition.colors.textPrimary }]}>
-                  {t('cancel')}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton, { backgroundColor: themeDefinition.colors.accent }]}
-                onPress={saveTextEdit}
-              >
-                <Text style={[styles.modalButtonText, { color: '#FFFFFF' }]}>
-                  {t('apply')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      {/* Modal removed - now using inline TextInput components */}
     </View>
   );
 };
