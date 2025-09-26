@@ -21,6 +21,7 @@ import Slider from '@react-native-community/slider';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
+import StorageService, { ProjectState } from '../services/StorageService';
 import { CompositionState, LayoutType, LabelStyle } from '../types/composer';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { defaultTemplates, applyTemplate, Template } from '../constants/templates';
@@ -79,6 +80,11 @@ const ComposerScreen: React.FC = () => {
   // Active tool panel state
   const [activePanel, setActivePanel] = useState<'layout' | 'labels' | 'style' | 'export'>('layout');
 
+  // Project ID for saving to recent projects - use existing ID if reopening project
+  const [projectId] = useState(() =>
+    route.params?.projectId || `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  );
+
   // Text editing modal state (removed - now using inline TextInput)
 
   // Undo/Redo functionality
@@ -108,6 +114,31 @@ const ComposerScreen: React.FC = () => {
     });
   }, [addToHistory]);
 
+  // Save project to recent projects when images are present
+  const saveToRecentProjects = useCallback(async (comp: CompositionState) => {
+    try {
+      // Only save if at least one image is present
+      if (comp.photoAUri || comp.photoBUri) {
+        const images: string[] = [];
+        if (comp.photoAUri) images.push(comp.photoAUri);
+        if (comp.photoBUri) images.push(comp.photoBUri);
+
+        const projectState: ProjectState = {
+          id: projectId,
+          text: `${comp.labels.textBefore} / ${comp.labels.textAfter}`,
+          slides: [], // ComposerScreen doesn't have slides format yet
+          images,
+          lastModified: new Date().toISOString(),
+          isCompleted: false,
+        };
+
+        await StorageService.saveCurrentProject(projectState);
+      }
+    } catch (error) {
+      console.error('Error saving to recent projects:', error);
+    }
+  }, [projectId]);
+
   // Apply template if provided in route params
   useEffect(() => {
     if (route.params?.template && route.params?.useTemplate) {
@@ -117,6 +148,23 @@ const ComposerScreen: React.FC = () => {
       setHistoryIndex(0);
     }
   }, [route.params?.template, route.params?.useTemplate]);
+
+  // Auto-save to recent projects when composition changes and has images
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveToRecentProjects(composition);
+    }, 1000); // Debounce saves by 1 second
+
+    return () => clearTimeout(timer);
+  }, [composition, saveToRecentProjects]);
+
+  // Save immediately on mount if images are provided via route params
+  useEffect(() => {
+    if (route.params?.photoA || route.params?.photoB) {
+      saveToRecentProjects(composition);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   const pickPhoto = (isPhotoA: boolean) => {
     launchImageLibrary(

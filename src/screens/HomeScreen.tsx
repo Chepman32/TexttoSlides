@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,13 +11,14 @@ import {
 } from 'react-native';
 import { Canvas, LinearGradient, Rect, vec } from '@shopify/react-native-skia';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { launchImageLibrary, launchCamera, ImagePickerResponse } from 'react-native-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import StorageService, { ProjectState } from '../services/StorageService';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
@@ -27,13 +28,26 @@ const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const { themeDefinition } = useTheme();
   const { t } = useLanguage();
+  const [recentProjects, setRecentProjects] = useState<ProjectState[]>([]);
 
-  // Recent projects will be loaded from storage
-  const recentProjects = [
-    { id: 1, name: 'Project' },
-    { id: 2, name: 'Project' },
-    { id: 3, name: 'Project' },
-  ];
+  const loadRecentProjects = useCallback(async () => {
+    try {
+      const projects = await StorageService.getRecentProjects();
+      setRecentProjects(projects); // Show all projects (up to 10)
+    } catch (error) {
+      console.error('Error loading recent projects:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRecentProjects();
+  }, [loadRecentProjects]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadRecentProjects();
+    }, [loadRecentProjects])
+  );
 
   const handleSettings = () => {
     FeedbackService.buttonTap();
@@ -147,9 +161,21 @@ const HomeScreen: React.FC = () => {
     navigation.navigate('Composer', { showTemplates: true });
   };
 
-  const handleRecentProject = (projectId: number) => {
+  const handleRecentProject = async (projectId: string) => {
     FeedbackService.buttonTap();
-    // TODO: Open recent project
+    try {
+      const project = recentProjects.find(p => p.id === projectId);
+      if (project) {
+        // Load the project and navigate to composer
+        // Pass the first two images as photoA and photoB if available, plus the project ID
+        const photoA = project.images?.[0];
+        const photoB = project.images?.[1];
+        navigation.navigate('Composer', { photoA, photoB, projectId: project.id });
+      }
+    } catch (error) {
+      console.error('Error opening recent project:', error);
+      Alert.alert('Error', 'Failed to open project. Please try again.');
+    }
   };
 
   return (
@@ -228,28 +254,45 @@ const HomeScreen: React.FC = () => {
           </View>
 
           {/* Recent Projects */}
-          <View style={styles.recentSection}>
-            <Text style={styles.sectionTitle}>Recent Projects</Text>
+          {recentProjects.length > 0 && (
+            <View style={styles.recentSection}>
+              <Text style={styles.sectionTitle}>Recent Projects</Text>
 
-            <View style={styles.projectsGrid}>
-              {recentProjects.map((project, index) => (
-                <TouchableOpacity
-                  key={project.id}
-                  style={styles.projectCard}
-                  onPress={() => handleRecentProject(project.id)}
-                >
-                  <View style={styles.projectImage}>
-                    {/* Placeholder for project thumbnail */}
-                    <View style={[
-                      styles.projectImagePlaceholder,
-                      { backgroundColor: index === 0 ? '#98FB98' : index === 1 ? '#87CEEB' : '#DDA0DD' }
-                    ]} />
-                  </View>
-                  <Text style={styles.projectTitle}>{project.name}</Text>
-                </TouchableOpacity>
-              ))}
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.projectsScrollContainer}
+                style={styles.projectsScroll}
+              >
+                {recentProjects.map((project, index) => (
+                  <TouchableOpacity
+                    key={project.id}
+                    style={styles.projectCard}
+                    onPress={() => handleRecentProject(project.id)}
+                  >
+                    <View style={styles.projectImage}>
+                      {/* Show project thumbnail if available, otherwise show placeholder */}
+                      {project.images && project.images[0] ? (
+                        <Image
+                          source={{ uri: project.images[0] }}
+                          style={styles.projectImagePlaceholder}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View style={[
+                          styles.projectImagePlaceholder,
+                          { backgroundColor: ['#98FB98', '#87CEEB', '#DDA0DD', '#FFB6C1', '#98D8E8', '#F0E68C', '#DEB887', '#D8BFD8', '#F5DEB3', '#B0E0E6'][index % 10] }
+                        ]} />
+                      )}
+                    </View>
+                    <Text style={styles.projectTitle} numberOfLines={1}>
+                      {project.text || `Project ${index + 1}`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
-          </View>
+          )}
 
           {/* Pro Tip */}
           <View style={styles.proTipSection}>
@@ -377,13 +420,16 @@ const styles = StyleSheet.create({
     color: '#333333',
     marginBottom: 20,
   },
-  projectsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  projectsScroll: {
+    flexGrow: 0,
+  },
+  projectsScrollContainer: {
+    paddingRight: 24,
   },
   projectCard: {
     alignItems: 'center',
-    width: (screenWidth - 96) / 3,
+    width: 100,
+    marginRight: 16,
   },
   projectImage: {
     width: 80,

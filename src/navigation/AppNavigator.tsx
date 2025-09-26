@@ -15,7 +15,7 @@ import { Template } from '../constants/templates';
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
-  Composer: { photoA?: string; photoB?: string; template?: Template; useTemplate?: boolean };
+  Composer: { photoA?: string; photoB?: string; template?: Template; useTemplate?: boolean; showTemplates?: boolean; projectId?: string };
   Templates: { currentComposition: CompositionState };
   ExportResult: { composition: CompositionState; exportPath: string };
   Settings: undefined;
