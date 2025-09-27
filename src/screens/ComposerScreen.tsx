@@ -41,6 +41,29 @@ const ComposerScreen: React.FC = () => {
   const { themeDefinition } = useTheme();
   const { t } = useLanguage();
 
+  // Function to get translated template name
+  const getTemplateNameKey = (templateId: string) => {
+    const templateNameMap: { [key: string]: string } = {
+      'device-showcase': 'device_showcase',
+      'polaroid-collage': 'polaroid_collage',
+      'minimal': 'minimal',
+      'elegant': 'elegant',
+    };
+    return templateNameMap[templateId] || templateId;
+  };
+
+  // Function to get translated text effect name
+  const getTextEffectNameKey = (effectType: string) => {
+    const effectNameMap: { [key: string]: string } = {
+      'softShadow': 'soft_shadow',
+      'neonGlow': 'neon_glow',
+      'longShadow': 'long_shadow',
+      'bloom': 'bloom',
+      'letterpress': 'letterpress',
+    };
+    return effectNameMap[effectType] || effectType;
+  };
+
   // Canvas ref for export
   const canvasRef = useRef<any>(null);
 
@@ -360,7 +383,7 @@ const ComposerScreen: React.FC = () => {
                 </View>
               </View>
               <Text style={[styles.editorTemplateName, { color: themeDefinition.colors.textPrimary }]}>
-                {template.name}
+                {t(getTemplateNameKey(template.id))}
               </Text>
             </TouchableOpacity>
           ))}
@@ -434,7 +457,7 @@ const ComposerScreen: React.FC = () => {
       {/* Text Effects Section */}
       <View style={styles.toolSection}>
         <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
-          Text Effects
+          {t('text_effects')}
         </Text>
         <View style={styles.textEffectsContainer}>
           {SUPPORTED_TEXT_EFFECT_TYPES.map(effectType => {
@@ -458,7 +481,7 @@ const ComposerScreen: React.FC = () => {
                   styles.textEffectButtonText,
                   { color: isActive ? themeDefinition.colors.accent : themeDefinition.colors.textPrimary }
                 ]}>
-                  {definition?.name || effectType}
+                  {t(getTextEffectNameKey(effectType))}
                 </Text>
               </TouchableOpacity>
             );
@@ -972,7 +995,7 @@ const ComposerScreen: React.FC = () => {
                 onPress={() => pickPhoto(true)}
               >
                 <Text style={[styles.photoButtonText, { color: themeDefinition.colors.textPrimary }]}>
-                  {composition.photoAUri ? '✓ Before' : 'Pick Before'}
+                  {composition.photoAUri ? t('before_selected') : t('pick_before')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -980,7 +1003,7 @@ const ComposerScreen: React.FC = () => {
                 onPress={() => pickPhoto(false)}
               >
                 <Text style={[styles.photoButtonText, { color: themeDefinition.colors.textPrimary }]}>
-                  {composition.photoBUri ? '✓ After' : 'Pick After'}
+                  {composition.photoBUri ? t('after_selected') : t('pick_after')}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -211,7 +211,7 @@ const HomeScreen: React.FC = () => {
             <Text style={styles.mainTitle}>{t('pick_two_photos')}</Text>
 
             <Text style={styles.subtitle}>
-              Pick two photos to create{'\n'}amazing before/after
+              {t('home_subtitle')}
             </Text>
           </View>
 
@@ -235,14 +235,14 @@ const HomeScreen: React.FC = () => {
               <View style={[styles.actionIcon, { backgroundColor: '#20B2AA' }]}>
                 <Text style={styles.actionIconText}>📄</Text>
               </View>
-              <Text style={styles.actionLabel}>From{'\n'}Files</Text>
+              <Text style={styles.actionLabel}>{t('from_files')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={handleUseLastPhoto}>
               <View style={[styles.actionIcon, { backgroundColor: '#4169E1' }]}>
                 <Text style={styles.actionIconText}>↻</Text>
               </View>
-              <Text style={styles.actionLabel}>Use{'\n'}Last</Text>
+              <Text style={styles.actionLabel}>{t('use_last')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.actionButton} onPress={handleTemplate}>

@@ -169,6 +169,48 @@ const resources = {
       templates: 'Templates',
       recent_projects: 'Recent Projects',
       pick_two_photos: 'Pick Two Photos',
+      from_files: 'From\nFiles',
+      use_last: 'Use\nLast',
+
+      // Navigation
+      back: 'Back',
+
+      // Composer Screen
+      layout: 'Layout',
+      labels: 'Labels',
+      style: 'Style',
+      export: 'Export',
+
+      // Template Names
+      device_showcase: 'Device\nShowcase',
+      polaroid_collage: 'Polaroid\nCollage',
+      minimal: 'Minimal',
+      elegant: 'Elegant',
+
+      // Layout Options
+      stacked_with_label_bar: 'Stacked with Label Bar',
+      diagonal_split: 'Diagonal Split',
+
+      // Aspect Ratio
+      aspect_ratio: 'Aspect Ratio',
+      free: 'Free',
+
+      // Photo Selection
+      pick_before: 'Pick Before',
+      pick_after: 'Pick After',
+      before_selected: '✓ Before',
+      after_selected: '✓ After',
+
+      // Home Screen Subtitle
+      home_subtitle: 'Pick two photos to create\namazing before/after',
+
+      // Text Effects
+      text_effects: 'Text Effects',
+      soft_shadow: 'Soft Shadow',
+      neon_glow: 'Neon Glow',
+      long_shadow: 'Long Shadow',
+      bloom: 'Bloom',
+      letterpress: 'Letterpress',
     },
   },
   ru: {
@@ -277,6 +319,48 @@ const resources = {
       templates: 'Шаблоны',
       recent_projects: 'Недавние проекты',
       pick_two_photos: 'Выберите две фотографии',
+      from_files: 'Из\nФайлов',
+      use_last: 'Послед\nНяя',
+
+      // Navigation
+      back: 'Назад',
+
+      // Composer Screen
+      layout: 'Макет',
+      labels: 'Подписи',
+      style: 'Стиль',
+      export: 'Экспорт',
+
+      // Template Names
+      device_showcase: 'Витрина\nУстройств',
+      polaroid_collage: 'Поляроид\nКоллаж',
+      minimal: 'Минимальный',
+      elegant: 'Элегантный',
+
+      // Layout Options
+      stacked_with_label_bar: 'С полосой подписей',
+      diagonal_split: 'Диагональное разделение',
+
+      // Aspect Ratio
+      aspect_ratio: 'Соотношение сторон',
+      free: 'Свободное',
+
+      // Photo Selection
+      pick_before: 'Выбрать До',
+      pick_after: 'Выбрать После',
+      before_selected: '✓ До',
+      after_selected: '✓ После',
+
+      // Home Screen Subtitle
+      home_subtitle: 'Выберите две фотографии для\nсоздания удивительного сравнения',
+
+      // Text Effects
+      text_effects: 'Текстовые эффекты',
+      soft_shadow: 'Мягкая тень',
+      neon_glow: 'Неоновое свечение',
+      long_shadow: 'Длинная тень',
+      bloom: 'Свечение',
+      letterpress: 'Леттерпресс',
     },
   },
   de: {
@@ -378,6 +462,48 @@ const resources = {
       templates: 'Vorlagen',
       recent_projects: 'Letzte Projekte',
       pick_two_photos: 'Zwei Fotos auswählen',
+      from_files: 'Von\nDateien',
+      use_last: 'Letzte\nVerwenden',
+
+      // Navigation
+      back: 'Zurück',
+
+      // Composer Screen
+      layout: 'Layout',
+      labels: 'Beschriftungen',
+      style: 'Stil',
+      export: 'Exportieren',
+
+      // Template Names
+      device_showcase: 'Geräte\nShowcase',
+      polaroid_collage: 'Polaroid\nCollage',
+      minimal: 'Minimal',
+      elegant: 'Elegant',
+
+      // Layout Options
+      stacked_with_label_bar: 'Gestapelt mit Beschriftungsleiste',
+      diagonal_split: 'Diagonale Teilung',
+
+      // Aspect Ratio
+      aspect_ratio: 'Seitenverhältnis',
+      free: 'Frei',
+
+      // Photo Selection
+      pick_before: 'Vorher wählen',
+      pick_after: 'Nachher wählen',
+      before_selected: '✓ Vorher',
+      after_selected: '✓ Nachher',
+
+      // Home Screen Subtitle
+      home_subtitle: 'Wählen Sie zwei Fotos für\nerstaunliche Vorher/Nachher-Vergleiche',
+
+      // Text Effects
+      text_effects: 'Texteffekte',
+      soft_shadow: 'Weicher Schatten',
+      neon_glow: 'Neon-Glanz',
+      long_shadow: 'Langer Schatten',
+      bloom: 'Blüte',
+      letterpress: 'Letterpress',
     },
   },
   fr: {
@@ -479,6 +605,48 @@ const resources = {
       templates: 'Modèles',
       recent_projects: 'Projets récents',
       pick_two_photos: 'Choisir deux photos',
+      from_files: 'Depuis\nFichiers',
+      use_last: 'Utiliser\nDernière',
+
+      // Navigation
+      back: 'Retour',
+
+      // Composer Screen
+      layout: 'Disposition',
+      labels: 'Étiquettes',
+      style: 'Style',
+      export: 'Exporter',
+
+      // Template Names
+      device_showcase: 'Vitrine\nAppareil',
+      polaroid_collage: 'Collage\nPolaroid',
+      minimal: 'Minimal',
+      elegant: 'Élégant',
+
+      // Layout Options
+      stacked_with_label_bar: 'Empilé avec barre d’étiquettes',
+      diagonal_split: 'Division diagonale',
+
+      // Aspect Ratio
+      aspect_ratio: 'Ratio d’aspect',
+      free: 'Libre',
+
+      // Photo Selection
+      pick_before: 'Choisir Avant',
+      pick_after: 'Choisir Après',
+      before_selected: '✓ Avant',
+      after_selected: '✓ Après',
+
+      // Home Screen Subtitle
+      home_subtitle: 'Choisissez deux photos pour créer\nd’incroyables comparaisons avant/après',
+
+      // Text Effects
+      text_effects: 'Effets de texte',
+      soft_shadow: 'Ombre douce',
+      neon_glow: 'Éclat néon',
+      long_shadow: 'Ombre longue',
+      bloom: 'Flou lumineux',
+      letterpress: 'Letterpress',
     },
   },
   pt: {
@@ -580,6 +748,48 @@ const resources = {
       templates: 'Modelos',
       recent_projects: 'Projetos recentes',
       pick_two_photos: 'Escolha duas fotos',
+      from_files: 'Dos\nArquivos',
+      use_last: 'Usar\nÚltima',
+
+      // Navigation
+      back: 'Voltar',
+
+      // Composer Screen
+      layout: 'Layout',
+      labels: 'Rótulos',
+      style: 'Estilo',
+      export: 'Exportar',
+
+      // Template Names
+      device_showcase: 'Vitrine\nDispositivo',
+      polaroid_collage: 'Colagem\nPolaroid',
+      minimal: 'Minimalista',
+      elegant: 'Elegante',
+
+      // Layout Options
+      stacked_with_label_bar: 'Empilhado com barra de rótulo',
+      diagonal_split: 'Divisão diagonal',
+
+      // Aspect Ratio
+      aspect_ratio: 'Proporção',
+      free: 'Livre',
+
+      // Photo Selection
+      pick_before: 'Escolher Antes',
+      pick_after: 'Escolher Depois',
+      before_selected: '✓ Antes',
+      after_selected: '✓ Depois',
+
+      // Home Screen Subtitle
+      home_subtitle: 'Escolha duas fotos para criar\nincríveis comparações antes/depois',
+
+      // Text Effects
+      text_effects: 'Efeitos de texto',
+      soft_shadow: 'Sombra suave',
+      neon_glow: 'Brilho neôn',
+      long_shadow: 'Sombra longa',
+      bloom: 'Florescimento',
+      letterpress: 'Letterpress',
     },
   },
   ja: {
@@ -681,6 +891,48 @@ const resources = {
       templates: 'テンプレート',
       recent_projects: '最近のプロジェクト',
       pick_two_photos: '2枚の写真を選択',
+      from_files: 'ファイル\nから',
+      use_last: '最後を\n使用',
+
+      // Navigation
+      back: '戻る',
+
+      // Composer Screen
+      layout: 'レイアウト',
+      labels: 'ラベル',
+      style: 'スタイル',
+      export: 'エクスポート',
+
+      // Template Names
+      device_showcase: 'デバイス\nショーケース',
+      polaroid_collage: 'ポラロイド\nコラージュ',
+      minimal: 'ミニマル',
+      elegant: 'エレガント',
+
+      // Layout Options
+      stacked_with_label_bar: 'ラベルバー付きスタック',
+      diagonal_split: '対角線分割',
+
+      // Aspect Ratio
+      aspect_ratio: 'アスペクト比',
+      free: '自由',
+
+      // Photo Selection
+      pick_before: 'ビフォアを選択',
+      pick_after: 'アフターを選択',
+      before_selected: '✓ ビフォア',
+      after_selected: '✓ アフター',
+
+      // Home Screen Subtitle
+      home_subtitle: '2枚の写真を選択して\n素晴らしいビフォア/アフターを作成',
+
+      // Text Effects
+      text_effects: 'テキストエフェクト',
+      soft_shadow: 'ソフトシャドウ',
+      neon_glow: 'ネオングロー',
+      long_shadow: 'ロングシャドウ',
+      bloom: 'ブルーム',
+      letterpress: 'レタープレス',
     },
   },
   zh: {
@@ -782,6 +1034,48 @@ const resources = {
       templates: '模板',
       recent_projects: '最近项目',
       pick_two_photos: '选择两张照片',
+      from_files: '从\n文件',
+      use_last: '使用\n上一张',
+
+      // Navigation
+      back: '返回',
+
+      // Composer Screen
+      layout: '布局',
+      labels: '标签',
+      style: '样式',
+      export: '导出',
+
+      // Template Names
+      device_showcase: '设备\n展示',
+      polaroid_collage: '宝丽来\n拼贴',
+      minimal: '简约',
+      elegant: '优雅',
+
+      // Layout Options
+      stacked_with_label_bar: '带标签栏的堆叠',
+      diagonal_split: '对角分割',
+
+      // Aspect Ratio
+      aspect_ratio: '纵横比',
+      free: '自由',
+
+      // Photo Selection
+      pick_before: '选择之前',
+      pick_after: '选择之后',
+      before_selected: '✓ 之前',
+      after_selected: '✓ 之后',
+
+      // Home Screen Subtitle
+      home_subtitle: '选择两张照片\n创造令人惊叹的前后对比',
+
+      // Text Effects
+      text_effects: '文字效果',
+      soft_shadow: '柔和阴影',
+      neon_glow: '震光灵',
+      long_shadow: '长阴影',
+      bloom: '结花',
+      letterpress: '凸版印刷',
     },
   },
   ko: {
@@ -883,6 +1177,48 @@ const resources = {
       templates: '템플릿',
       recent_projects: '최근 프로젝트',
       pick_two_photos: '두 장의 사진 선택',
+      from_files: '파일\n에서',
+      use_last: '마지막\n사용',
+
+      // Navigation
+      back: '뒤로',
+
+      // Composer Screen
+      layout: '레이아웃',
+      labels: '라벨',
+      style: '스타일',
+      export: '내보내기',
+
+      // Template Names
+      device_showcase: '디바이스\n쇼케이스',
+      polaroid_collage: '폴라로이드\n콜라주',
+      minimal: '미니멀',
+      elegant: '우아한',
+
+      // Layout Options
+      stacked_with_label_bar: '라벨 바와 함께 쌓이기',
+      diagonal_split: '대각선 분할',
+
+      // Aspect Ratio
+      aspect_ratio: '비율',
+      free: '자유',
+
+      // Photo Selection
+      pick_before: '이전 선택',
+      pick_after: '이후 선택',
+      before_selected: '✓ 이전',
+      after_selected: '✓ 이후',
+
+      // Home Screen Subtitle
+      home_subtitle: '두 장의 사진을 선택하여\n놀라운 비포/애프터 비교 작성',
+
+      // Text Effects
+      text_effects: '텍스트 효과',
+      soft_shadow: '부드러운 그림자',
+      neon_glow: '네온 글로우',
+      long_shadow: '긴 그림자',
+      bloom: '블룸',
+      letterpress: '레터프레스',
     },
   },
   uk: {
@@ -984,6 +1320,48 @@ const resources = {
       templates: 'Шаблони',
       recent_projects: 'Нещодавні проекти',
       pick_two_photos: 'Виберіть дві фотографії',
+      from_files: 'З\nФайлів',
+      use_last: 'Остан\nню',
+
+      // Navigation
+      back: 'Назад',
+
+      // Composer Screen
+      layout: 'Макет',
+      labels: 'Мітки',
+      style: 'Стиль',
+      export: 'Експорт',
+
+      // Template Names
+      device_showcase: 'Виставка\nПристроїв',
+      polaroid_collage: 'Поляроїд\nКолаж',
+      minimal: 'Мінімальний',
+      elegant: 'Елегантний',
+
+      // Layout Options
+      stacked_with_label_bar: 'Складений з панеллю міток',
+      diagonal_split: 'Діагональний розподіл',
+
+      // Aspect Ratio
+      aspect_ratio: 'Співвідношення сторін',
+      free: 'Вільний',
+
+      // Photo Selection
+      pick_before: 'Вибрати До',
+      pick_after: 'Вибрати Після',
+      before_selected: '✓ До',
+      after_selected: '✓ Після',
+
+      // Home Screen Subtitle
+      home_subtitle: 'Виберіть дві фотографії для\nстворення чудових порівнянь',
+
+      // Text Effects
+      text_effects: 'Текстові ефекти',
+      soft_shadow: 'М’яка тінь',
+      neon_glow: 'Неонове свічення',
+      long_shadow: 'Довга тінь',
+      bloom: 'Квітучий ефект',
+      letterpress: 'Летерпрес',
     },
   },
   es: {
@@ -1072,6 +1450,48 @@ const resources = {
       templates: 'Plantillas',
       recent_projects: 'Proyectos recientes',
       pick_two_photos: 'Elegir dos fotos',
+      from_files: 'Desde\nArchivos',
+      use_last: 'Usar\nÚltima',
+
+      // Navigation
+      back: 'Atrás',
+
+      // Composer Screen
+      layout: 'Diseño',
+      labels: 'Etiquetas',
+      style: 'Estilo',
+      export: 'Exportar',
+
+      // Template Names
+      device_showcase: 'Escaparate\nDispositivo',
+      polaroid_collage: 'Collage\nPolaroid',
+      minimal: 'Minimalista',
+      elegant: 'Elegante',
+
+      // Layout Options
+      stacked_with_label_bar: 'Apilado con barra de etiquetas',
+      diagonal_split: 'División diagonal',
+
+      // Aspect Ratio
+      aspect_ratio: 'Relación de aspecto',
+      free: 'Libre',
+
+      // Photo Selection
+      pick_before: 'Elegir Antes',
+      pick_after: 'Elegir Después',
+      before_selected: '✓ Antes',
+      after_selected: '✓ Después',
+
+      // Home Screen Subtitle
+      home_subtitle: 'Elige dos fotos para crear\nincreíbles comparaciones antes/después',
+
+      // Text Effects
+      text_effects: 'Efectos de texto',
+      soft_shadow: 'Sombra suave',
+      neon_glow: 'Brillo neón',
+      long_shadow: 'Sombra larga',
+      bloom: 'Florecimiento',
+      letterpress: 'Letterpress',
     },
   },
 };
