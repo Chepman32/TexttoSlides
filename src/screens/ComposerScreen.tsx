@@ -1477,7 +1477,7 @@ const ComposerScreen: React.FC = () => {
               { color: themeDefinition.colors.textPrimary },
             ]}
           >
-            ← {t('cancel')}
+            ← {t('back')}
           </Text>
         </TouchableOpacity>
 
@@ -1685,7 +1685,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   backButton: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '500',
   },
   topActions: {
