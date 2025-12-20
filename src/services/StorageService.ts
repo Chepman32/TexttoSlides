@@ -329,6 +329,10 @@ class StorageService {
       };
 
       const validProjects = parsed.filter(project => {
+        // Must have a valid thumbnail to be kept
+        const hasValidThumbnail = isValidUri(project.thumbnail);
+        if (!hasValidThumbnail) return false;
+
         const hasValidImages =
           project.images &&
           Array.isArray(project.images) &&

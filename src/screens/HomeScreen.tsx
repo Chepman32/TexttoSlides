@@ -19,6 +19,7 @@ import {
   launchCamera,
   ImagePickerResponse,
 } from 'react-native-image-picker';
+import DocumentPicker from 'react-native-document-picker';
 import ContextMenu from 'react-native-context-menu-view';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -42,11 +43,12 @@ const HomeScreen: React.FC = () => {
       await StorageService.cleanupEmptyProjects();
       // Then load the valid projects
       const projects = await StorageService.getRecentProjects();
-      // Only show projects that have a thumbnail (properly saved projects)
-      const projectsWithThumbnails = projects.filter(
-        p => p.thumbnail && p.thumbnail.length > 0,
-      );
-      setRecentProjects(projectsWithThumbnails);
+      // Only show projects that have a thumbnail (required for display)
+      const validProjects = projects.filter(p => {
+        // Must have a valid thumbnail to be displayed
+        return p.thumbnail && p.thumbnail.trim().length > 0;
+      });
+      setRecentProjects(validProjects);
     } catch (error) {
       console.error('Error loading recent projects:', error);
     }
@@ -133,29 +135,25 @@ const HomeScreen: React.FC = () => {
     );
   };
 
-  const handleFromFiles = () => {
+  const handleFromFiles = async () => {
     FeedbackService.buttonTap();
-    // For now, use image library as fallback for file picker
-    // TODO: Implement proper file picker with DocumentPicker when available
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.9,
-        maxWidth: 2048,
-        maxHeight: 2048,
-        selectionLimit: 2,
-      },
-      (response: ImagePickerResponse) => {
-        if (response.didCancel || response.errorMessage) return;
+    try {
+      const results = await DocumentPicker.pick({
+        type: [DocumentPicker.types.images],
+        allowMultiSelection: true,
+      });
 
-        const assets = response.assets;
-        if (assets && assets.length >= 1) {
-          const photoA = assets[0]?.uri;
-          const photoB = assets[1]?.uri;
-          navigation.navigate('Composer', { photoA, photoB });
-        }
-      },
-    );
+      if (results.length >= 1) {
+        const photoA = results[0]?.uri;
+        const photoB = results[1]?.uri;
+        navigation.navigate('Composer', { photoA, photoB });
+      }
+    } catch (error) {
+      if (!DocumentPicker.isCancel(error)) {
+        console.error('Error picking files:', error);
+        Alert.alert('Error', 'Failed to pick files. Please try again.');
+      }
+    }
   };
 
   const handleUseLastPhoto = () => {

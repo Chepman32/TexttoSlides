@@ -3039,6 +3039,7 @@ __metadata:
     react-i18next: "npm:^15.7.3"
     react-native: "npm:0.81.4"
     react-native-context-menu-view: "npm:^1.21.0"
+    react-native-document-picker: "npm:^9.3.1"
     react-native-fs: "npm:^2.20.0"
     react-native-gesture-handler: "npm:^2.28.0"
     react-native-haptic-feedback: "npm:^2.3.3"
@@ -8010,6 +8011,22 @@ __metadata:
     react: ^16.8.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-native: ">=0.60.0-rc.0 <1.0.x"
   checksum: 10c0/923a11c034da814ac24402af0308b219a319f8b22d9a0ca381cf820f3f863c15bc08fa3c6107cdc7127004f5ba0096374a764b511edb664acb53a9212b68ae26
+  languageName: node
+  linkType: hard
+
+"react-native-document-picker@npm:^9.3.1":
+  version: 9.3.1
+  resolution: "react-native-document-picker@npm:9.3.1"
+  dependencies:
+    invariant: "npm:^2.2.4"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+    react-native-windows: "*"
+  peerDependenciesMeta:
+    react-native-windows:
+      optional: true
+  checksum: 10c0/62ac1c1567fb4aabd791c03768e51b0898de727e37bb695cca9fc72c31eb3f2d75faf5bc7fb4be86a3e2b96b77cf948558b496412ecf17687ca006eb52ef6dd8
   languageName: node
   linkType: hard
 
