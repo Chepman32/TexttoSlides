@@ -1566,7 +1566,9 @@ const ComposerScreen: React.FC = () => {
       </View>
 
       {/* Tool panel */}
-      <View style={styles.toolPanelContainer}>
+      <View
+        style={[styles.toolPanelContainer, { paddingBottom: insets.bottom }]}
+      >
         {activePanel === 'layout' && renderLayoutPanel()}
         {activePanel === 'labels' && renderLabelsPanel()}
         {activePanel === 'style' && renderStylePanel()}
@@ -1687,7 +1689,7 @@ const styles = StyleSheet.create({
   },
   toolPanelContent: {
     paddingVertical: 8,
-    paddingBottom: 32,
+    paddingBottom: 100, // Extra padding to ensure content is reachable above home indicator
   },
   toolSection: {
     marginBottom: 24,
