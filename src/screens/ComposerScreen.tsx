@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import {
   View,
   Text,
@@ -10,6 +16,9 @@ import {
   PermissionsAndroid,
   Platform,
   TextInput,
+  PanResponder,
+  GestureResponderEvent,
+  PanResponderGestureState,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -22,7 +31,12 @@ import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
 import StorageService, { ProjectState } from '../services/StorageService';
-import { CompositionState, LayoutType, LabelStyle } from '../types/composer';
+import {
+  CompositionState,
+  LayoutType,
+  LabelStyle,
+  ImageOffset,
+} from '../types/composer';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import {
   defaultTemplates,
@@ -171,6 +185,84 @@ const ComposerScreen: React.FC = () => {
       });
     },
     [addToHistory],
+  );
+
+  // Track which image is being panned and the starting offset
+  const panningImageRef = useRef<'A' | 'B' | null>(null);
+  const startOffsetRef = useRef<ImageOffset>({ x: 0, y: 0 });
+  const compositionRef = useRef(composition);
+
+  // Keep compositionRef in sync
+  useEffect(() => {
+    compositionRef.current = composition;
+  }, [composition]);
+
+  // Pan responder for image panning
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, gestureState) => {
+          // Only respond to pan if there's significant movement
+          return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
+        },
+        onPanResponderGrant: (evt: GestureResponderEvent) => {
+          const comp = compositionRef.current;
+          // Determine which image was touched based on position
+          const { locationX, locationY } = evt.nativeEvent;
+          const canvasWidth = screenWidth - 32;
+
+          if (comp.layout === 'side') {
+            // Side by side - left half is A, right half is B
+            const imageWidth = (canvasWidth - comp.spacing) / 2;
+            if (locationX < imageWidth) {
+              panningImageRef.current = 'A';
+              startOffsetRef.current = comp.photoAOffset || { x: 0, y: 0 };
+            } else if (locationX > imageWidth + comp.spacing) {
+              panningImageRef.current = 'B';
+              startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
+            }
+          } else if (comp.layout === 'vertical') {
+            // Vertical - top half is A, bottom half is B
+            const canvasHeight = canvasWidth; // Approximate for 1:1 aspect
+            const imageHeight = (canvasHeight - comp.spacing) / 2;
+            if (locationY < imageHeight) {
+              panningImageRef.current = 'A';
+              startOffsetRef.current = comp.photoAOffset || { x: 0, y: 0 };
+            } else if (locationY > imageHeight + comp.spacing) {
+              panningImageRef.current = 'B';
+              startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
+            }
+          } else {
+            // For other layouts, default to image A
+            panningImageRef.current = 'A';
+            startOffsetRef.current = comp.photoAOffset || { x: 0, y: 0 };
+          }
+        },
+        onPanResponderMove: (
+          _evt: GestureResponderEvent,
+          gestureState: PanResponderGestureState,
+        ) => {
+          if (!panningImageRef.current) return;
+
+          const newOffset: ImageOffset = {
+            x: startOffsetRef.current.x + gestureState.dx,
+            y: startOffsetRef.current.y + gestureState.dy,
+          };
+
+          // Update the appropriate image offset without adding to history (too many updates)
+          setComposition(prev => ({
+            ...prev,
+            ...(panningImageRef.current === 'A'
+              ? { photoAOffset: newOffset }
+              : { photoBOffset: newOffset }),
+          }));
+        },
+        onPanResponderRelease: () => {
+          panningImageRef.current = null;
+        },
+      }),
+    [],
   );
 
   // Save project to recent projects when images are present
@@ -1520,6 +1612,7 @@ const ComposerScreen: React.FC = () => {
               borderRadius: composition.cornerRadius,
               overflow: 'hidden',
             }}
+            {...panResponder.panHandlers}
           >
             <CompositionCanvas composition={composition} />
           </View>

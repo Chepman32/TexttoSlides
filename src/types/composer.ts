@@ -40,9 +40,16 @@ export interface FrameConfig {
   padding: number;
 }
 
+export interface ImageOffset {
+  x: number;
+  y: number;
+}
+
 export interface CompositionState {
   photoAUri?: string;
   photoBUri?: string;
+  photoAOffset?: ImageOffset; // Pan offset for image A
+  photoBOffset?: ImageOffset; // Pan offset for image B
   layout: LayoutType;
   spacing: number;
   cornerRadius: number;

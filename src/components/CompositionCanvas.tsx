@@ -14,18 +14,78 @@ import {
   Skia,
   LinearGradient,
   vec,
+  SkImage,
 } from '@shopify/react-native-skia';
-import { CompositionState } from '../types/composer';
+import { CompositionState, ImageOffset } from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
 
 interface CompositionCanvasProps {
   composition: CompositionState;
+  onPanImage?: (imageKey: 'A' | 'B', offset: ImageOffset) => void;
 }
 
 const { width: screenWidth } = Dimensions.get('window');
 const canvasWidth = screenWidth - 32; // 16px margin on each side
 
 const degToRad = (angle: number) => (angle * Math.PI) / 180;
+
+// Helper to calculate image dimensions for "cover" fit with offset support
+const calculateCoverFit = (
+  image: SkImage | null,
+  containerWidth: number,
+  containerHeight: number,
+  offset: ImageOffset = { x: 0, y: 0 },
+) => {
+  if (!image) return null;
+
+  const imgWidth = image.width();
+  const imgHeight = image.height();
+
+  // Calculate scale to cover the container
+  const scaleX = containerWidth / imgWidth;
+  const scaleY = containerHeight / imgHeight;
+  const scale = Math.max(scaleX, scaleY);
+
+  // Scaled dimensions
+  const scaledWidth = imgWidth * scale;
+  const scaledHeight = imgHeight * scale;
+
+  // Calculate how much the image can be panned (in scaled coordinates)
+  const maxOffsetX = Math.max(0, (scaledWidth - containerWidth) / 2);
+  const maxOffsetY = Math.max(0, (scaledHeight - containerHeight) / 2);
+
+  // Clamp offset to valid range
+  const clampedOffsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offset.x));
+  const clampedOffsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offset.y));
+
+  // Calculate the source rectangle (what part of the original image to show)
+  // Convert offset back to original image coordinates
+  const srcOffsetX = -clampedOffsetX / scale;
+  const srcOffsetY = -clampedOffsetY / scale;
+
+  // Source rectangle in original image coordinates
+  const srcX = (imgWidth - containerWidth / scale) / 2 + srcOffsetX;
+  const srcY = (imgHeight - containerHeight / scale) / 2 + srcOffsetY;
+  const srcWidth = containerWidth / scale;
+  const srcHeight = containerHeight / scale;
+
+  return {
+    // Source rect (part of original image)
+    srcX: Math.max(0, srcX),
+    srcY: Math.max(0, srcY),
+    srcWidth: Math.min(srcWidth, imgWidth),
+    srcHeight: Math.min(srcHeight, imgHeight),
+    // Destination rect (where to draw on canvas)
+    dstX: 0,
+    dstY: 0,
+    dstWidth: containerWidth,
+    dstHeight: containerHeight,
+    // For debugging
+    maxOffsetX,
+    maxOffsetY,
+    scale,
+  };
+};
 
 const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
   ({ composition }, ref) => {
@@ -84,8 +144,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         layout: calculatedLayout,
       };
     }, [composition.aspect, composition.layout, composition.spacing]);
-
-    // Text effects will be handled directly on the label text components
 
     const canvasCornerRadius = composition.cornerRadius;
     const clipRect = useMemo(() => {
@@ -190,6 +248,10 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
       if (layout === 'side') {
         // Side by side layout
+        // Get offsets (default to 0,0 if not set)
+        const offsetA = composition.photoAOffset || { x: 0, y: 0 };
+        const offsetB = composition.photoBOffset || { x: 0, y: 0 };
+
         elements.push(
           <Group key="side-images">
             {/* Before image (left) */}
@@ -204,14 +266,21 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Image
-                  image={imageA}
-                  fit="cover"
-                  x={0}
-                  y={0}
-                  width={imageWidth}
-                  height={imageHeight}
-                />
+                <Group
+                  transform={[
+                    { translateX: offsetA.x },
+                    { translateY: offsetA.y },
+                  ]}
+                >
+                  <Image
+                    image={imageA}
+                    fit="cover"
+                    x={0}
+                    y={0}
+                    width={imageWidth}
+                    height={imageHeight}
+                  />
+                </Group>
               </Group>
             )}
             {/* After image (right) */}
@@ -226,14 +295,21 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Image
-                  image={imageB}
-                  fit="cover"
-                  x={imageWidth + composition.spacing}
-                  y={0}
-                  width={imageWidth}
-                  height={imageHeight}
-                />
+                <Group
+                  transform={[
+                    { translateX: offsetB.x },
+                    { translateY: offsetB.y },
+                  ]}
+                >
+                  <Image
+                    image={imageB}
+                    fit="cover"
+                    x={imageWidth + composition.spacing}
+                    y={0}
+                    width={imageWidth}
+                    height={imageHeight}
+                  />
+                </Group>
               </Group>
             )}
 
@@ -423,6 +499,10 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         );
       } else if (layout === 'vertical') {
         // Vertical layout
+        // Get offsets (default to 0,0 if not set)
+        const offsetA = composition.photoAOffset || { x: 0, y: 0 };
+        const offsetB = composition.photoBOffset || { x: 0, y: 0 };
+
         elements.push(
           <Group key="vertical-images">
             {/* Before image (top) */}
@@ -437,14 +517,21 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Image
-                  image={imageA}
-                  fit="cover"
-                  x={0}
-                  y={0}
-                  width={imageWidth}
-                  height={imageHeight}
-                />
+                <Group
+                  transform={[
+                    { translateX: offsetA.x },
+                    { translateY: offsetA.y },
+                  ]}
+                >
+                  <Image
+                    image={imageA}
+                    fit="cover"
+                    x={0}
+                    y={0}
+                    width={imageWidth}
+                    height={imageHeight}
+                  />
+                </Group>
               </Group>
             )}
             {/* After image (bottom) */}
@@ -459,14 +546,21 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Image
-                  image={imageB}
-                  fit="cover"
-                  x={0}
-                  y={imageHeight + composition.spacing}
-                  width={imageWidth}
-                  height={imageHeight}
-                />
+                <Group
+                  transform={[
+                    { translateX: offsetB.x },
+                    { translateY: offsetB.y },
+                  ]}
+                >
+                  <Image
+                    image={imageB}
+                    fit="cover"
+                    x={0}
+                    y={imageHeight + composition.spacing}
+                    width={imageWidth}
+                    height={imageHeight}
+                  />
+                </Group>
               </Group>
             )}
 
