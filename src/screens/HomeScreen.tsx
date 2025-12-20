@@ -13,7 +13,11 @@ import { Canvas, LinearGradient, Rect, vec } from '@shopify/react-native-skia';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { launchImageLibrary, launchCamera, ImagePickerResponse } from 'react-native-image-picker';
+import {
+  launchImageLibrary,
+  launchCamera,
+  ImagePickerResponse,
+} from 'react-native-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
@@ -32,8 +36,15 @@ const HomeScreen: React.FC = () => {
 
   const loadRecentProjects = useCallback(async () => {
     try {
+      // First cleanup any empty projects from storage
+      await StorageService.cleanupEmptyProjects();
+      // Then load the valid projects
       const projects = await StorageService.getRecentProjects();
-      setRecentProjects(projects); // Show all projects (up to 10)
+      // Only show projects that have a thumbnail (properly saved projects)
+      const projectsWithThumbnails = projects.filter(
+        p => p.thumbnail && p.thumbnail.length > 0,
+      );
+      setRecentProjects(projectsWithThumbnails);
     } catch (error) {
       console.error('Error loading recent projects:', error);
     }
@@ -46,7 +57,7 @@ const HomeScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       loadRecentProjects();
-    }, [loadRecentProjects])
+    }, [loadRecentProjects]),
   );
 
   const handleSettings = () => {
@@ -73,7 +84,7 @@ const HomeScreen: React.FC = () => {
           const photoB = assets[1]?.uri;
           navigation.navigate('Composer', { photoA, photoB });
         }
-      }
+      },
     );
   };
 
@@ -93,7 +104,7 @@ const HomeScreen: React.FC = () => {
         if (asset?.uri) {
           navigation.navigate('Composer', { photoA: asset.uri });
         }
-      }
+      },
     );
   };
 
@@ -116,7 +127,7 @@ const HomeScreen: React.FC = () => {
           const photoB = assets[1]?.uri;
           navigation.navigate('Composer', { photoA, photoB });
         }
-      }
+      },
     );
   };
 
@@ -141,7 +152,7 @@ const HomeScreen: React.FC = () => {
           const photoB = assets[1]?.uri;
           navigation.navigate('Composer', { photoA, photoB });
         }
-      }
+      },
     );
   };
 
@@ -151,7 +162,7 @@ const HomeScreen: React.FC = () => {
     Alert.alert(
       'Use Last Photo',
       'This feature will remember your last used photo. For now, please select photos from Gallery or Camera.',
-      [{ text: 'OK' }]
+      [{ text: 'OK' }],
     );
   };
 
@@ -166,11 +177,15 @@ const HomeScreen: React.FC = () => {
     try {
       const project = recentProjects.find(p => p.id === projectId);
       if (project) {
-        // Load the project and navigate to composer
-        // Pass the first two images as photoA and photoB if available, plus the project ID
-        const photoA = project.images?.[0];
-        const photoB = project.images?.[1];
-        navigation.navigate('Composer', { photoA, photoB, projectId: project.id });
+        // Load the project and navigate to composer with saved composition
+        const photoA = project.composition?.photoAUri || project.images?.[0];
+        const photoB = project.composition?.photoBUri || project.images?.[1];
+        navigation.navigate('Composer', {
+          photoA,
+          photoB,
+          projectId: project.id,
+          savedComposition: project.composition, // Pass the saved composition
+        });
       }
     } catch (error) {
       console.error('Error opening recent project:', error);
@@ -190,11 +205,17 @@ const HomeScreen: React.FC = () => {
         </Rect>
       </Canvas>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Before/After</Text>
-            <TouchableOpacity onPress={handleSettings} style={styles.settingsButton}>
+            <TouchableOpacity
+              onPress={handleSettings}
+              style={styles.settingsButton}
+            >
               <Image
                 source={require('../assets/icons/settings-gear.png')}
                 style={styles.settingsIcon}
@@ -210,42 +231,55 @@ const HomeScreen: React.FC = () => {
 
             <Text style={styles.mainTitle}>{t('pick_two_photos')}</Text>
 
-            <Text style={styles.subtitle}>
-              {t('home_subtitle')}
-            </Text>
+            <Text style={styles.subtitle}>{t('home_subtitle')}</Text>
           </View>
 
           {/* Action Buttons */}
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleFromCamera}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleFromCamera}
+            >
               <View style={[styles.actionIcon, { backgroundColor: '#696969' }]}>
                 <Text style={styles.actionIconText}>📷</Text>
               </View>
               <Text style={styles.actionLabel}>{t('from_camera')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={handleFromGallery}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleFromGallery}
+            >
               <View style={[styles.actionIcon, { backgroundColor: '#666666' }]}>
                 <Text style={styles.actionIconText}>📁</Text>
               </View>
               <Text style={styles.actionLabel}>{t('gallery')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={handleFromFiles}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleFromFiles}
+            >
               <View style={[styles.actionIcon, { backgroundColor: '#20B2AA' }]}>
                 <Text style={styles.actionIconText}>📄</Text>
               </View>
               <Text style={styles.actionLabel}>{t('from_files')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={handleUseLastPhoto}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleUseLastPhoto}
+            >
               <View style={[styles.actionIcon, { backgroundColor: '#4169E1' }]}>
                 <Text style={styles.actionIconText}>↻</Text>
               </View>
               <Text style={styles.actionLabel}>{t('use_last')}</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={handleTemplate}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleTemplate}
+            >
               <View style={[styles.actionIcon, { backgroundColor: '#9370DB' }]}>
                 <Text style={styles.actionIconText}>⏱</Text>
               </View>
@@ -271,18 +305,54 @@ const HomeScreen: React.FC = () => {
                     onPress={() => handleRecentProject(project.id)}
                   >
                     <View style={styles.projectImage}>
-                      {/* Show project thumbnail if available, otherwise show placeholder */}
-                      {project.images && project.images[0] ? (
+                      {/* Show thumbnail if available, otherwise show both images side by side */}
+                      {project.thumbnail ? (
                         <Image
-                          source={{ uri: project.images[0] }}
-                          style={styles.projectImagePlaceholder}
+                          source={{ uri: project.thumbnail }}
+                          style={styles.projectThumbnail}
                           resizeMode="cover"
                         />
+                      ) : project.images && project.images.length > 0 ? (
+                        <View style={styles.projectPreviewContainer}>
+                          {project.images[0] && (
+                            <Image
+                              source={{ uri: project.images[0] }}
+                              style={[
+                                styles.projectPreviewImage,
+                                project.images.length === 1 &&
+                                  styles.projectPreviewImageFull,
+                              ]}
+                              resizeMode="cover"
+                            />
+                          )}
+                          {project.images[1] && (
+                            <Image
+                              source={{ uri: project.images[1] }}
+                              style={styles.projectPreviewImage}
+                              resizeMode="cover"
+                            />
+                          )}
+                        </View>
                       ) : (
-                        <View style={[
-                          styles.projectImagePlaceholder,
-                          { backgroundColor: ['#98FB98', '#87CEEB', '#DDA0DD', '#FFB6C1', '#98D8E8', '#F0E68C', '#DEB887', '#D8BFD8', '#F5DEB3', '#B0E0E6'][index % 10] }
-                        ]} />
+                        <View
+                          style={[
+                            styles.projectImagePlaceholder,
+                            {
+                              backgroundColor: [
+                                '#98FB98',
+                                '#87CEEB',
+                                '#DDA0DD',
+                                '#FFB6C1',
+                                '#98D8E8',
+                                '#F0E68C',
+                                '#DEB887',
+                                '#D8BFD8',
+                                '#F5DEB3',
+                                '#B0E0E6',
+                              ][index % 10],
+                            },
+                          ]}
+                        />
                       )}
                     </View>
                     <Text style={styles.projectTitle} numberOfLines={1}>
@@ -301,7 +371,8 @@ const HomeScreen: React.FC = () => {
               <View style={styles.proTipText}>
                 <Text style={styles.proTipTitle}>Pro Tip</Text>
                 <Text style={styles.proTipDescription}>
-                  Choose photos with similar lighting and compositionn for the best before/after effect
+                  Choose photos with similar lighting and compositionn for the
+                  best before/after effect
                 </Text>
               </View>
             </View>
@@ -437,6 +508,24 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
     overflow: 'hidden',
+  },
+  projectPreviewContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    width: '100%',
+    height: '100%',
+  },
+  projectPreviewImage: {
+    flex: 1,
+    height: '100%',
+  },
+  projectPreviewImageFull: {
+    flex: 1,
+  },
+  projectThumbnail: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 8,
   },
   projectImagePlaceholder: {
     width: '100%',

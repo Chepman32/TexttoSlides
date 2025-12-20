@@ -15,7 +15,15 @@ import { Template } from '../constants/templates';
 export type RootStackParamList = {
   Splash: undefined;
   Home: undefined;
-  Composer: { photoA?: string; photoB?: string; template?: Template; useTemplate?: boolean; showTemplates?: boolean; projectId?: string };
+  Composer: {
+    photoA?: string;
+    photoB?: string;
+    template?: Template;
+    useTemplate?: boolean;
+    showTemplates?: boolean;
+    projectId?: string;
+    savedComposition?: CompositionState;
+  };
   Templates: { currentComposition: CompositionState };
   ExportResult: { composition: CompositionState; exportPath: string };
   Settings: undefined;

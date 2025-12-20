@@ -11,9 +11,14 @@ import {
 } from '../constants/fonts';
 import type { TextEffectInstance } from '../constants/textEffects';
 import { isTextEffectSupported } from '../constants/textEffects';
+import type { CompositionState } from '../types/composer';
 
 const platformKey: 'ios' | 'android' | 'default' =
-  Platform.OS === 'ios' ? 'ios' : Platform.OS === 'android' ? 'android' : 'default';
+  Platform.OS === 'ios'
+    ? 'ios'
+    : Platform.OS === 'android'
+    ? 'android'
+    : 'default';
 
 export interface ProjectState {
   id: string;
@@ -33,6 +38,8 @@ export interface ProjectState {
     textEffects?: TextEffectInstance[];
   }>;
   images: string[];
+  thumbnail?: string; // Thumbnail image URI for preview
+  composition?: CompositionState; // Full composition state
   lastModified: string;
   isCompleted: boolean;
 }
@@ -48,7 +55,9 @@ export interface AppState {
   };
 }
 
-const sanitizeTextEffects = (effects?: TextEffectInstance[]): TextEffectInstance[] =>
+const sanitizeTextEffects = (
+  effects?: TextEffectInstance[],
+): TextEffectInstance[] =>
   (effects ?? []).filter(effect => isTextEffectSupported(effect.type));
 
 class StorageService {
@@ -59,7 +68,7 @@ class StorageService {
     PREFERENCES: '@TextToSlides:preferences',
     APP_STATE: '@TextToSlides:appState',
     PRO_STATUS: '@TextToSlides:proStatus',
-    FIRST_LAUNCH: '@TextToSlides:firstLaunch'
+    FIRST_LAUNCH: '@TextToSlides:firstLaunch',
   };
 
   private constructor() {}
@@ -89,14 +98,14 @@ class StorageService {
         };
         await AsyncStorage.setItem(
           this.STORAGE_KEYS.CURRENT_PROJECT,
-          JSON.stringify(normalizedProject)
+          JSON.stringify(normalizedProject),
         );
 
         // Also add to recent projects
         await this.addToRecentProjects(normalizedProject);
       },
       undefined,
-      'saveCurrentProject'
+      'saveCurrentProject',
     );
   }
 
@@ -104,7 +113,9 @@ class StorageService {
   async loadCurrentProject(): Promise<ProjectState | null> {
     return StorageInitializer.safeStorageOperation(
       async () => {
-        const projectData = await AsyncStorage.getItem(this.STORAGE_KEYS.CURRENT_PROJECT);
+        const projectData = await AsyncStorage.getItem(
+          this.STORAGE_KEYS.CURRENT_PROJECT,
+        );
         if (projectData) {
           const parsed: ProjectState = JSON.parse(projectData);
 
@@ -125,7 +136,10 @@ class StorageService {
                   (slide.fontFamily
                     ? getSlideFontByFamily(slide.fontFamily).id
                     : DEFAULT_SLIDE_FONT_ID),
-                fontFamily: resolveFontFamilyForPlatform(fontOption, platformKey),
+                fontFamily: resolveFontFamilyForPlatform(
+                  fontOption,
+                  platformKey,
+                ),
                 textEffects: sanitizeTextEffects(slide.textEffects),
               };
             });
@@ -136,7 +150,7 @@ class StorageService {
         return null;
       },
       null,
-      'loadCurrentProject'
+      'loadCurrentProject',
     );
   }
 
@@ -147,7 +161,7 @@ class StorageService {
         await AsyncStorage.removeItem(this.STORAGE_KEYS.CURRENT_PROJECT);
       },
       undefined,
-      'clearCurrentProject'
+      'clearCurrentProject',
     );
   }
 
@@ -167,7 +181,7 @@ class StorageService {
 
       await AsyncStorage.setItem(
         this.STORAGE_KEYS.RECENT_PROJECTS,
-        JSON.stringify(trimmedProjects)
+        JSON.stringify(trimmedProjects),
       );
     } catch (error) {
       console.error('Error adding to recent projects:', error);
@@ -177,31 +191,93 @@ class StorageService {
   // Get recent projects
   async getRecentProjects(): Promise<ProjectState[]> {
     try {
-      const projectsData = await AsyncStorage.getItem(this.STORAGE_KEYS.RECENT_PROJECTS);
+      const projectsData = await AsyncStorage.getItem(
+        this.STORAGE_KEYS.RECENT_PROJECTS,
+      );
       if (projectsData) {
         const parsed: ProjectState[] = JSON.parse(projectsData);
-        return parsed.map(project => ({
-          ...project,
-          slides: project.slides?.map(slide => {
-            const legacyFontId =
-              slide.fontId === LEGACY_SYSTEM_FONT_ID
-                ? DEFAULT_SLIDE_FONT_ID
-                : slide.fontId;
-            const fontOption = legacyFontId
-              ? getSlideFontById(legacyFontId)
-              : getSlideFontByFamily(slide.fontFamily);
 
-            return {
-              ...slide,
-              fontId:
-                legacyFontId ??
-                (slide.fontFamily
-                  ? getSlideFontByFamily(slide.fontFamily).id
-                  : DEFAULT_SLIDE_FONT_ID),
-              fontFamily: resolveFontFamilyForPlatform(fontOption, platformKey),
-              textEffects: sanitizeTextEffects(slide.textEffects),
-            };
-          }) || [],
+        // Helper to check if a string is a valid image URI
+        const isValidUri = (uri: string | undefined | null): boolean => {
+          if (!uri || typeof uri !== 'string') return false;
+          const trimmed = uri.trim();
+          if (trimmed.length === 0) return false;
+          // Must start with a valid protocol or path
+          return (
+            trimmed.startsWith('file://') ||
+            trimmed.startsWith('ph://') ||
+            trimmed.startsWith('content://') ||
+            trimmed.startsWith('http://') ||
+            trimmed.startsWith('https://') ||
+            (trimmed.startsWith('/') && trimmed.length > 1)
+          );
+        };
+
+        // Filter out empty projects - must have actual image content
+        const validProjects = parsed.filter(project => {
+          // Check for valid images in images array
+          const hasValidImages =
+            project.images &&
+            Array.isArray(project.images) &&
+            project.images.some(img => isValidUri(img));
+
+          // Check for valid images in composition
+          const hasCompositionImages =
+            project.composition &&
+            (isValidUri(project.composition.photoAUri) ||
+              isValidUri(project.composition.photoBUri));
+
+          // Check for valid thumbnail
+          const hasThumbnail = isValidUri(project.thumbnail);
+
+          // Must have at least one valid image source (not just thumbnail)
+          const isValid = hasValidImages || hasCompositionImages;
+
+          if (!isValid) {
+            console.log('Filtering out invalid project:', project.id, {
+              images: project.images,
+              photoA: project.composition?.photoAUri,
+              photoB: project.composition?.photoBUri,
+            });
+          }
+
+          return isValid;
+        });
+
+        // If we filtered some out, save the cleaned list
+        if (validProjects.length !== parsed.length) {
+          await AsyncStorage.setItem(
+            this.STORAGE_KEYS.RECENT_PROJECTS,
+            JSON.stringify(validProjects),
+          );
+        }
+
+        return validProjects.map(project => ({
+          ...project,
+          slides:
+            project.slides?.map(slide => {
+              const legacyFontId =
+                slide.fontId === LEGACY_SYSTEM_FONT_ID
+                  ? DEFAULT_SLIDE_FONT_ID
+                  : slide.fontId;
+              const fontOption = legacyFontId
+                ? getSlideFontById(legacyFontId)
+                : getSlideFontByFamily(slide.fontFamily);
+
+              return {
+                ...slide,
+                fontId:
+                  legacyFontId ??
+                  (slide.fontFamily
+                    ? getSlideFontByFamily(slide.fontFamily).id
+                    : DEFAULT_SLIDE_FONT_ID),
+                fontFamily: resolveFontFamilyForPlatform(
+                  fontOption,
+                  platformKey,
+                ),
+                textEffects: sanitizeTextEffects(slide.textEffects),
+              };
+            }) || [],
         }));
       }
       return [];
@@ -219,22 +295,90 @@ class StorageService {
 
       await AsyncStorage.setItem(
         this.STORAGE_KEYS.RECENT_PROJECTS,
-        JSON.stringify(filteredProjects)
+        JSON.stringify(filteredProjects),
       );
     } catch (error) {
       console.error('Error deleting recent project:', error);
     }
   }
 
+  // Force cleanup of all empty/invalid projects from storage
+  async cleanupEmptyProjects(): Promise<number> {
+    try {
+      const projectsData = await AsyncStorage.getItem(
+        this.STORAGE_KEYS.RECENT_PROJECTS,
+      );
+      if (!projectsData) return 0;
+
+      const parsed: ProjectState[] = JSON.parse(projectsData);
+      const originalCount = parsed.length;
+
+      // Helper to check if a string is a valid image URI
+      const isValidUri = (uri: string | undefined | null): boolean => {
+        if (!uri || typeof uri !== 'string') return false;
+        const trimmed = uri.trim();
+        return (
+          trimmed.length > 0 &&
+          (trimmed.startsWith('file://') ||
+            trimmed.startsWith('ph://') ||
+            trimmed.startsWith('content://') ||
+            trimmed.startsWith('http://') ||
+            trimmed.startsWith('https://') ||
+            trimmed.startsWith('/'))
+        );
+      };
+
+      const validProjects = parsed.filter(project => {
+        const hasValidImages =
+          project.images &&
+          Array.isArray(project.images) &&
+          project.images.some(img => isValidUri(img));
+
+        const hasCompositionImages =
+          project.composition &&
+          (isValidUri(project.composition.photoAUri) ||
+            isValidUri(project.composition.photoBUri));
+
+        return hasValidImages || hasCompositionImages;
+      });
+
+      const removedCount = originalCount - validProjects.length;
+
+      if (removedCount > 0) {
+        await AsyncStorage.setItem(
+          this.STORAGE_KEYS.RECENT_PROJECTS,
+          JSON.stringify(validProjects),
+        );
+      }
+
+      return removedCount;
+    } catch (error) {
+      console.error('Error cleaning up empty projects:', error);
+      return 0;
+    }
+  }
+
+  // Clear all recent projects (for debugging/reset)
+  async clearAllRecentProjects(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(this.STORAGE_KEYS.RECENT_PROJECTS);
+      console.log('All recent projects cleared');
+    } catch (error) {
+      console.error('Error clearing recent projects:', error);
+    }
+  }
+
   // Save preferences
-  async savePreferences(preferences: Partial<AppState['preferences']>): Promise<void> {
+  async savePreferences(
+    preferences: Partial<AppState['preferences']>,
+  ): Promise<void> {
     try {
       const currentPrefs = await this.getPreferences();
       const updatedPrefs = { ...currentPrefs, ...preferences };
 
       await AsyncStorage.setItem(
         this.STORAGE_KEYS.PREFERENCES,
-        JSON.stringify(updatedPrefs)
+        JSON.stringify(updatedPrefs),
       );
     } catch (error) {
       console.error('Error saving preferences:', error);
@@ -245,7 +389,9 @@ class StorageService {
   // Get preferences
   async getPreferences(): Promise<AppState['preferences']> {
     try {
-      const prefsData = await AsyncStorage.getItem(this.STORAGE_KEYS.PREFERENCES);
+      const prefsData = await AsyncStorage.getItem(
+        this.STORAGE_KEYS.PREFERENCES,
+      );
       if (prefsData) {
         return JSON.parse(prefsData);
       }
@@ -255,7 +401,7 @@ class StorageService {
         theme: 'light',
         language: 'en',
         soundEnabled: true,
-        hapticsEnabled: true
+        hapticsEnabled: true,
       };
     } catch (error) {
       console.error('Error getting preferences:', error);
@@ -264,7 +410,7 @@ class StorageService {
         theme: 'light',
         language: 'en',
         soundEnabled: true,
-        hapticsEnabled: true
+        hapticsEnabled: true,
       };
     }
   }
@@ -274,7 +420,7 @@ class StorageService {
     try {
       await AsyncStorage.setItem(
         this.STORAGE_KEYS.APP_STATE,
-        JSON.stringify(state)
+        JSON.stringify(state),
       );
     } catch (error) {
       console.error('Error saving app state:', error);
@@ -300,7 +446,9 @@ class StorageService {
   async isFirstLaunch(): Promise<boolean> {
     return StorageInitializer.safeStorageOperation(
       async () => {
-        const firstLaunch = await AsyncStorage.getItem(this.STORAGE_KEYS.FIRST_LAUNCH);
+        const firstLaunch = await AsyncStorage.getItem(
+          this.STORAGE_KEYS.FIRST_LAUNCH,
+        );
         if (firstLaunch === null) {
           // Try to set the first launch flag
           await AsyncStorage.setItem(this.STORAGE_KEYS.FIRST_LAUNCH, 'false');
@@ -309,7 +457,7 @@ class StorageService {
         return false;
       },
       false,
-      'isFirstLaunch'
+      'isFirstLaunch',
     );
   }
 
@@ -380,7 +528,7 @@ class StorageService {
         recentProjects,
         preferences,
         exportDate: new Date().toISOString(),
-        version: '1.0.0'
+        version: '1.0.0',
       };
 
       return JSON.stringify(exportData, null, 2);
@@ -401,7 +549,7 @@ class StorageService {
       if (data.recentProjects) {
         await AsyncStorage.setItem(
           this.STORAGE_KEYS.RECENT_PROJECTS,
-          JSON.stringify(data.recentProjects)
+          JSON.stringify(data.recentProjects),
         );
       }
 

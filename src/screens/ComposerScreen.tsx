@@ -24,13 +24,25 @@ import FeedbackService from '../services/FeedbackService';
 import StorageService, { ProjectState } from '../services/StorageService';
 import { CompositionState, LayoutType, LabelStyle } from '../types/composer';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { defaultTemplates, applyTemplate, Template } from '../constants/templates';
-import { TextEffectInstance, createTextEffectInstance, SUPPORTED_TEXT_EFFECT_TYPES, getTextEffectDefinition } from '../constants/textEffects';
+import {
+  defaultTemplates,
+  applyTemplate,
+  Template,
+} from '../constants/templates';
+import {
+  TextEffectInstance,
+  createTextEffectInstance,
+  SUPPORTED_TEXT_EFFECT_TYPES,
+  getTextEffectDefinition,
+} from '../constants/textEffects';
 import CompositionCanvas from '../components/CompositionCanvas';
 import VerticalPager from '../components/VerticalPager';
 
 type ComposerRouteProp = RouteProp<RootStackParamList, 'Composer'>;
-type ComposerNavigationProp = StackNavigationProp<RootStackParamList, 'ExportResult'>;
+type ComposerNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'ExportResult'
+>;
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -46,8 +58,8 @@ const ComposerScreen: React.FC = () => {
     const templateNameMap: { [key: string]: string } = {
       'device-showcase': 'device_showcase',
       'polaroid-collage': 'polaroid_collage',
-      'minimal': 'minimal',
-      'elegant': 'elegant',
+      minimal: 'minimal',
+      elegant: 'elegant',
     };
     return templateNameMap[templateId] || templateId;
   };
@@ -55,11 +67,11 @@ const ComposerScreen: React.FC = () => {
   // Function to get translated text effect name
   const getTextEffectNameKey = (effectType: string) => {
     const effectNameMap: { [key: string]: string } = {
-      'softShadow': 'soft_shadow',
-      'neonGlow': 'neon_glow',
-      'longShadow': 'long_shadow',
-      'bloom': 'bloom',
-      'letterpress': 'letterpress',
+      softShadow: 'soft_shadow',
+      neonGlow: 'neon_glow',
+      longShadow: 'long_shadow',
+      bloom: 'bloom',
+      letterpress: 'letterpress',
     };
     return effectNameMap[effectType] || effectType;
   };
@@ -67,45 +79,63 @@ const ComposerScreen: React.FC = () => {
   // Canvas ref for export
   const canvasRef = useRef<any>(null);
 
-  // Initialize composition state
-  const [composition, setComposition] = useState<CompositionState>({
-    photoAUri: route.params?.photoA,
-    photoBUri: route.params?.photoB,
-    layout: 'side',
-    spacing: 12,
-    cornerRadius: 16,
-    aspect: 'free',
-    labels: {
-      textBefore: t('before'),
-      textAfter: t('after'),
-      fontFamily: 'System',
-      fontSize: 24,
-      fontWeight: 'Bold',
-      color: '#000000',
-      position: 'bl',
-      margin: 16,
-      show: true,
-      textEffects: [],
-    },
-    background: {
-      type: 'solid',
-      colors: ['#FFFFFF'],
-    },
-    frame: {
-      on: false,
-      thickness: 4,
-      color: '#000000',
-      padding: 8,
-    },
-    watermarkOn: true, // Will be controlled by Pro status
+  // Initialize composition state - use saved composition if reopening a project
+  const [composition, setComposition] = useState<CompositionState>(() => {
+    // If we have a saved composition from a reopened project, use it
+    if (route.params?.savedComposition) {
+      return {
+        ...route.params.savedComposition,
+        // Ensure photos are set from params if composition doesn't have them
+        photoAUri:
+          route.params.savedComposition.photoAUri || route.params?.photoA,
+        photoBUri:
+          route.params.savedComposition.photoBUri || route.params?.photoB,
+      };
+    }
+    // Otherwise use defaults
+    return {
+      photoAUri: route.params?.photoA,
+      photoBUri: route.params?.photoB,
+      layout: 'side',
+      spacing: 12,
+      cornerRadius: 16,
+      aspect: 'free',
+      labels: {
+        textBefore: t('before'),
+        textAfter: t('after'),
+        fontFamily: 'System',
+        fontSize: 24,
+        fontWeight: 'Bold',
+        color: '#000000',
+        position: 'bl',
+        margin: 16,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#FFFFFF'],
+      },
+      frame: {
+        on: false,
+        thickness: 4,
+        color: '#000000',
+        padding: 8,
+      },
+      watermarkOn: true,
+    };
   });
 
   // Active tool panel state
-  const [activePanel, setActivePanel] = useState<'layout' | 'labels' | 'style' | 'export'>('layout');
+  const [activePanel, setActivePanel] = useState<
+    'layout' | 'labels' | 'style' | 'export'
+  >('layout');
 
   // Project ID for saving to recent projects - use existing ID if reopening project
-  const [projectId] = useState(() =>
-    route.params?.projectId || `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  const [projectId] = useState(
+    () =>
+      route.params?.projectId ||
+      `project_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
   );
 
   // Text editing modal state (removed - now using inline TextInput)
@@ -114,58 +144,88 @@ const ComposerScreen: React.FC = () => {
   const [history, setHistory] = useState<CompositionState[]>([composition]);
   const [historyIndex, setHistoryIndex] = useState(0);
 
-  const addToHistory = useCallback((newComposition: CompositionState) => {
-    setHistory(prev => {
-      const newHistory = prev.slice(0, historyIndex + 1);
-      newHistory.push(newComposition);
-      // Limit history to 20 items
-      if (newHistory.length > 20) {
-        newHistory.shift();
-        setHistoryIndex(19);
-      } else {
-        setHistoryIndex(newHistory.length - 1);
-      }
-      return newHistory;
-    });
-  }, [historyIndex]);
+  const addToHistory = useCallback(
+    (newComposition: CompositionState) => {
+      setHistory(prev => {
+        const newHistory = prev.slice(0, historyIndex + 1);
+        newHistory.push(newComposition);
+        // Limit history to 20 items
+        if (newHistory.length > 20) {
+          newHistory.shift();
+          setHistoryIndex(19);
+        } else {
+          setHistoryIndex(newHistory.length - 1);
+        }
+        return newHistory;
+      });
+    },
+    [historyIndex],
+  );
 
-  const updateComposition = useCallback((updates: Partial<CompositionState>) => {
-    setComposition(prev => {
-      const newComposition = { ...prev, ...updates };
-      addToHistory(newComposition);
-      return newComposition;
-    });
-  }, [addToHistory]);
+  const updateComposition = useCallback(
+    (updates: Partial<CompositionState>) => {
+      setComposition(prev => {
+        const newComposition = { ...prev, ...updates };
+        addToHistory(newComposition);
+        return newComposition;
+      });
+    },
+    [addToHistory],
+  );
 
   // Save project to recent projects when images are present
-  const saveToRecentProjects = useCallback(async (comp: CompositionState) => {
-    try {
-      // Only save if at least one image is present
-      if (comp.photoAUri || comp.photoBUri) {
-        const images: string[] = [];
-        if (comp.photoAUri) images.push(comp.photoAUri);
-        if (comp.photoBUri) images.push(comp.photoBUri);
+  const saveToRecentProjects = useCallback(
+    async (comp: CompositionState, captureThumbnail: boolean = false) => {
+      try {
+        // Only save if at least one image is present
+        if (comp.photoAUri || comp.photoBUri) {
+          const images: string[] = [];
+          if (comp.photoAUri) images.push(comp.photoAUri);
+          if (comp.photoBUri) images.push(comp.photoBUri);
 
-        const projectState: ProjectState = {
-          id: projectId,
-          text: `${comp.labels.textBefore} / ${comp.labels.textAfter}`,
-          slides: [], // ComposerScreen doesn't have slides format yet
-          images,
-          lastModified: new Date().toISOString(),
-          isCompleted: false,
-        };
+          let thumbnail: string | undefined;
 
-        await StorageService.saveCurrentProject(projectState);
+          // Capture thumbnail if canvas is ready and requested
+          if (captureThumbnail && canvasRef.current) {
+            try {
+              thumbnail = await captureRef(canvasRef, {
+                format: 'png',
+                quality: 0.5,
+                width: 200,
+                height: 200,
+              });
+            } catch (thumbError) {
+              console.log('Could not capture thumbnail:', thumbError);
+            }
+          }
+
+          const projectState: ProjectState = {
+            id: projectId,
+            text: `${comp.labels.textBefore} / ${comp.labels.textAfter}`,
+            slides: [],
+            images,
+            thumbnail,
+            composition: comp, // Save full composition state
+            lastModified: new Date().toISOString(),
+            isCompleted: false,
+          };
+
+          await StorageService.saveCurrentProject(projectState);
+        }
+      } catch (error) {
+        console.error('Error saving to recent projects:', error);
       }
-    } catch (error) {
-      console.error('Error saving to recent projects:', error);
-    }
-  }, [projectId]);
+    },
+    [projectId],
+  );
 
   // Apply template if provided in route params
   useEffect(() => {
     if (route.params?.template && route.params?.useTemplate) {
-      const templateComposition = applyTemplate(composition, route.params.template);
+      const templateComposition = applyTemplate(
+        composition,
+        route.params.template,
+      );
       setComposition(templateComposition);
       setHistory([templateComposition]);
       setHistoryIndex(0);
@@ -175,8 +235,8 @@ const ComposerScreen: React.FC = () => {
   // Auto-save to recent projects when composition changes and has images
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveToRecentProjects(composition);
-    }, 1000); // Debounce saves by 1 second
+      saveToRecentProjects(composition, true); // Capture thumbnail on save
+    }, 1500); // Debounce saves by 1.5 seconds to allow canvas to render
 
     return () => clearTimeout(timer);
   }, [composition, saveToRecentProjects]);
@@ -184,7 +244,11 @@ const ComposerScreen: React.FC = () => {
   // Save immediately on mount if images are provided via route params
   useEffect(() => {
     if (route.params?.photoA || route.params?.photoB) {
-      saveToRecentProjects(composition);
+      // Delay initial save to allow canvas to render
+      const timer = setTimeout(() => {
+        saveToRecentProjects(composition, true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
@@ -203,13 +267,9 @@ const ComposerScreen: React.FC = () => {
         const uri = response.assets?.[0]?.uri;
         if (uri) {
           FeedbackService.buttonTap();
-          updateComposition(
-            isPhotoA
-              ? { photoAUri: uri }
-              : { photoBUri: uri }
-          );
+          updateComposition(isPhotoA ? { photoAUri: uri } : { photoBUri: uri });
         }
-      }
+      },
     );
   };
 
@@ -238,10 +298,13 @@ const ComposerScreen: React.FC = () => {
       // Request permissions for saving to Photos
       if (Platform.OS === 'android') {
         const permission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
         );
         if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
-          Alert.alert('Permission Required', 'Please grant storage permission to save photos');
+          Alert.alert(
+            'Permission Required',
+            'Please grant storage permission to save photos',
+          );
           return;
         }
       }
@@ -249,7 +312,7 @@ const ComposerScreen: React.FC = () => {
       Alert.alert(
         'Export Started',
         'Capturing your before/after composition...',
-        [{ text: 'OK' }]
+        [{ text: 'OK' }],
       );
 
       // Capture the canvas as an image
@@ -263,12 +326,17 @@ const ComposerScreen: React.FC = () => {
       await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
 
       FeedbackService.success();
-      Alert.alert('Success!', 'Your before/after photo has been saved to Photos');
-
+      Alert.alert(
+        'Success!',
+        'Your before/after photo has been saved to Photos',
+      );
     } catch (error) {
       console.error('Export error:', error);
       FeedbackService.error();
-      Alert.alert('Error', `Failed to export photo: ${error.message || 'Please try again.'}`);
+      Alert.alert(
+        'Error',
+        `Failed to export photo: ${error.message || 'Please try again.'}`,
+      );
     }
   };
 
@@ -285,12 +353,16 @@ const ComposerScreen: React.FC = () => {
   const toggleTextEffect = (effectType: string) => {
     FeedbackService.buttonTap();
     const currentEffects = composition.labels.textEffects || [];
-    const existingEffectIndex = currentEffects.findIndex(effect => effect.type === effectType);
+    const existingEffectIndex = currentEffects.findIndex(
+      effect => effect.type === effectType,
+    );
 
     let newEffects: TextEffectInstance[];
     if (existingEffectIndex >= 0) {
       // Remove existing effect
-      newEffects = currentEffects.filter((_, index) => index !== existingEffectIndex);
+      newEffects = currentEffects.filter(
+        (_, index) => index !== existingEffectIndex,
+      );
     } else {
       // Add new effect
       const newEffect = createTextEffectInstance(effectType as any);
@@ -302,7 +374,7 @@ const ComposerScreen: React.FC = () => {
 
   const updateLabels = (labelUpdates: Partial<LabelStyle>) => {
     updateComposition({
-      labels: { ...composition.labels, ...labelUpdates }
+      labels: { ...composition.labels, ...labelUpdates },
     });
   };
 
@@ -318,10 +390,18 @@ const ComposerScreen: React.FC = () => {
   };
 
   const renderLayoutPanel = () => (
-    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
+    <VerticalPager
+      style={styles.toolPanel}
+      contentContainerStyle={styles.toolPanelContent}
+    >
       {/* Templates Section */}
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           Templates
         </Text>
         <ScrollView
@@ -332,35 +412,92 @@ const ComposerScreen: React.FC = () => {
           {defaultTemplates.slice(0, 4).map(template => (
             <TouchableOpacity
               key={template.id}
-              style={[styles.editorTemplateCard, { backgroundColor: themeDefinition.colors.surface }]}
+              style={[
+                styles.editorTemplateCard,
+                { backgroundColor: themeDefinition.colors.surface },
+              ]}
               onPress={() => applyTemplateToComposition(template)}
             >
-              <View style={[
-                styles.editorTemplatePreview,
-                { backgroundColor: template.preview.backgroundColor }
-              ]}>
+              <View
+                style={[
+                  styles.editorTemplatePreview,
+                  { backgroundColor: template.preview.backgroundColor },
+                ]}
+              >
                 <View style={styles.editorTemplatePreviewContent}>
                   {template.preview.layout === 'side' ? (
                     <View style={styles.editorPreviewSide}>
-                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
-                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '60' }]} />
+                      <View
+                        style={[
+                          styles.editorPreviewBox,
+                          {
+                            backgroundColor:
+                              template.preview.accentColor + '40',
+                          },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.editorPreviewBox,
+                          {
+                            backgroundColor:
+                              template.preview.accentColor + '60',
+                          },
+                        ]}
+                      />
                     </View>
                   ) : template.preview.layout === 'vertical' ? (
                     <View style={styles.editorPreviewVertical}>
-                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
-                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '60' }]} />
+                      <View
+                        style={[
+                          styles.editorPreviewBox,
+                          {
+                            backgroundColor:
+                              template.preview.accentColor + '40',
+                          },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.editorPreviewBox,
+                          {
+                            backgroundColor:
+                              template.preview.accentColor + '60',
+                          },
+                        ]}
+                      />
                     </View>
                   ) : template.preview.layout === 'polaroid' ? (
                     <View style={styles.editorPreviewPolaroid}>
-                      <View style={[styles.editorPreviewPolaroidCard, styles.editorPreviewPolaroidCardLeft]}>
+                      <View
+                        style={[
+                          styles.editorPreviewPolaroidCard,
+                          styles.editorPreviewPolaroidCardLeft,
+                        ]}
+                      >
                         <View style={styles.editorPreviewPolaroidPhoto} />
-                        <View style={[styles.editorPreviewTape, styles.editorPreviewTapeLeft]}>
+                        <View
+                          style={[
+                            styles.editorPreviewTape,
+                            styles.editorPreviewTapeLeft,
+                          ]}
+                        >
                           <View style={styles.editorPreviewTapeHighlight} />
                         </View>
                       </View>
-                      <View style={[styles.editorPreviewPolaroidCard, styles.editorPreviewPolaroidCardRight]}>
+                      <View
+                        style={[
+                          styles.editorPreviewPolaroidCard,
+                          styles.editorPreviewPolaroidCardRight,
+                        ]}
+                      >
                         <View style={styles.editorPreviewPolaroidPhoto} />
-                        <View style={[styles.editorPreviewTape, styles.editorPreviewTapeRight]}>
+                        <View
+                          style={[
+                            styles.editorPreviewTape,
+                            styles.editorPreviewTapeRight,
+                          ]}
+                        >
                           <View style={styles.editorPreviewTapeHighlight} />
                         </View>
                       </View>
@@ -370,19 +507,49 @@ const ComposerScreen: React.FC = () => {
                       {[0, 1].map(index => (
                         <View key={index} style={styles.editorPreviewPhone}>
                           <View style={styles.editorPreviewPhoneNotch} />
-                          <View style={[styles.editorPreviewPhoneScreen, { backgroundColor: template.preview.accentColor + (index === 0 ? '40' : '70') }]} />
+                          <View
+                            style={[
+                              styles.editorPreviewPhoneScreen,
+                              {
+                                backgroundColor:
+                                  template.preview.accentColor +
+                                  (index === 0 ? '40' : '70'),
+                              },
+                            ]}
+                          />
                         </View>
                       ))}
                     </View>
                   ) : (
                     <View style={styles.editorPreviewVertical}>
-                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '40' }]} />
-                      <View style={[styles.editorPreviewBox, { backgroundColor: template.preview.accentColor + '60' }]} />
+                      <View
+                        style={[
+                          styles.editorPreviewBox,
+                          {
+                            backgroundColor:
+                              template.preview.accentColor + '40',
+                          },
+                        ]}
+                      />
+                      <View
+                        style={[
+                          styles.editorPreviewBox,
+                          {
+                            backgroundColor:
+                              template.preview.accentColor + '60',
+                          },
+                        ]}
+                      />
                     </View>
                   )}
                 </View>
               </View>
-              <Text style={[styles.editorTemplateName, { color: themeDefinition.colors.textPrimary }]}>
+              <Text
+                style={[
+                  styles.editorTemplateName,
+                  { color: themeDefinition.colors.textPrimary },
+                ]}
+              >
                 {t(getTemplateNameKey(template.id))}
               </Text>
             </TouchableOpacity>
@@ -391,31 +558,45 @@ const ComposerScreen: React.FC = () => {
       </View>
 
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           {t('layout')}
         </Text>
         <View style={styles.layoutButtons}>
-          {([
-            { key: 'side', label: t('composer_layoutSideBySide') },
-            { key: 'vertical', label: t('composer_layoutVertical') },
-            { key: 'slider', label: t('composer_layoutSlider') },
-            { key: 'stacked', label: t('composer_layoutStacked') },
-            { key: 'diagonal', label: t('composer_layoutDiagonal') },
-            { key: 'polaroid', label: t('composer_layoutPolaroid') },
-          ] as const).map(({ key, label }) => (
+          {(
+            [
+              { key: 'side', label: t('composer_layoutSideBySide') },
+              { key: 'vertical', label: t('composer_layoutVertical') },
+              { key: 'slider', label: t('composer_layoutSlider') },
+              { key: 'stacked', label: t('composer_layoutStacked') },
+              { key: 'diagonal', label: t('composer_layoutDiagonal') },
+              { key: 'polaroid', label: t('composer_layoutPolaroid') },
+            ] as const
+          ).map(({ key, label }) => (
             <TouchableOpacity
               key={key}
               style={[
                 styles.layoutButton,
                 composition.layout === key && styles.activeLayoutButton,
-                { borderColor: themeDefinition.colors.border }
+                { borderColor: themeDefinition.colors.border },
               ]}
               onPress={() => setLayout(key)}
             >
-              <Text style={[
-                styles.layoutButtonText,
-                { color: composition.layout === key ? themeDefinition.colors.accent : themeDefinition.colors.textSecondary }
-              ]}>
+              <Text
+                style={[
+                  styles.layoutButtonText,
+                  {
+                    color:
+                      composition.layout === key
+                        ? themeDefinition.colors.accent
+                        : themeDefinition.colors.textSecondary,
+                  },
+                ]}
+              >
                 {label}
               </Text>
             </TouchableOpacity>
@@ -424,29 +605,43 @@ const ComposerScreen: React.FC = () => {
       </View>
 
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           {t('composer_aspectRatio')}
         </Text>
         <View style={styles.aspectButtons}>
-          {([
-            { key: 'free', label: t('composer_cropFree') },
-            { key: '1:1', label: t('composer_crop1to1') },
-            { key: '4:3', label: t('composer_crop4to3') },
-            { key: '16:9', label: t('composer_crop16to9') },
-          ] as const).map(({ key, label }) => (
+          {(
+            [
+              { key: 'free', label: t('composer_cropFree') },
+              { key: '1:1', label: t('composer_crop1to1') },
+              { key: '4:3', label: t('composer_crop4to3') },
+              { key: '16:9', label: t('composer_crop16to9') },
+            ] as const
+          ).map(({ key, label }) => (
             <TouchableOpacity
               key={key}
               style={[
                 styles.aspectButton,
                 composition.aspect === key && styles.activeAspectButton,
-                { borderColor: themeDefinition.colors.border }
+                { borderColor: themeDefinition.colors.border },
               ]}
               onPress={() => setAspectRatio(key)}
             >
-              <Text style={[
-                styles.aspectButtonText,
-                { color: composition.aspect === key ? themeDefinition.colors.accent : themeDefinition.colors.textSecondary }
-              ]}>
+              <Text
+                style={[
+                  styles.aspectButtonText,
+                  {
+                    color:
+                      composition.aspect === key
+                        ? themeDefinition.colors.accent
+                        : themeDefinition.colors.textSecondary,
+                  },
+                ]}
+              >
                 {label}
               </Text>
             </TouchableOpacity>
@@ -456,13 +651,20 @@ const ComposerScreen: React.FC = () => {
 
       {/* Text Effects Section */}
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           {t('text_effects')}
         </Text>
         <View style={styles.textEffectsContainer}>
           {SUPPORTED_TEXT_EFFECT_TYPES.map(effectType => {
             const definition = getTextEffectDefinition(effectType);
-            const isActive = composition.labels.textEffects?.some(effect => effect.type === effectType);
+            const isActive = composition.labels.textEffects?.some(
+              effect => effect.type === effectType,
+            );
 
             return (
               <TouchableOpacity
@@ -471,16 +673,26 @@ const ComposerScreen: React.FC = () => {
                   styles.textEffectButton,
                   isActive && styles.activeTextEffectButton,
                   {
-                    borderColor: isActive ? themeDefinition.colors.accent : themeDefinition.colors.border,
-                    backgroundColor: isActive ? themeDefinition.colors.accent + '20' : themeDefinition.colors.surface
-                  }
+                    borderColor: isActive
+                      ? themeDefinition.colors.accent
+                      : themeDefinition.colors.border,
+                    backgroundColor: isActive
+                      ? themeDefinition.colors.accent + '20'
+                      : themeDefinition.colors.surface,
+                  },
                 ]}
                 onPress={() => toggleTextEffect(effectType)}
               >
-                <Text style={[
-                  styles.textEffectButtonText,
-                  { color: isActive ? themeDefinition.colors.accent : themeDefinition.colors.textPrimary }
-                ]}>
+                <Text
+                  style={[
+                    styles.textEffectButtonText,
+                    {
+                      color: isActive
+                        ? themeDefinition.colors.accent
+                        : themeDefinition.colors.textPrimary,
+                    },
+                  ]}
+                >
                   {t(getTextEffectNameKey(effectType))}
                 </Text>
               </TouchableOpacity>
@@ -492,25 +704,39 @@ const ComposerScreen: React.FC = () => {
   );
 
   const renderLabelsPanel = () => (
-    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
+    <VerticalPager
+      style={styles.toolPanel}
+      contentContainerStyle={styles.toolPanelContent}
+    >
       <View style={styles.toolSection}>
         <View style={styles.toggleRow}>
-          <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+          <Text
+            style={[
+              styles.toolSectionTitle,
+              { color: themeDefinition.colors.textPrimary },
+            ]}
+          >
             {t('labels_toggle')}
           </Text>
           <TouchableOpacity
             style={[
               styles.toggle,
               composition.labels.show && styles.activeToggle,
-              { borderColor: themeDefinition.colors.border }
+              { borderColor: themeDefinition.colors.border },
             ]}
             onPress={() => updateLabels({ show: !composition.labels.show })}
           >
-            <View style={[
-              styles.toggleThumb,
-              composition.labels.show && styles.activeToggleThumb,
-              { backgroundColor: composition.labels.show ? themeDefinition.colors.accent : themeDefinition.colors.border }
-            ]} />
+            <View
+              style={[
+                styles.toggleThumb,
+                composition.labels.show && styles.activeToggleThumb,
+                {
+                  backgroundColor: composition.labels.show
+                    ? themeDefinition.colors.accent
+                    : themeDefinition.colors.border,
+                },
+              ]}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -519,34 +745,52 @@ const ComposerScreen: React.FC = () => {
         <>
           {/* Text Content */}
           <View style={styles.toolSection}>
-            <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
               {t('labels_beforeText')}
             </Text>
             <TextInput
-              style={[styles.textInput, styles.textInputText, {
-                borderColor: themeDefinition.colors.border,
-                color: themeDefinition.colors.textPrimary,
-                backgroundColor: themeDefinition.colors.surface
-              }]}
+              style={[
+                styles.textInput,
+                styles.textInputText,
+                {
+                  borderColor: themeDefinition.colors.border,
+                  color: themeDefinition.colors.textPrimary,
+                  backgroundColor: themeDefinition.colors.surface,
+                },
+              ]}
               value={composition.labels.textBefore}
-              onChangeText={(text) => updateLabels({ textBefore: text })}
+              onChangeText={text => updateLabels({ textBefore: text })}
               placeholder="Enter before text"
               placeholderTextColor={themeDefinition.colors.textSecondary}
               multiline
               maxLength={50}
             />
 
-            <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary, marginTop: 16 }]}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary, marginTop: 16 },
+              ]}
+            >
               {t('labels_afterText')}
             </Text>
             <TextInput
-              style={[styles.textInput, styles.textInputText, {
-                borderColor: themeDefinition.colors.border,
-                color: themeDefinition.colors.textPrimary,
-                backgroundColor: themeDefinition.colors.surface
-              }]}
+              style={[
+                styles.textInput,
+                styles.textInputText,
+                {
+                  borderColor: themeDefinition.colors.border,
+                  color: themeDefinition.colors.textPrimary,
+                  backgroundColor: themeDefinition.colors.surface,
+                },
+              ]}
               value={composition.labels.textAfter}
-              onChangeText={(text) => updateLabels({ textAfter: text })}
+              onChangeText={text => updateLabels({ textAfter: text })}
               placeholder="Enter after text"
               placeholderTextColor={themeDefinition.colors.textSecondary}
               multiline
@@ -556,18 +800,33 @@ const ComposerScreen: React.FC = () => {
 
           {/* Font Size */}
           <View style={styles.toolSection}>
-            <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
               {t('labels_size')} ({composition.labels.fontSize}px)
             </Text>
             <View style={styles.sliderContainer}>
               <TouchableOpacity
-                style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+                style={[
+                  styles.sliderButton,
+                  { backgroundColor: themeDefinition.colors.surface },
+                ]}
                 onPress={() => {
                   FeedbackService.buttonTap();
-                  updateLabels({ fontSize: Math.max(12, composition.labels.fontSize - 2) });
+                  updateLabels({
+                    fontSize: Math.max(12, composition.labels.fontSize - 2),
+                  });
                 }}
               >
-                <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>
+                <Text
+                  style={[
+                    styles.sliderButtonText,
+                    { color: themeDefinition.colors.textPrimary },
+                  ]}
+                >
                   -
                 </Text>
               </TouchableOpacity>
@@ -576,7 +835,7 @@ const ComposerScreen: React.FC = () => {
                 minimumValue={12}
                 maximumValue={48}
                 value={composition.labels.fontSize}
-                onValueChange={(value) => {
+                onValueChange={value => {
                   updateLabels({ fontSize: Math.round(value) });
                 }}
                 onSlidingComplete={() => {
@@ -589,13 +848,23 @@ const ComposerScreen: React.FC = () => {
                 step={1}
               />
               <TouchableOpacity
-                style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+                style={[
+                  styles.sliderButton,
+                  { backgroundColor: themeDefinition.colors.surface },
+                ]}
                 onPress={() => {
                   FeedbackService.buttonTap();
-                  updateLabels({ fontSize: Math.min(48, composition.labels.fontSize + 2) });
+                  updateLabels({
+                    fontSize: Math.min(48, composition.labels.fontSize + 2),
+                  });
                 }}
               >
-                <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>
+                <Text
+                  style={[
+                    styles.sliderButtonText,
+                    { color: themeDefinition.colors.textPrimary },
+                  ]}
+                >
                   +
                 </Text>
               </TouchableOpacity>
@@ -604,7 +873,12 @@ const ComposerScreen: React.FC = () => {
 
           {/* Font Weight */}
           <View style={styles.toolSection}>
-            <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
               {t('labels_weight')}
             </Text>
             <View style={styles.weightButtons}>
@@ -613,24 +887,38 @@ const ComposerScreen: React.FC = () => {
                   key={weight}
                   style={[
                     styles.weightButton,
-                    composition.labels.fontWeight === weight && styles.activeWeightButton,
+                    composition.labels.fontWeight === weight &&
+                      styles.activeWeightButton,
                     {
                       borderColor: themeDefinition.colors.border,
-                      backgroundColor: composition.labels.fontWeight === weight ? themeDefinition.colors.accent : 'transparent'
-                    }
+                      backgroundColor:
+                        composition.labels.fontWeight === weight
+                          ? themeDefinition.colors.accent
+                          : 'transparent',
+                    },
                   ]}
                   onPress={() => {
                     FeedbackService.buttonTap();
                     updateLabels({ fontWeight: weight });
                   }}
                 >
-                  <Text style={[
-                    styles.weightButtonText,
-                    {
-                      color: composition.labels.fontWeight === weight ? '#FFFFFF' : themeDefinition.colors.textSecondary,
-                      fontWeight: weight === 'Bold' ? 'bold' : weight === 'Medium' ? '600' : 'normal'
-                    }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.weightButtonText,
+                      {
+                        color:
+                          composition.labels.fontWeight === weight
+                            ? '#FFFFFF'
+                            : themeDefinition.colors.textSecondary,
+                        fontWeight:
+                          weight === 'Bold'
+                            ? 'bold'
+                            : weight === 'Medium'
+                            ? '600'
+                            : 'normal',
+                      },
+                    ]}
+                  >
                     {weight}
                   </Text>
                 </TouchableOpacity>
@@ -640,18 +928,35 @@ const ComposerScreen: React.FC = () => {
 
           {/* Text Color */}
           <View style={styles.toolSection}>
-            <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
               {t('labels_color')}
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.colorOptions}>
-                {['#FFFFFF', '#000000', '#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'].map(color => (
+                {[
+                  '#FFFFFF',
+                  '#000000',
+                  '#FF0000',
+                  '#00FF00',
+                  '#0000FF',
+                  '#FFFF00',
+                  '#FF00FF',
+                  '#00FFFF',
+                ].map(color => (
                   <TouchableOpacity
                     key={color}
                     style={[
                       styles.colorOption,
                       { backgroundColor: color },
-                      composition.labels.color === color && { borderWidth: 3, borderColor: themeDefinition.colors.accent }
+                      composition.labels.color === color && {
+                        borderWidth: 3,
+                        borderColor: themeDefinition.colors.accent,
+                      },
                     ]}
                     onPress={() => {
                       FeedbackService.buttonTap();
@@ -665,7 +970,12 @@ const ComposerScreen: React.FC = () => {
 
           {/* Position */}
           <View style={styles.toolSection}>
-            <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
               {t('labels_position')}
             </Text>
             <View style={styles.positionGrid}>
@@ -679,21 +989,32 @@ const ComposerScreen: React.FC = () => {
                   key={key}
                   style={[
                     styles.positionButton,
-                    composition.labels.position === key && styles.activePositionButton,
+                    composition.labels.position === key &&
+                      styles.activePositionButton,
                     {
                       borderColor: themeDefinition.colors.border,
-                      backgroundColor: composition.labels.position === key ? themeDefinition.colors.accent : 'transparent'
-                    }
+                      backgroundColor:
+                        composition.labels.position === key
+                          ? themeDefinition.colors.accent
+                          : 'transparent',
+                    },
                   ]}
                   onPress={() => {
                     FeedbackService.buttonTap();
                     updateLabels({ position: key as any });
                   }}
                 >
-                  <Text style={[
-                    styles.positionButtonText,
-                    { color: composition.labels.position === key ? '#FFFFFF' : themeDefinition.colors.textSecondary }
-                  ]}>
+                  <Text
+                    style={[
+                      styles.positionButtonText,
+                      {
+                        color:
+                          composition.labels.position === key
+                            ? '#FFFFFF'
+                            : themeDefinition.colors.textSecondary,
+                      },
+                    ]}
+                  >
                     {label}
                   </Text>
                 </TouchableOpacity>
@@ -706,10 +1027,18 @@ const ComposerScreen: React.FC = () => {
   );
 
   const renderStylePanel = () => (
-    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
+    <VerticalPager
+      style={styles.toolPanel}
+      contentContainerStyle={styles.toolPanelContent}
+    >
       {/* Background Section */}
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           Background
         </Text>
         <View style={styles.backgroundOptions}>
@@ -718,7 +1047,11 @@ const ComposerScreen: React.FC = () => {
             { type: 'solid', color: '#F8FAFC', label: 'Light' },
             { type: 'solid', color: '#111827', label: 'Dark' },
             { type: 'solid', color: '#FFF8E1', label: 'Warm' },
-            { type: 'gradient', colors: ['#EDE9FE', '#DDD6FE'], label: 'Purple' },
+            {
+              type: 'gradient',
+              colors: ['#EDE9FE', '#DDD6FE'],
+              label: 'Purple',
+            },
             { type: 'gradient', colors: ['#FEF3C7', '#FDE68A'], label: 'Gold' },
             { type: 'transparent', color: 'transparent', label: 'None' },
           ].map((bg, index) => (
@@ -727,12 +1060,16 @@ const ComposerScreen: React.FC = () => {
               style={[
                 styles.backgroundOption,
                 {
-                  backgroundColor: bg.type === 'gradient' ? bg.colors[0] : bg.color,
+                  backgroundColor:
+                    bg.type === 'gradient' ? bg.colors[0] : bg.color,
                   borderColor: themeDefinition.colors.border,
                 },
                 composition.background.type === bg.type &&
-                composition.background.colors[0] === (bg.colors?.[0] || bg.color) &&
-                { borderWidth: 2, borderColor: themeDefinition.colors.accent }
+                  composition.background.colors[0] ===
+                    (bg.colors?.[0] || bg.color) && {
+                    borderWidth: 2,
+                    borderColor: themeDefinition.colors.accent,
+                  },
               ]}
               onPress={() => {
                 FeedbackService.buttonTap();
@@ -741,15 +1078,17 @@ const ComposerScreen: React.FC = () => {
                     type: bg.type as any,
                     colors: bg.colors || [bg.color],
                     direction: bg.type === 'gradient' ? 'vertical' : undefined,
-                  }
+                  },
                 });
               }}
             >
               {bg.type === 'gradient' && (
-                <View style={[
-                  styles.gradientPreview,
-                  { backgroundColor: bg.colors[1] }
-                ]} />
+                <View
+                  style={[
+                    styles.gradientPreview,
+                    { backgroundColor: bg.colors[1] },
+                  ]}
+                />
               )}
               {bg.type === 'transparent' && (
                 <View style={styles.transparentPattern} />
@@ -761,57 +1100,91 @@ const ComposerScreen: React.FC = () => {
 
       {/* Frame Section */}
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           Frame
         </Text>
         <View style={styles.toggleRow}>
-          <Text style={[styles.toggleLabel, { color: themeDefinition.colors.textPrimary }]}>
+          <Text
+            style={[
+              styles.toggleLabel,
+              { color: themeDefinition.colors.textPrimary },
+            ]}
+          >
             Show Frame
           </Text>
           <TouchableOpacity
             style={[
               styles.toggle,
               {
-                backgroundColor: composition.frame.on ? themeDefinition.colors.accent : 'transparent',
-                borderColor: composition.frame.on ? themeDefinition.colors.accent : themeDefinition.colors.border,
-              }
+                backgroundColor: composition.frame.on
+                  ? themeDefinition.colors.accent
+                  : 'transparent',
+                borderColor: composition.frame.on
+                  ? themeDefinition.colors.accent
+                  : themeDefinition.colors.border,
+              },
             ]}
             onPress={() => {
               FeedbackService.buttonTap();
               updateComposition({
-                frame: { ...composition.frame, on: !composition.frame.on }
+                frame: { ...composition.frame, on: !composition.frame.on },
               });
             }}
           >
-            <View style={[
-              styles.toggleKnob,
-              {
-                backgroundColor: composition.frame.on ? '#FFFFFF' : themeDefinition.colors.border,
-                transform: [{ translateX: composition.frame.on ? 18 : 0 }]
-              }
-            ]} />
+            <View
+              style={[
+                styles.toggleKnob,
+                {
+                  backgroundColor: composition.frame.on
+                    ? '#FFFFFF'
+                    : themeDefinition.colors.border,
+                  transform: [{ translateX: composition.frame.on ? 18 : 0 }],
+                },
+              ]}
+            />
           </TouchableOpacity>
         </View>
 
         {composition.frame.on && (
           <>
-            <Text style={[styles.toolSectionSubtitle, { color: themeDefinition.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.toolSectionSubtitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
               Frame Color
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               <View style={styles.colorOptions}>
-                {['#000000', '#FFFFFF', '#2563EB', '#7C3AED', '#F59E0B', '#059669', '#DC2626'].map(color => (
+                {[
+                  '#000000',
+                  '#FFFFFF',
+                  '#2563EB',
+                  '#7C3AED',
+                  '#F59E0B',
+                  '#059669',
+                  '#DC2626',
+                ].map(color => (
                   <TouchableOpacity
                     key={color}
                     style={[
                       styles.colorOption,
                       { backgroundColor: color },
-                      composition.frame.color === color && { borderWidth: 3, borderColor: themeDefinition.colors.accent }
+                      composition.frame.color === color && {
+                        borderWidth: 3,
+                        borderColor: themeDefinition.colors.accent,
+                      },
                     ]}
                     onPress={() => {
                       FeedbackService.buttonTap();
                       updateComposition({
-                        frame: { ...composition.frame, color }
+                        frame: { ...composition.frame, color },
                       });
                     }}
                   />
@@ -819,29 +1192,50 @@ const ComposerScreen: React.FC = () => {
               </View>
             </ScrollView>
 
-            <Text style={[styles.toolSectionSubtitle, { color: themeDefinition.colors.textPrimary }]}>
+            <Text
+              style={[
+                styles.toolSectionSubtitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
               Frame Thickness ({composition.frame.thickness}px)
             </Text>
             <View style={styles.sliderContainer}>
               <TouchableOpacity
-                style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+                style={[
+                  styles.sliderButton,
+                  { backgroundColor: themeDefinition.colors.surface },
+                ]}
                 onPress={() => {
                   FeedbackService.buttonTap();
                   updateComposition({
-                    frame: { ...composition.frame, thickness: Math.max(1, composition.frame.thickness - 1) }
+                    frame: {
+                      ...composition.frame,
+                      thickness: Math.max(1, composition.frame.thickness - 1),
+                    },
                   });
                 }}
               >
-                <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>-</Text>
+                <Text
+                  style={[
+                    styles.sliderButtonText,
+                    { color: themeDefinition.colors.textPrimary },
+                  ]}
+                >
+                  -
+                </Text>
               </TouchableOpacity>
               <Slider
                 style={styles.slider}
                 minimumValue={1}
                 maximumValue={8}
                 value={composition.frame.thickness}
-                onValueChange={(value) => {
+                onValueChange={value => {
                   updateComposition({
-                    frame: { ...composition.frame, thickness: Math.round(value) }
+                    frame: {
+                      ...composition.frame,
+                      thickness: Math.round(value),
+                    },
                   });
                 }}
                 onSlidingComplete={() => FeedbackService.buttonTap()}
@@ -851,15 +1245,28 @@ const ComposerScreen: React.FC = () => {
                 step={1}
               />
               <TouchableOpacity
-                style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+                style={[
+                  styles.sliderButton,
+                  { backgroundColor: themeDefinition.colors.surface },
+                ]}
                 onPress={() => {
                   FeedbackService.buttonTap();
                   updateComposition({
-                    frame: { ...composition.frame, thickness: Math.min(8, composition.frame.thickness + 1) }
+                    frame: {
+                      ...composition.frame,
+                      thickness: Math.min(8, composition.frame.thickness + 1),
+                    },
                   });
                 }}
               >
-                <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>+</Text>
+                <Text
+                  style={[
+                    styles.sliderButtonText,
+                    { color: themeDefinition.colors.textPrimary },
+                  ]}
+                >
+                  +
+                </Text>
               </TouchableOpacity>
             </View>
           </>
@@ -868,27 +1275,42 @@ const ComposerScreen: React.FC = () => {
 
       {/* Corner Radius Section */}
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           Corner Radius ({composition.cornerRadius}px)
         </Text>
         <View style={styles.sliderContainer}>
           <TouchableOpacity
-            style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+            style={[
+              styles.sliderButton,
+              { backgroundColor: themeDefinition.colors.surface },
+            ]}
             onPress={() => {
               FeedbackService.buttonTap();
               updateComposition({
-                cornerRadius: Math.max(0, composition.cornerRadius - 2)
+                cornerRadius: Math.max(0, composition.cornerRadius - 2),
               });
             }}
           >
-            <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>-</Text>
+            <Text
+              style={[
+                styles.sliderButtonText,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              -
+            </Text>
           </TouchableOpacity>
           <Slider
             style={styles.slider}
             minimumValue={0}
             maximumValue={32}
             value={composition.cornerRadius}
-            onValueChange={(value) => {
+            onValueChange={value => {
               updateComposition({ cornerRadius: Math.round(value) });
             }}
             onSlidingComplete={() => FeedbackService.buttonTap()}
@@ -898,15 +1320,25 @@ const ComposerScreen: React.FC = () => {
             step={2}
           />
           <TouchableOpacity
-            style={[styles.sliderButton, { backgroundColor: themeDefinition.colors.surface }]}
+            style={[
+              styles.sliderButton,
+              { backgroundColor: themeDefinition.colors.surface },
+            ]}
             onPress={() => {
               FeedbackService.buttonTap();
               updateComposition({
-                cornerRadius: Math.min(32, composition.cornerRadius + 2)
+                cornerRadius: Math.min(32, composition.cornerRadius + 2),
               });
             }}
           >
-            <Text style={[styles.sliderButtonText, { color: themeDefinition.colors.textPrimary }]}>+</Text>
+            <Text
+              style={[
+                styles.sliderButtonText,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              +
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -914,13 +1346,24 @@ const ComposerScreen: React.FC = () => {
   );
 
   const renderExportPanel = () => (
-    <VerticalPager style={styles.toolPanel} contentContainerStyle={styles.toolPanelContent}>
+    <VerticalPager
+      style={styles.toolPanel}
+      contentContainerStyle={styles.toolPanelContent}
+    >
       <View style={styles.toolSection}>
-        <Text style={[styles.toolSectionTitle, { color: themeDefinition.colors.textPrimary }]}>
+        <Text
+          style={[
+            styles.toolSectionTitle,
+            { color: themeDefinition.colors.textPrimary },
+          ]}
+        >
           {t('export_title')}
         </Text>
         <TouchableOpacity
-          style={[styles.exportButton, { backgroundColor: themeDefinition.colors.accent }]}
+          style={[
+            styles.exportButton,
+            { backgroundColor: themeDefinition.colors.accent },
+          ]}
           onPress={exportToPhotos}
         >
           <Text style={styles.exportButtonText}>{t('saveToPhotos')}</Text>
@@ -930,11 +1373,18 @@ const ComposerScreen: React.FC = () => {
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: themeDefinition.colors.bg }]}>
+    <View
+      style={[styles.container, { backgroundColor: themeDefinition.colors.bg }]}
+    >
       {/* Top toolbar */}
       <View style={[styles.topToolbar, { paddingTop: insets.top }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={[styles.backButton, { color: themeDefinition.colors.textPrimary }]}>
+          <Text
+            style={[
+              styles.backButton,
+              { color: themeDefinition.colors.textPrimary },
+            ]}
+          >
             ← {t('cancel')}
           </Text>
         </TouchableOpacity>
@@ -942,23 +1392,39 @@ const ComposerScreen: React.FC = () => {
         <View style={styles.topActions}>
           {composition.photoAUri && composition.photoBUri && (
             <TouchableOpacity
-              style={[styles.swapButton, { borderColor: themeDefinition.colors.border }]}
+              style={[
+                styles.swapButton,
+                { borderColor: themeDefinition.colors.border },
+              ]}
               onPress={swapPhotos}
             >
-              <Text style={[styles.swapButtonText, { color: themeDefinition.colors.textSecondary }]}>
+              <Text
+                style={[
+                  styles.swapButtonText,
+                  { color: themeDefinition.colors.textSecondary },
+                ]}
+              >
                 {t('composer_swap')}
               </Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity
-            style={[styles.templateButton, { borderColor: themeDefinition.colors.border }]}
+            style={[
+              styles.templateButton,
+              { borderColor: themeDefinition.colors.border },
+            ]}
             onPress={() => {
               // TODO: Navigate to Templates
               Alert.alert('Templates', 'Templates coming soon!');
             }}
           >
-            <Text style={[styles.templateButtonText, { color: themeDefinition.colors.textSecondary }]}>
+            <Text
+              style={[
+                styles.templateButtonText,
+                { color: themeDefinition.colors.textSecondary },
+              ]}
+            >
               {t('composer_template')}
             </Text>
           </TouchableOpacity>
@@ -969,41 +1435,78 @@ const ComposerScreen: React.FC = () => {
       <View
         style={[
           styles.canvasContainer,
-          { height: canvasHeight, borderRadius: composition.cornerRadius }
+          { height: canvasHeight, borderRadius: composition.cornerRadius },
         ]}
       >
-        {(!composition.photoAUri || !composition.photoBUri) ? (
+        {!composition.photoAUri || !composition.photoBUri ? (
           <View
             style={[
               styles.photoPlaceholder,
               {
                 borderColor: themeDefinition.colors.border,
-                borderRadius: composition.cornerRadius
-              }
+                borderRadius: composition.cornerRadius,
+              },
             ]}
           >
-            <Text style={[styles.placeholderText, { color: themeDefinition.colors.textSecondary }]}>
-              {composition.layout === 'side' || composition.layout === 'deviceMockup' ? 'Select Before & After Photos' :
-               composition.layout === 'vertical' ? 'Select Before (Top) & After (Bottom) Photos' :
-               composition.layout === 'stacked' ? 'Select Before & After Photos' :
-               composition.layout === 'polaroid' ? 'Select two photos for the collage' :
-               t('pickTwoPhotos')}
+            <Text
+              style={[
+                styles.placeholderText,
+                { color: themeDefinition.colors.textSecondary },
+              ]}
+            >
+              {composition.layout === 'side' ||
+              composition.layout === 'deviceMockup'
+                ? 'Select Before & After Photos'
+                : composition.layout === 'vertical'
+                ? 'Select Before (Top) & After (Bottom) Photos'
+                : composition.layout === 'stacked'
+                ? 'Select Before & After Photos'
+                : composition.layout === 'polaroid'
+                ? 'Select two photos for the collage'
+                : t('pickTwoPhotos')}
             </Text>
-            <View style={(composition.layout === 'side' || composition.layout === 'deviceMockup') ? styles.photoButtonsSide : styles.photoButtons}>
+            <View
+              style={
+                composition.layout === 'side' ||
+                composition.layout === 'deviceMockup'
+                  ? styles.photoButtonsSide
+                  : styles.photoButtons
+              }
+            >
               <TouchableOpacity
-                style={[styles.photoButton, { backgroundColor: themeDefinition.colors.surface }]}
+                style={[
+                  styles.photoButton,
+                  { backgroundColor: themeDefinition.colors.surface },
+                ]}
                 onPress={() => pickPhoto(true)}
               >
-                <Text style={[styles.photoButtonText, { color: themeDefinition.colors.textPrimary }]}>
-                  {composition.photoAUri ? t('before_selected') : t('pick_before')}
+                <Text
+                  style={[
+                    styles.photoButtonText,
+                    { color: themeDefinition.colors.textPrimary },
+                  ]}
+                >
+                  {composition.photoAUri
+                    ? t('before_selected')
+                    : t('pick_before')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.photoButton, { backgroundColor: themeDefinition.colors.surface }]}
+                style={[
+                  styles.photoButton,
+                  { backgroundColor: themeDefinition.colors.surface },
+                ]}
                 onPress={() => pickPhoto(false)}
               >
-                <Text style={[styles.photoButtonText, { color: themeDefinition.colors.textPrimary }]}>
-                  {composition.photoBUri ? t('after_selected') : t('pick_after')}
+                <Text
+                  style={[
+                    styles.photoButtonText,
+                    { color: themeDefinition.colors.textPrimary },
+                  ]}
+                >
+                  {composition.photoBUri
+                    ? t('after_selected')
+                    : t('pick_after')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1012,7 +1515,11 @@ const ComposerScreen: React.FC = () => {
           <View
             ref={canvasRef}
             collapsable={false}
-            style={{ alignItems: 'center', borderRadius: composition.cornerRadius, overflow: 'hidden' }}
+            style={{
+              alignItems: 'center',
+              borderRadius: composition.cornerRadius,
+              overflow: 'hidden',
+            }}
           >
             <CompositionCanvas composition={composition} />
           </View>
@@ -1020,24 +1527,38 @@ const ComposerScreen: React.FC = () => {
       </View>
 
       {/* Tool selector */}
-      <View style={[styles.toolSelector, { backgroundColor: themeDefinition.colors.surface }]}>
+      <View
+        style={[
+          styles.toolSelector,
+          { backgroundColor: themeDefinition.colors.surface },
+        ]}
+      >
         {(['layout', 'labels', 'style', 'export'] as const).map(panel => (
           <TouchableOpacity
             key={panel}
             style={[
               styles.toolTab,
               activePanel === panel && styles.activeToolTab,
-              activePanel === panel && { backgroundColor: themeDefinition.colors.accent }
+              activePanel === panel && {
+                backgroundColor: themeDefinition.colors.accent,
+              },
             ]}
             onPress={() => {
               FeedbackService.buttonTap();
               setActivePanel(panel);
             }}
           >
-            <Text style={[
-              styles.toolTabText,
-              { color: activePanel === panel ? '#FFFFFF' : themeDefinition.colors.textSecondary }
-            ]}>
+            <Text
+              style={[
+                styles.toolTabText,
+                {
+                  color:
+                    activePanel === panel
+                      ? '#FFFFFF'
+                      : themeDefinition.colors.textSecondary,
+                },
+              ]}
+            >
               {t(panel)}
             </Text>
           </TouchableOpacity>
