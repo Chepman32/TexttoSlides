@@ -8,6 +8,7 @@ import {
   Dimensions,
   Image,
   Alert,
+  Share,
 } from 'react-native';
 import { Canvas, LinearGradient, Rect, vec } from '@shopify/react-native-skia';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +19,7 @@ import {
   launchCamera,
   ImagePickerResponse,
 } from 'react-native-image-picker';
+import ContextMenu from 'react-native-context-menu-view';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
@@ -193,6 +195,86 @@ const HomeScreen: React.FC = () => {
     }
   };
 
+  const handleDeleteProject = async (projectId: string) => {
+    FeedbackService.buttonTap();
+    try {
+      await StorageService.deleteRecentProject(projectId);
+      await loadRecentProjects();
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      Alert.alert('Error', 'Failed to delete project. Please try again.');
+    }
+  };
+
+  const handleDuplicateProject = async (projectId: string) => {
+    FeedbackService.buttonTap();
+    try {
+      const project = recentProjects.find(p => p.id === projectId);
+      if (project) {
+        // Open the project in composer (creates a new project with same content)
+        const photoA = project.composition?.photoAUri || project.images?.[0];
+        const photoB = project.composition?.photoBUri || project.images?.[1];
+        navigation.navigate('Composer', {
+          photoA,
+          photoB,
+          savedComposition: project.composition,
+          // Don't pass projectId to create a new project
+        });
+      }
+    } catch (error) {
+      console.error('Error duplicating project:', error);
+      Alert.alert('Error', 'Failed to duplicate project. Please try again.');
+    }
+  };
+
+  const handleShareProject = async (projectId: string) => {
+    FeedbackService.buttonTap();
+    try {
+      const project = recentProjects.find(p => p.id === projectId);
+      if (project?.thumbnail) {
+        await Share.share({
+          url: project.thumbnail,
+          message: project.text || 'Check out my before/after!',
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing project:', error);
+    }
+  };
+
+  const handleContextMenuAction = (
+    event: { nativeEvent: { index: number; name: string } },
+    projectId: string,
+  ) => {
+    const { name } = event.nativeEvent;
+    switch (name) {
+      case 'open':
+        handleRecentProject(projectId);
+        break;
+      case 'duplicate':
+        handleDuplicateProject(projectId);
+        break;
+      case 'share':
+        handleShareProject(projectId);
+        break;
+      case 'delete':
+        Alert.alert(
+          t('delete_project') || 'Delete Project',
+          t('delete_project_confirm') ||
+            'Are you sure you want to delete this project?',
+          [
+            { text: t('cancel') || 'Cancel', style: 'cancel' },
+            {
+              text: t('delete') || 'Delete',
+              style: 'destructive',
+              onPress: () => handleDeleteProject(projectId),
+            },
+          ],
+        );
+        break;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Canvas style={StyleSheet.absoluteFillObject}>
@@ -299,66 +381,102 @@ const HomeScreen: React.FC = () => {
                 style={styles.projectsScroll}
               >
                 {recentProjects.map((project, index) => (
-                  <TouchableOpacity
+                  <ContextMenu
                     key={project.id}
-                    style={styles.projectCard}
-                    onPress={() => handleRecentProject(project.id)}
+                    actions={[
+                      {
+                        title: t('open') || 'Open',
+                        systemIcon: 'folder',
+                      },
+                      {
+                        title: t('duplicate') || 'Duplicate',
+                        systemIcon: 'doc.on.doc',
+                      },
+                      {
+                        title: t('share') || 'Share',
+                        systemIcon: 'square.and.arrow.up',
+                      },
+                      {
+                        title: t('delete') || 'Delete',
+                        systemIcon: 'trash',
+                        destructive: true,
+                      },
+                    ]}
+                    onPress={e =>
+                      handleContextMenuAction(
+                        {
+                          nativeEvent: {
+                            index: e.nativeEvent.index,
+                            name: ['open', 'duplicate', 'share', 'delete'][
+                              e.nativeEvent.index
+                            ],
+                          },
+                        },
+                        project.id,
+                      )
+                    }
+                    previewBackgroundColor="rgba(255, 255, 255, 0.95)"
                   >
-                    <View style={styles.projectImage}>
-                      {/* Show thumbnail if available, otherwise show both images side by side */}
-                      {project.thumbnail ? (
-                        <Image
-                          source={{ uri: project.thumbnail }}
-                          style={styles.projectThumbnail}
-                          resizeMode="cover"
-                        />
-                      ) : project.images && project.images.length > 0 ? (
-                        <View style={styles.projectPreviewContainer}>
-                          {project.images[0] && (
-                            <Image
-                              source={{ uri: project.images[0] }}
-                              style={[
-                                styles.projectPreviewImage,
-                                project.images.length === 1 &&
-                                  styles.projectPreviewImageFull,
-                              ]}
-                              resizeMode="cover"
-                            />
-                          )}
-                          {project.images[1] && (
-                            <Image
-                              source={{ uri: project.images[1] }}
-                              style={styles.projectPreviewImage}
-                              resizeMode="cover"
-                            />
-                          )}
-                        </View>
-                      ) : (
-                        <View
-                          style={[
-                            styles.projectImagePlaceholder,
-                            {
-                              backgroundColor: [
-                                '#98FB98',
-                                '#87CEEB',
-                                '#DDA0DD',
-                                '#FFB6C1',
-                                '#98D8E8',
-                                '#F0E68C',
-                                '#DEB887',
-                                '#D8BFD8',
-                                '#F5DEB3',
-                                '#B0E0E6',
-                              ][index % 10],
-                            },
-                          ]}
-                        />
-                      )}
-                    </View>
-                    <Text style={styles.projectTitle} numberOfLines={1}>
-                      {project.text || `Project ${index + 1}`}
-                    </Text>
-                  </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.projectCard}
+                      onPress={() => handleRecentProject(project.id)}
+                    >
+                      <View style={styles.projectImage}>
+                        {/* Show thumbnail if available, otherwise show both images side by side */}
+                        {project.thumbnail ? (
+                          <Image
+                            source={{ uri: project.thumbnail }}
+                            style={styles.projectThumbnail}
+                            resizeMode="cover"
+                          />
+                        ) : project.images && project.images.length > 0 ? (
+                          <View style={styles.projectPreviewContainer}>
+                            {project.images[0] && (
+                              <Image
+                                source={{ uri: project.images[0] }}
+                                style={[
+                                  styles.projectPreviewImage,
+                                  project.images.length === 1 &&
+                                    styles.projectPreviewImageFull,
+                                ]}
+                                resizeMode="cover"
+                              />
+                            )}
+                            {project.images[1] && (
+                              <Image
+                                source={{ uri: project.images[1] }}
+                                style={styles.projectPreviewImage}
+                                resizeMode="cover"
+                              />
+                            )}
+                          </View>
+                        ) : (
+                          <View
+                            style={[
+                              styles.projectImagePlaceholder,
+                              {
+                                backgroundColor: [
+                                  '#98FB98',
+                                  '#87CEEB',
+                                  '#DDA0DD',
+                                  '#FFB6C1',
+                                  '#98D8E8',
+                                  '#F0E68C',
+                                  '#DEB887',
+                                  '#D8BFD8',
+                                  '#F5DEB3',
+                                  '#B0E0E6',
+                                ][index % 10],
+                              },
+                            ]}
+                          />
+                        )}
+                      </View>
+                      <Text style={styles.projectTitle} numberOfLines={1}>
+                        {project.text || `Project ${index + 1}`}
+                      </Text>
+                    </TouchableOpacity>
+                  </ContextMenu>
                 ))}
               </ScrollView>
             </View>
