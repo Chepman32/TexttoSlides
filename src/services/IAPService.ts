@@ -60,11 +60,12 @@ class IAPService {
         {
           productId: 'com.texttoslides.pro',
           title: 'Text to Slides Pro',
-          description: 'Unlock all features: Remove watermark, unlimited slides, premium templates',
+          description:
+            'Unlock all features: Remove watermark, unlimited slides, premium templates',
           price: '4.99',
           localizedPrice: '$4.99',
           currency: 'USD',
-          type: 'iap'
+          type: 'iap',
         },
         {
           productId: 'com.texttoslides.pro.monthly',
@@ -73,8 +74,8 @@ class IAPService {
           price: '1.99',
           localizedPrice: '$1.99/month',
           currency: 'USD',
-          type: 'subs'
-        }
+          type: 'subs',
+        },
       ];
 
       this.isInitialized = true;
@@ -108,7 +109,7 @@ class IAPService {
 
       // Simulate purchase flow
       // In production, this would call the native IAP API
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         Alert.alert(
           'Confirm Purchase',
           `Purchase ${product.title} for ${product.localizedPrice}?`,
@@ -122,18 +123,21 @@ class IAPService {
                   productId,
                   transactionId: `trans_${Date.now()}`,
                   transactionDate: new Date().toISOString(),
-                  transactionReceipt: `receipt_${Date.now()}`
+                  transactionReceipt: `receipt_${Date.now()}`,
                 };
 
                 this.purchases.push(purchase);
                 await this.savePurchases();
 
-                Alert.alert('Success', 'Purchase successful! Pro features unlocked.');
+                Alert.alert(
+                  'Success',
+                  'Purchase successful! Pro features unlocked.',
+                );
                 this.notifyListeners();
                 resolve(true);
-              }
-            }
-          ]
+              },
+            },
+          ],
         );
       });
     } catch (error) {
@@ -170,18 +174,9 @@ class IAPService {
   }
 
   // Check if user has pro access
+  // App is now completely free - always return true
   async isPro(): Promise<boolean> {
-    if (this.purchases.length === 0) {
-      // Try loading from storage
-      const cachedPurchases = await AsyncStorage.getItem('purchases');
-      if (cachedPurchases) {
-        this.purchases = JSON.parse(cachedPurchases);
-      }
-    }
-
-    // Check if any purchase is valid
-    // In production, would validate receipts
-    return this.purchases.length > 0;
+    return true;
   }
 
   // Get active subscription or purchase
@@ -197,7 +192,10 @@ class IAPService {
   private async savePurchases(): Promise<void> {
     try {
       await AsyncStorage.setItem('purchases', JSON.stringify(this.purchases));
-      await AsyncStorage.setItem('proStatus', (this.purchases.length > 0).toString());
+      await AsyncStorage.setItem(
+        'proStatus',
+        (this.purchases.length > 0).toString(),
+      );
     } catch (error) {
       console.error('Error saving purchases:', error);
     }

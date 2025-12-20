@@ -221,10 +221,10 @@ const applyTextEffectsToCanvas = (
 
 class ExportService {
   private static instance: ExportService;
-  private isProUser: boolean = false;
+  private isProUser: boolean = true; // App is now completely free
 
   private constructor() {
-    this.checkProStatus();
+    // No need to check pro status - app is free
   }
 
   static getInstance(): ExportService {
@@ -234,19 +234,13 @@ class ExportService {
     return ExportService.instance;
   }
 
+  // App is now completely free - these methods are kept for compatibility
   private async checkProStatus() {
-    try {
-      const proStatus = await AsyncStorage.getItem('proStatus');
-      this.isProUser = proStatus === 'true';
-    } catch (error) {
-      console.error('Error checking pro status:', error);
-      this.isProUser = false;
-    }
+    this.isProUser = true;
   }
 
-  public setProStatus(isPro: boolean) {
-    this.isProUser = isPro;
-    AsyncStorage.setItem('proStatus', isPro.toString());
+  public setProStatus(_isPro: boolean) {
+    this.isProUser = true; // Always true - app is free
   }
 
   private async requestStoragePermission(): Promise<boolean> {
@@ -359,7 +353,7 @@ class ExportService {
     options: ExportOptions = {},
   ): Promise<{ success: boolean; savedPaths: string[]; error?: string }> {
     const {
-      addWatermark = !this.isProUser,
+      addWatermark = false, // App is completely free - no watermark
       watermarkText = 'Made with Text to Slides',
       watermarkPosition = 'bottomRight',
       quality = 0.9,
@@ -484,7 +478,7 @@ class ExportService {
     },
   ): Promise<{ success: boolean; savedPaths: string[]; error?: string }> {
     const savedPaths: string[] = [];
-    const addWatermark = !this.isProUser;
+    const addWatermark = false; // App is completely free - no watermark
     const textEffectsEngine = TextEffectsEngine.getInstance();
 
     try {

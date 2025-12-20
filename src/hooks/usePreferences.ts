@@ -17,15 +17,13 @@ export const defaultPreferences: UserPreferences = {
   language: 'en',
   soundEnabled: true,
   hapticsEnabled: true,
-  isProUser: false,
+  isProUser: true, // App is now completely free
   appIcon: 'AppIconCoral',
 };
 
 export const usePreferences = () => {
-  const [preferences, setPreferences, removePreferences] = useStorage<UserPreferences>(
-    'userPreferences',
-    defaultPreferences
-  );
+  const [preferences, setPreferences, removePreferences] =
+    useStorage<UserPreferences>('userPreferences', defaultPreferences);
 
   // Apply theme when preferences change
   useEffect(() => {

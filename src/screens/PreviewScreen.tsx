@@ -52,7 +52,6 @@ const PreviewScreen: React.FC = () => {
 
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [isExporting, setIsExporting] = useState(false);
-  const [isProUser, setIsProUser] = useState(false);
   const scrollX = useRef(new Animated.Value(0)).current;
   const slideRefs = useRef<View[]>([]);
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -65,9 +64,8 @@ const PreviewScreen: React.FC = () => {
   const imageContainerHeight = availableHeight; // Use available height without minimum constraint
 
   useEffect(() => {
-    IAPService.isPro().then(setIsProUser);
+    // App is now completely free - no need to check pro status
   }, []);
-
 
   const handleExport = async () => {
     if (isExporting) return;
@@ -76,14 +74,12 @@ const PreviewScreen: React.FC = () => {
     setIsExporting(true);
 
     try {
-      // Use the ExportService to handle export with watermark
+      // Use the ExportService to handle export (no watermark - app is free)
       const result = await ExportService.exportSlides(
         slides,
         slideRefs.current.map(ref => ({ current: ref })),
         {
-          addWatermark: !isProUser,
-          watermarkText: 'Made with Text to Slides',
-          watermarkPosition: 'bottomRight',
+          addWatermark: false,
           quality: 0.9,
           format: 'png',
           resolution: 1080,
@@ -216,12 +212,7 @@ const PreviewScreen: React.FC = () => {
           {previewEffects.overlayElements}
         </View>
 
-        {/* Watermark preview for free users */}
-        {!isProUser && (
-          <View style={styles.watermarkPreview}>
-            <Text style={styles.watermarkText}>Made with Text to Slides</Text>
-          </View>
-        )}
+        {/* No watermark - app is completely free */}
       </View>
     );
   };
@@ -310,12 +301,7 @@ const PreviewScreen: React.FC = () => {
             </Text>
           </View>
         ) : (
-          <View>
-            <Text style={styles.exportButtonText}>{t('preview_export')}</Text>
-            {!isProUser && (
-              <Text style={styles.watermarkNotice}>Includes watermark</Text>
-            )}
-          </View>
+          <Text style={styles.exportButtonText}>{t('preview_export')}</Text>
         )}
       </TouchableOpacity>
     </View>
