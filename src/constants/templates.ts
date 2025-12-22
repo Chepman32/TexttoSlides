@@ -14,13 +14,209 @@ export interface Template {
       | 'stacked'
       | 'slider'
       | 'polaroid'
-      | 'deviceMockup';
+      | 'deviceMockup'
+      | 'diagonal';
     hasFrame: boolean;
   };
   composition: Partial<CompositionState>;
 }
 
 export const defaultTemplates: Template[] = [
+  {
+    id: 'side-by-side',
+    name: 'Side by Side',
+    description: 'Classic horizontal comparison',
+    preview: {
+      backgroundColor: '#F5F5F5',
+      accentColor: '#3B82F6',
+      layout: 'side',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'side',
+      spacing: 12,
+      cornerRadius: 12,
+      aspect: 'free',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 18,
+        fontWeight: 'Bold',
+        color: '#1F2937',
+        position: 'bl',
+        margin: 12,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#F5F5F5'],
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#E5E7EB',
+      },
+      watermarkOn: true,
+    },
+  },
+  {
+    id: 'horizontal-split',
+    name: 'Horizontal Split',
+    description: 'Top and bottom comparison',
+    preview: {
+      backgroundColor: '#FAFAFA',
+      accentColor: '#10B981',
+      layout: 'vertical',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'vertical',
+      spacing: 12,
+      cornerRadius: 12,
+      aspect: '4:3',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 18,
+        fontWeight: 'Bold',
+        color: '#1F2937',
+        position: 'tl',
+        margin: 12,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#FAFAFA'],
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#E5E7EB',
+      },
+      watermarkOn: true,
+    },
+  },
+  {
+    id: 'diagonal-split',
+    name: 'Diagonal Split',
+    description: 'Dynamic diagonal comparison',
+    preview: {
+      backgroundColor: '#1F2937',
+      accentColor: '#F59E0B',
+      layout: 'diagonal',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'diagonal',
+      spacing: 0,
+      cornerRadius: 12,
+      aspect: '1:1',
+      labels: {
+        textBefore: 'BEFORE',
+        textAfter: 'AFTER',
+        fontFamily: 'System',
+        fontSize: 18,
+        fontWeight: 'Bold',
+        color: '#FFFFFF',
+        position: 'bl',
+        margin: 16,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#1F2937'],
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#F59E0B',
+      },
+      watermarkOn: true,
+    },
+  },
+  {
+    id: 'slider-reveal',
+    name: 'Slider Reveal',
+    description: 'Interactive slider comparison',
+    preview: {
+      backgroundColor: '#111827',
+      accentColor: '#EC4899',
+      layout: 'slider',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'slider',
+      spacing: 0,
+      cornerRadius: 16,
+      aspect: '1:1',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 16,
+        fontWeight: 'Bold',
+        color: '#FFFFFF',
+        position: 'bl',
+        margin: 12,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#111827'],
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#EC4899',
+      },
+      watermarkOn: true,
+    },
+  },
+  {
+    id: 'stacked-bar',
+    name: 'Stacked',
+    description: 'Stacked with info bar',
+    preview: {
+      backgroundColor: '#F3F4F6',
+      accentColor: '#6366F1',
+      layout: 'stacked',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'stacked',
+      spacing: 0,
+      cornerRadius: 12,
+      aspect: '4:3',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 14,
+        fontWeight: 'Bold',
+        color: '#1F2937',
+        position: 'bl',
+        margin: 8,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#F3F4F6'],
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#6366F1',
+      },
+      watermarkOn: true,
+    },
+  },
   {
     id: 'device-showcase',
     name: 'Device Showcase',
@@ -216,45 +412,6 @@ export const defaultTemplates: Template[] = [
         on: false,
         thickness: 2,
         color: '#8B5CF6',
-      },
-      watermarkOn: true,
-    },
-  },
-  {
-    id: 'instagram',
-    name: 'Instagram',
-    description: 'Perfect for social media',
-    preview: {
-      backgroundColor: '#FAFAFA',
-      accentColor: '#E1306C',
-      layout: 'vertical',
-      hasFrame: false,
-    },
-    composition: {
-      layout: 'vertical',
-      spacing: 8,
-      cornerRadius: 12,
-      aspect: '1:1',
-      labels: {
-        textBefore: 'Before',
-        textAfter: 'After',
-        fontFamily: 'System',
-        fontSize: 16,
-        fontWeight: 'Bold',
-        color: '#262626',
-        position: 'tl',
-        margin: 12,
-        show: true,
-        textEffects: [],
-      },
-      background: {
-        type: 'solid',
-        colors: ['#FAFAFA'],
-      },
-      frame: {
-        on: false,
-        thickness: 1,
-        color: '#DBDBDB',
       },
       watermarkOn: true,
     },

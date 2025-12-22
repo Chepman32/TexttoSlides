@@ -70,10 +70,18 @@ const ComposerScreen: React.FC = () => {
   // Function to get translated template name
   const getTemplateNameKey = (templateId: string) => {
     const templateNameMap: { [key: string]: string } = {
+      'side-by-side': 'composer_layoutSideBySide',
+      'horizontal-split': 'horizontal_split',
+      'diagonal-split': 'composer_layoutDiagonal',
+      'slider-reveal': 'composer_layoutSlider',
+      'stacked-bar': 'composer_layoutStacked',
       'device-showcase': 'device_showcase',
       'polaroid-collage': 'polaroid_collage',
       minimal: 'minimal',
       elegant: 'elegant',
+      bold: 'bold',
+      diagonal: 'composer_layoutDiagonal',
+      modern: 'modern',
     };
     return templateNameMap[templateId] || templateId;
   };
@@ -432,19 +440,6 @@ const ComposerScreen: React.FC = () => {
     }
   };
 
-  const setLayout = (layout: LayoutType | 'minimal' | 'elegant') => {
-    FeedbackService.buttonTap();
-    // Handle minimal and elegant as template applications
-    if (layout === 'minimal' || layout === 'elegant') {
-      const template = defaultTemplates.find(t => t.id === layout);
-      if (template) {
-        applyTemplateToComposition(template);
-      }
-    } else {
-      updateComposition({ layout });
-    }
-  };
-
   const setAspectRatio = (aspect: CompositionState['aspect']) => {
     FeedbackService.buttonTap();
     updateComposition({ aspect });
@@ -489,6 +484,177 @@ const ComposerScreen: React.FC = () => {
     addToHistory(newComposition);
   };
 
+  // Helper function to render template preview miniature
+  const renderTemplatePreview = (template: Template) => {
+    const { layout, accentColor } = template.preview;
+
+    switch (layout) {
+      case 'side':
+        return (
+          <View style={styles.editorPreviewSide}>
+            <View
+              style={[
+                styles.editorPreviewBox,
+                { backgroundColor: accentColor + '40' },
+              ]}
+            />
+            <View
+              style={[
+                styles.editorPreviewBox,
+                { backgroundColor: accentColor + '60' },
+              ]}
+            />
+          </View>
+        );
+      case 'vertical':
+        return (
+          <View style={styles.editorPreviewVertical}>
+            <View
+              style={[
+                styles.editorPreviewBox,
+                { backgroundColor: accentColor + '40' },
+              ]}
+            />
+            <View
+              style={[
+                styles.editorPreviewBox,
+                { backgroundColor: accentColor + '60' },
+              ]}
+            />
+          </View>
+        );
+      case 'diagonal':
+        return (
+          <View style={styles.editorPreviewDiagonal}>
+            <View
+              style={[
+                styles.editorPreviewDiagonalTop,
+                { borderBottomColor: accentColor + '40' },
+              ]}
+            />
+            <View
+              style={[
+                styles.editorPreviewDiagonalBottom,
+                { borderTopColor: accentColor + '70' },
+              ]}
+            />
+          </View>
+        );
+      case 'slider':
+        return (
+          <View style={styles.editorPreviewSlider}>
+            <View
+              style={[
+                styles.editorPreviewSliderLeft,
+                { backgroundColor: accentColor + '40' },
+              ]}
+            />
+            <View
+              style={[
+                styles.editorPreviewSliderRight,
+                { backgroundColor: accentColor + '70' },
+              ]}
+            />
+            <View style={styles.editorPreviewSliderHandle} />
+          </View>
+        );
+      case 'stacked':
+        return (
+          <View style={styles.editorPreviewStacked}>
+            <View
+              style={[
+                styles.editorPreviewStackedMain,
+                { backgroundColor: accentColor + '60' },
+              ]}
+            />
+            <View
+              style={[
+                styles.editorPreviewStackedBar,
+                { backgroundColor: accentColor + '30' },
+              ]}
+            >
+              <View
+                style={[
+                  styles.editorPreviewStackedThumb,
+                  { backgroundColor: accentColor + '80' },
+                ]}
+              />
+            </View>
+          </View>
+        );
+      case 'polaroid':
+        return (
+          <View style={styles.editorPreviewPolaroid}>
+            <View
+              style={[
+                styles.editorPreviewPolaroidCard,
+                styles.editorPreviewPolaroidCardLeft,
+              ]}
+            >
+              <View style={styles.editorPreviewPolaroidPhoto} />
+              <View
+                style={[styles.editorPreviewTape, styles.editorPreviewTapeLeft]}
+              >
+                <View style={styles.editorPreviewTapeHighlight} />
+              </View>
+            </View>
+            <View
+              style={[
+                styles.editorPreviewPolaroidCard,
+                styles.editorPreviewPolaroidCardRight,
+              ]}
+            >
+              <View style={styles.editorPreviewPolaroidPhoto} />
+              <View
+                style={[
+                  styles.editorPreviewTape,
+                  styles.editorPreviewTapeRight,
+                ]}
+              >
+                <View style={styles.editorPreviewTapeHighlight} />
+              </View>
+            </View>
+          </View>
+        );
+      case 'deviceMockup':
+        return (
+          <View style={styles.editorPreviewDevice}>
+            {[0, 1].map(index => (
+              <View key={index} style={styles.editorPreviewPhone}>
+                <View style={styles.editorPreviewPhoneNotch} />
+                <View
+                  style={[
+                    styles.editorPreviewPhoneScreen,
+                    {
+                      backgroundColor:
+                        accentColor + (index === 0 ? '40' : '70'),
+                    },
+                  ]}
+                />
+              </View>
+            ))}
+          </View>
+        );
+      default:
+        return (
+          <View style={styles.editorPreviewVertical}>
+            <View
+              style={[
+                styles.editorPreviewBox,
+                { backgroundColor: accentColor + '40' },
+              ]}
+            />
+            <View
+              style={[
+                styles.editorPreviewBox,
+                { backgroundColor: accentColor + '60' },
+              ]}
+            />
+          </View>
+        );
+    }
+  };
+
   const renderLayoutPanel = () => (
     <VerticalPager
       style={styles.toolPanel}
@@ -509,11 +675,13 @@ const ComposerScreen: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.templatesHorizontalContainer}
         >
-          {defaultTemplates.slice(0, 2).map(template => (
+          {defaultTemplates.map(template => (
             <TouchableOpacity
               key={template.id}
               style={[
                 styles.editorTemplateCard,
+                composition.layout === template.composition.layout &&
+                  styles.activeEditorTemplateCard,
                 { backgroundColor: themeDefinition.colors.surface },
               ]}
               onPress={() => applyTemplateToComposition(template)}
@@ -525,123 +693,7 @@ const ComposerScreen: React.FC = () => {
                 ]}
               >
                 <View style={styles.editorTemplatePreviewContent}>
-                  {template.preview.layout === 'side' ? (
-                    <View style={styles.editorPreviewSide}>
-                      <View
-                        style={[
-                          styles.editorPreviewBox,
-                          {
-                            backgroundColor:
-                              template.preview.accentColor + '40',
-                          },
-                        ]}
-                      />
-                      <View
-                        style={[
-                          styles.editorPreviewBox,
-                          {
-                            backgroundColor:
-                              template.preview.accentColor + '60',
-                          },
-                        ]}
-                      />
-                    </View>
-                  ) : template.preview.layout === 'vertical' ? (
-                    <View style={styles.editorPreviewVertical}>
-                      <View
-                        style={[
-                          styles.editorPreviewBox,
-                          {
-                            backgroundColor:
-                              template.preview.accentColor + '40',
-                          },
-                        ]}
-                      />
-                      <View
-                        style={[
-                          styles.editorPreviewBox,
-                          {
-                            backgroundColor:
-                              template.preview.accentColor + '60',
-                          },
-                        ]}
-                      />
-                    </View>
-                  ) : template.preview.layout === 'polaroid' ? (
-                    <View style={styles.editorPreviewPolaroid}>
-                      <View
-                        style={[
-                          styles.editorPreviewPolaroidCard,
-                          styles.editorPreviewPolaroidCardLeft,
-                        ]}
-                      >
-                        <View style={styles.editorPreviewPolaroidPhoto} />
-                        <View
-                          style={[
-                            styles.editorPreviewTape,
-                            styles.editorPreviewTapeLeft,
-                          ]}
-                        >
-                          <View style={styles.editorPreviewTapeHighlight} />
-                        </View>
-                      </View>
-                      <View
-                        style={[
-                          styles.editorPreviewPolaroidCard,
-                          styles.editorPreviewPolaroidCardRight,
-                        ]}
-                      >
-                        <View style={styles.editorPreviewPolaroidPhoto} />
-                        <View
-                          style={[
-                            styles.editorPreviewTape,
-                            styles.editorPreviewTapeRight,
-                          ]}
-                        >
-                          <View style={styles.editorPreviewTapeHighlight} />
-                        </View>
-                      </View>
-                    </View>
-                  ) : template.preview.layout === 'deviceMockup' ? (
-                    <View style={styles.editorPreviewDevice}>
-                      {[0, 1].map(index => (
-                        <View key={index} style={styles.editorPreviewPhone}>
-                          <View style={styles.editorPreviewPhoneNotch} />
-                          <View
-                            style={[
-                              styles.editorPreviewPhoneScreen,
-                              {
-                                backgroundColor:
-                                  template.preview.accentColor +
-                                  (index === 0 ? '40' : '70'),
-                              },
-                            ]}
-                          />
-                        </View>
-                      ))}
-                    </View>
-                  ) : (
-                    <View style={styles.editorPreviewVertical}>
-                      <View
-                        style={[
-                          styles.editorPreviewBox,
-                          {
-                            backgroundColor:
-                              template.preview.accentColor + '40',
-                          },
-                        ]}
-                      />
-                      <View
-                        style={[
-                          styles.editorPreviewBox,
-                          {
-                            backgroundColor:
-                              template.preview.accentColor + '60',
-                          },
-                        ]}
-                      />
-                    </View>
-                  )}
+                  {renderTemplatePreview(template)}
                 </View>
               </View>
               <Text
@@ -655,55 +707,6 @@ const ComposerScreen: React.FC = () => {
             </TouchableOpacity>
           ))}
         </ScrollView>
-      </View>
-
-      <View style={styles.toolSection}>
-        <Text
-          style={[
-            styles.toolSectionTitle,
-            { color: themeDefinition.colors.textPrimary },
-          ]}
-        >
-          {t('layout')}
-        </Text>
-        <View style={styles.layoutButtons}>
-          {(
-            [
-              { key: 'side', label: t('composer_layoutSideBySide') },
-              { key: 'vertical', label: t('composer_layoutVertical') },
-              { key: 'slider', label: t('composer_layoutSlider') },
-              { key: 'stacked', label: t('composer_layoutStacked') },
-              { key: 'diagonal', label: t('composer_layoutDiagonal') },
-              { key: 'polaroid', label: t('composer_layoutPolaroid') },
-              { key: 'minimal', label: t('minimal') },
-              { key: 'elegant', label: t('elegant') },
-            ] as const
-          ).map(({ key, label }) => (
-            <TouchableOpacity
-              key={key}
-              style={[
-                styles.layoutButton,
-                composition.layout === key && styles.activeLayoutButton,
-                { borderColor: themeDefinition.colors.border },
-              ]}
-              onPress={() => setLayout(key)}
-            >
-              <Text
-                style={[
-                  styles.layoutButtonText,
-                  {
-                    color:
-                      composition.layout === key
-                        ? themeDefinition.colors.accent
-                        : themeDefinition.colors.textSecondary,
-                  },
-                ]}
-              >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
       </View>
 
       <View style={styles.toolSection}>
@@ -1827,23 +1830,6 @@ const styles = StyleSheet.create({
   activeToggleThumb: {
     alignSelf: 'flex-end',
   },
-  layoutButtons: {
-    gap: 8,
-  },
-  layoutButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  activeLayoutButton: {
-    // borderColor and backgroundColor will be set dynamically
-  },
-  layoutButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
   aspectButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -2179,6 +2165,97 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
     textAlign: 'center',
+  },
+  activeEditorTemplateCard: {
+    borderWidth: 2,
+    borderColor: '#3B82F6',
+  },
+  // Diagonal preview styles
+  editorPreviewDiagonal: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 2,
+  },
+  editorPreviewDiagonalTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 0,
+    height: 0,
+    borderStyle: 'solid',
+    borderLeftWidth: 46,
+    borderBottomWidth: 36,
+    borderLeftColor: 'transparent',
+    borderBottomColor: '#000',
+  },
+  editorPreviewDiagonalBottom: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 0,
+    height: 0,
+    borderStyle: 'solid',
+    borderRightWidth: 46,
+    borderTopWidth: 36,
+    borderRightColor: 'transparent',
+    borderTopColor: '#000',
+  },
+  // Slider preview styles
+  editorPreviewSlider: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    flexDirection: 'row',
+    position: 'relative',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  editorPreviewSliderLeft: {
+    flex: 1,
+    borderTopLeftRadius: 2,
+    borderBottomLeftRadius: 2,
+  },
+  editorPreviewSliderRight: {
+    flex: 1,
+    borderTopRightRadius: 2,
+    borderBottomRightRadius: 2,
+  },
+  editorPreviewSliderHandle: {
+    position: 'absolute',
+    left: '50%',
+    top: 0,
+    bottom: 0,
+    width: 2,
+    backgroundColor: '#FFFFFF',
+    marginLeft: -1,
+  },
+  // Stacked preview styles
+  editorPreviewStacked: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    flexDirection: 'column',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  editorPreviewStackedMain: {
+    flex: 1,
+    borderTopLeftRadius: 2,
+    borderTopRightRadius: 2,
+  },
+  editorPreviewStackedBar: {
+    height: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 2,
+  },
+  editorPreviewStackedThumb: {
+    width: 6,
+    height: 6,
+    borderRadius: 1,
   },
   // Style panel specific styles
   backgroundOptions: {
