@@ -153,6 +153,11 @@ const ComposerScreen: React.FC = () => {
     'layout' | 'labels' | 'style' | 'export'
   >('layout');
 
+  // Selected template ID for highlighting
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    null,
+  );
+
   // Project ID for saving to recent projects - use existing ID if reopening project
   const [projectId] = useState(
     () =>
@@ -481,6 +486,7 @@ const ComposerScreen: React.FC = () => {
     FeedbackService.buttonTap();
     const newComposition = applyTemplate(composition, template);
     setComposition(newComposition);
+    setSelectedTemplateId(template.id);
     addToHistory(newComposition);
   };
 
@@ -529,13 +535,13 @@ const ComposerScreen: React.FC = () => {
             <View
               style={[
                 styles.editorPreviewDiagonalTop,
-                { borderBottomColor: accentColor + '40' },
+                { borderBottomColor: '#60A5FA' },
               ]}
             />
             <View
               style={[
                 styles.editorPreviewDiagonalBottom,
-                { borderTopColor: accentColor + '70' },
+                { borderTopColor: '#F472B6' },
               ]}
             />
           </View>
@@ -680,7 +686,7 @@ const ComposerScreen: React.FC = () => {
               key={template.id}
               style={[
                 styles.editorTemplateCard,
-                composition.layout === template.composition.layout &&
+                selectedTemplateId === template.id &&
                   styles.activeEditorTemplateCard,
                 { backgroundColor: themeDefinition.colors.surface },
               ]}
