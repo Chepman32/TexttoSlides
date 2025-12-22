@@ -388,13 +388,16 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           const originX = topLeftX + deviceWidth / 2;
           const originY = deviceY + deviceHeight / 2;
 
-          // Keep both notches identical vertically but offset horizontally so rotations still look centered
-          const loweredNotchY = bezelY + screenHeight * 0.18;
-          const adjustedNotchY = loweredNotchY;
-          const notchHorizontalOffset = deviceWidth * 0.12;
+          // Adjust notch position - left device gets centered and lowered, right stays original
+          const leftNotchY = bezelY + screenHeight * 0.28;
+          const rightNotchY = bezelY + screenHeight * 0.18;
+          const adjustedNotchY = isLeft ? leftNotchY : rightNotchY;
+
+          const leftNotchHorizontalOffset = deviceWidth * 0.0;
+          const rightNotchHorizontalOffset = deviceWidth * 0.12;
           const adjustedNotchX = isLeft
-            ? notch.x - notchHorizontalOffset
-            : notch.x + notchHorizontalOffset;
+            ? notch.x - leftNotchHorizontalOffset
+            : notch.x + rightNotchHorizontalOffset;
 
           return (
             <Group

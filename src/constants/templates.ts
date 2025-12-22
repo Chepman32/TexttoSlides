@@ -8,7 +8,13 @@ export interface Template {
   preview: {
     backgroundColor: string;
     accentColor: string;
-    layout: 'side' | 'vertical' | 'stacked' | 'slider' | 'polaroid' | 'deviceMockup';
+    layout:
+      | 'side'
+      | 'vertical'
+      | 'stacked'
+      | 'slider'
+      | 'polaroid'
+      | 'deviceMockup';
     hasFrame: boolean;
   };
   composition: Partial<CompositionState>;
@@ -94,84 +100,6 @@ export const defaultTemplates: Template[] = [
         color: '#FFFFFF',
       },
       watermarkOn: false,
-    },
-  },
-  {
-    id: 'minimal',
-    name: 'Minimal',
-    description: 'Clean and simple design',
-    preview: {
-      backgroundColor: '#FFFFFF',
-      accentColor: '#2563EB',
-      layout: 'side',
-      hasFrame: false,
-    },
-    composition: {
-      layout: 'side',
-      spacing: 12,
-      cornerRadius: 8,
-      aspect: 'free',
-      labels: {
-        textBefore: 'Before',
-        textAfter: 'After',
-        fontFamily: 'System',
-        fontSize: 16,
-        fontWeight: 'Bold',
-        color: '#000000',
-        position: 'bl',
-        margin: 12,
-        show: true,
-        textEffects: [],
-      },
-      background: {
-        type: 'solid',
-        colors: ['#FFFFFF'],
-      },
-      frame: {
-        on: false,
-        thickness: 2,
-        color: '#E5E7EB',
-      },
-      watermarkOn: true,
-    },
-  },
-  {
-    id: 'elegant',
-    name: 'Elegant',
-    description: 'Sophisticated with frames',
-    preview: {
-      backgroundColor: '#F8FAFC',
-      accentColor: '#7C3AED',
-      layout: 'side',
-      hasFrame: true,
-    },
-    composition: {
-      layout: 'side',
-      spacing: 20,
-      cornerRadius: 16,
-      aspect: '1:1',
-      labels: {
-        textBefore: 'Before',
-        textAfter: 'After',
-        fontFamily: 'System',
-        fontSize: 18,
-        fontWeight: 'Bold',
-        color: '#1F2937',
-        position: 'tc',
-        margin: 20,
-        show: true,
-        textEffects: [],
-      },
-      background: {
-        type: 'solid',
-        colors: ['#F8FAFC'],
-      },
-      frame: {
-        on: true,
-        thickness: 3,
-        color: '#7C3AED',
-      },
-      watermarkOn: true,
     },
   },
   {
@@ -331,12 +259,90 @@ export const defaultTemplates: Template[] = [
       watermarkOn: true,
     },
   },
+  {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Clean and simple design',
+    preview: {
+      backgroundColor: '#FFFFFF',
+      accentColor: '#2563EB',
+      layout: 'side',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'side',
+      spacing: 12,
+      cornerRadius: 8,
+      aspect: 'free',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 16,
+        fontWeight: 'Bold',
+        color: '#000000',
+        position: 'bl',
+        margin: 12,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#FFFFFF'],
+      },
+      frame: {
+        on: false,
+        thickness: 2,
+        color: '#E5E7EB',
+      },
+      watermarkOn: true,
+    },
+  },
+  {
+    id: 'elegant',
+    name: 'Elegant',
+    description: 'Sophisticated with frames',
+    preview: {
+      backgroundColor: '#F8FAFC',
+      accentColor: '#7C3AED',
+      layout: 'side',
+      hasFrame: true,
+    },
+    composition: {
+      layout: 'side',
+      spacing: 20,
+      cornerRadius: 16,
+      aspect: '1:1',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 18,
+        fontWeight: 'Bold',
+        color: '#1F2937',
+        position: 'tc',
+        margin: 20,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#F8FAFC'],
+      },
+      frame: {
+        on: true,
+        thickness: 3,
+        color: '#7C3AED',
+      },
+      watermarkOn: true,
+    },
+  },
 ];
 
 // Function to apply template to current composition
 export const applyTemplate = (
   currentComposition: CompositionState,
-  template: Template
+  template: Template,
 ): CompositionState => {
   return {
     ...currentComposition,
@@ -347,8 +353,14 @@ export const applyTemplate = (
     // Merge labels to preserve custom text if user has set it
     labels: {
       ...template.composition.labels,
-      textBefore: currentComposition.labels.textBefore || template.composition.labels?.textBefore || 'Before',
-      textAfter: currentComposition.labels.textAfter || template.composition.labels?.textAfter || 'After',
+      textBefore:
+        currentComposition.labels.textBefore ||
+        template.composition.labels?.textBefore ||
+        'Before',
+      textAfter:
+        currentComposition.labels.textAfter ||
+        template.composition.labels?.textAfter ||
+        'After',
       textEffects: template.composition.labels?.textEffects || [],
     },
   };

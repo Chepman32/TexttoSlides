@@ -432,9 +432,17 @@ const ComposerScreen: React.FC = () => {
     }
   };
 
-  const setLayout = (layout: LayoutType) => {
+  const setLayout = (layout: LayoutType | 'minimal' | 'elegant') => {
     FeedbackService.buttonTap();
-    updateComposition({ layout });
+    // Handle minimal and elegant as template applications
+    if (layout === 'minimal' || layout === 'elegant') {
+      const template = defaultTemplates.find(t => t.id === layout);
+      if (template) {
+        applyTemplateToComposition(template);
+      }
+    } else {
+      updateComposition({ layout });
+    }
   };
 
   const setAspectRatio = (aspect: CompositionState['aspect']) => {
@@ -501,7 +509,7 @@ const ComposerScreen: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.templatesHorizontalContainer}
         >
-          {defaultTemplates.slice(0, 4).map(template => (
+          {defaultTemplates.slice(0, 2).map(template => (
             <TouchableOpacity
               key={template.id}
               style={[
@@ -667,6 +675,8 @@ const ComposerScreen: React.FC = () => {
               { key: 'stacked', label: t('composer_layoutStacked') },
               { key: 'diagonal', label: t('composer_layoutDiagonal') },
               { key: 'polaroid', label: t('composer_layoutPolaroid') },
+              { key: 'minimal', label: t('minimal') },
+              { key: 'elegant', label: t('elegant') },
             ] as const
           ).map(({ key, label }) => (
             <TouchableOpacity
