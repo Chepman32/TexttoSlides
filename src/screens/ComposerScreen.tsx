@@ -759,58 +759,6 @@ const ComposerScreen: React.FC = () => {
           ))}
         </View>
       </View>
-
-      {/* Text Effects Section */}
-      <View style={styles.toolSection}>
-        <Text
-          style={[
-            styles.toolSectionTitle,
-            { color: themeDefinition.colors.textPrimary },
-          ]}
-        >
-          {t('text_effects')}
-        </Text>
-        <View style={styles.textEffectsContainer}>
-          {SUPPORTED_TEXT_EFFECT_TYPES.map(effectType => {
-            const definition = getTextEffectDefinition(effectType);
-            const isActive = composition.labels.textEffects?.some(
-              effect => effect.type === effectType,
-            );
-
-            return (
-              <TouchableOpacity
-                key={effectType}
-                style={[
-                  styles.textEffectButton,
-                  isActive && styles.activeTextEffectButton,
-                  {
-                    borderColor: isActive
-                      ? themeDefinition.colors.accent
-                      : themeDefinition.colors.border,
-                    backgroundColor: isActive
-                      ? themeDefinition.colors.accent + '20'
-                      : themeDefinition.colors.surface,
-                  },
-                ]}
-                onPress={() => toggleTextEffect(effectType)}
-              >
-                <Text
-                  style={[
-                    styles.textEffectButtonText,
-                    {
-                      color: isActive
-                        ? themeDefinition.colors.accent
-                        : themeDefinition.colors.textPrimary,
-                    },
-                  ]}
-                >
-                  {t(getTextEffectNameKey(effectType))}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
     </VerticalPager>
   );
 
@@ -1130,6 +1078,58 @@ const ComposerScreen: React.FC = () => {
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          </View>
+
+          {/* Text Effects Section */}
+          <View style={styles.toolSection}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              {t('text_effects')}
+            </Text>
+            <View style={styles.textEffectsContainer}>
+              {SUPPORTED_TEXT_EFFECT_TYPES.map(effectType => {
+                const definition = getTextEffectDefinition(effectType);
+                const isActive = composition.labels.textEffects?.some(
+                  effect => effect.type === effectType,
+                );
+
+                return (
+                  <TouchableOpacity
+                    key={effectType}
+                    style={[
+                      styles.textEffectButton,
+                      isActive && styles.activeTextEffectButton,
+                      {
+                        borderColor: isActive
+                          ? themeDefinition.colors.accent
+                          : themeDefinition.colors.border,
+                        backgroundColor: isActive
+                          ? themeDefinition.colors.accent + '20'
+                          : themeDefinition.colors.surface,
+                      },
+                    ]}
+                    onPress={() => toggleTextEffect(effectType)}
+                  >
+                    <Text
+                      style={[
+                        styles.textEffectButtonText,
+                        {
+                          color: isActive
+                            ? themeDefinition.colors.accent
+                            : themeDefinition.colors.textPrimary,
+                        },
+                      ]}
+                    >
+                      {t(getTextEffectNameKey(effectType))}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         </>
