@@ -210,7 +210,11 @@ const ComposerScreen: React.FC = () => {
     compositionRef.current = composition;
   }, [composition]);
 
-  // Pan responder for image panning
+  // Track if we're dragging the slider handle
+  const isDraggingSliderRef = useRef(false);
+  const sliderStartPositionRef = useRef(0.5);
+
+  // Pan responder for image panning and slider dragging
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -221,10 +225,25 @@ const ComposerScreen: React.FC = () => {
         },
         onPanResponderGrant: (evt: GestureResponderEvent) => {
           const comp = compositionRef.current;
-          // Determine which image was touched based on position
           const { locationX, locationY } = evt.nativeEvent;
           const canvasWidth = screenWidth - 32;
 
+          // Check if this is a slider layout and user touched near the slider handle
+          if (comp.layout === 'slider') {
+            const sliderPos = comp.sliderPosition ?? 0.5;
+            const sliderX = canvasWidth * sliderPos;
+            // Check if touch is within 30px of the slider line
+            if (Math.abs(locationX - sliderX) < 30) {
+              isDraggingSliderRef.current = true;
+              sliderStartPositionRef.current = sliderPos;
+              panningImageRef.current = null;
+              return;
+            }
+          }
+
+          isDraggingSliderRef.current = false;
+
+          // Determine which image was touched based on position
           if (comp.layout === 'side') {
             // Side by side - left half is A, right half is B
             const imageWidth = (canvasWidth - comp.spacing) / 2;
@@ -256,6 +275,23 @@ const ComposerScreen: React.FC = () => {
           _evt: GestureResponderEvent,
           gestureState: PanResponderGestureState,
         ) => {
+          const canvasWidth = screenWidth - 32;
+
+          // Handle slider dragging
+          if (isDraggingSliderRef.current) {
+            const deltaPosition = gestureState.dx / canvasWidth;
+            const newPosition = Math.max(
+              0.1,
+              Math.min(0.9, sliderStartPositionRef.current + deltaPosition),
+            );
+
+            setComposition(prev => ({
+              ...prev,
+              sliderPosition: newPosition,
+            }));
+            return;
+          }
+
           if (!panningImageRef.current) return;
 
           const newOffset: ImageOffset = {
@@ -272,6 +308,7 @@ const ComposerScreen: React.FC = () => {
           }));
         },
         onPanResponderRelease: () => {
+          isDraggingSliderRef.current = false;
           panningImageRef.current = null;
         },
       }),

@@ -154,6 +154,7 @@ export const defaultTemplates: Template[] = [
       spacing: 0,
       cornerRadius: 16,
       aspect: '1:1',
+      sliderPosition: 0.5,
       labels: {
         textBefore: 'Before',
         textAfter: 'After',

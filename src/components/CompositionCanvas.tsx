@@ -592,11 +592,12 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         );
       } else if (layout === 'slider') {
         // Slider reveal layout - show both images with a mask
-        const sliderPosition = canvasWidth / 2; // Default to middle, could be interactive later
+        const sliderPos = composition.sliderPosition ?? 0.5;
+        const sliderX = canvasWidth * sliderPos;
 
         elements.push(
           <Group key="slider-images">
-            {/* Base image (Before) */}
+            {/* Base image (Before - right side) */}
             {imageA && (
               <Group
                 clip={{
@@ -618,13 +619,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 />
               </Group>
             )}
-            {/* Overlay image (After) with clipping */}
+            {/* Overlay image (After - left side) with clipping */}
             {imageB && (
               <Group
                 clip={{
                   x: 0,
                   y: 0,
-                  width: sliderPosition,
+                  width: sliderX,
                   height: canvasHeight,
                   rx: cornerRadius,
                   ry: cornerRadius,
@@ -640,6 +641,43 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 />
               </Group>
             )}
+
+            {/* Slider line */}
+            <RoundedRect
+              x={sliderX - 2}
+              y={0}
+              width={4}
+              height={canvasHeight}
+              r={2}
+              color="#FFFFFF"
+              opacity={0.9}
+            />
+            {/* Slider handle */}
+            <RoundedRect
+              x={sliderX - 16}
+              y={canvasHeight / 2 - 24}
+              width={32}
+              height={48}
+              r={16}
+              color="#FFFFFF"
+            />
+            {/* Handle arrows */}
+            <Path
+              path={`M ${sliderX - 6} ${canvasHeight / 2 - 6} L ${
+                sliderX - 10
+              } ${canvasHeight / 2} L ${sliderX - 6} ${canvasHeight / 2 + 6}`}
+              color="#333333"
+              style="stroke"
+              strokeWidth={2}
+            />
+            <Path
+              path={`M ${sliderX + 6} ${canvasHeight / 2 - 6} L ${
+                sliderX + 10
+              } ${canvasHeight / 2} L ${sliderX + 6} ${canvasHeight / 2 + 6}`}
+              color="#333333"
+              style="stroke"
+              strokeWidth={2}
+            />
 
             {/* Fallback placeholders if images are missing */}
             {!imageA && (

@@ -58,6 +58,7 @@ export interface CompositionState {
   background: BackgroundConfig;
   frame?: FrameConfig;
   watermarkOn: boolean;
+  sliderPosition?: number; // 0-1, position of slider divider (0.5 = middle)
 }
 
 export interface Template {
