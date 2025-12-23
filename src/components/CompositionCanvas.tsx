@@ -983,6 +983,14 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               </Group>
             )}
 
+            {/* Diagonal divider line */}
+            <Path
+              path={`M ${canvasWidth} 0 L 0 ${canvasHeight}`}
+              color="#FFFFFF"
+              style="stroke"
+              strokeWidth={3}
+            />
+
             {/* Fallback placeholders if images are missing */}
             {!imageA && (
               <Path
