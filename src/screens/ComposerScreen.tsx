@@ -606,7 +606,6 @@ const ComposerScreen: React.FC = () => {
 
       await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
       FeedbackService.success();
-      Alert.alert('Success!', 'Saved to Gallery');
     } catch (error: any) {
       console.error('Gallery save error:', error);
       FeedbackService.error();
