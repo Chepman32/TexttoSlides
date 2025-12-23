@@ -19,6 +19,9 @@ import {
   PanResponder,
   GestureResponderEvent,
   PanResponderGestureState,
+  Image,
+  Share,
+  Linking,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -51,6 +54,12 @@ import {
 } from '../constants/textEffects';
 import CompositionCanvas from '../components/CompositionCanvas';
 import VerticalPager from '../components/VerticalPager';
+
+// Export icons
+const InstagramIcon = require('../assets/icons/export/Instagram.png');
+const XIcon = require('../assets/icons/export/X.png');
+const GalleryIcon = require('../assets/icons/export/Gallery.png');
+const ShareIcon = require('../assets/icons/export/Share.png');
 
 type ComposerRouteProp = RouteProp<RootStackParamList, 'Composer'>;
 type ComposerNavigationProp = StackNavigationProp<
@@ -479,6 +488,149 @@ const ComposerScreen: React.FC = () => {
         'Error',
         `Failed to export photo: ${error.message || 'Please try again.'}`,
       );
+    }
+  };
+
+  // Helper function to capture canvas and return URI
+  const captureCanvas = async (): Promise<string | null> => {
+    if (!composition.photoAUri || !composition.photoBUri) {
+      Alert.alert('Error', 'Please select both photos first');
+      return null;
+    }
+
+    if (!canvasRef.current) {
+      Alert.alert('Error', 'Canvas not ready. Please try again.');
+      return null;
+    }
+
+    try {
+      const uri = await captureRef(canvasRef, {
+        format: 'png',
+        quality: 1.0,
+        result: 'tmpfile',
+      });
+      return uri;
+    } catch (error) {
+      console.error('Capture error:', error);
+      return null;
+    }
+  };
+
+  const shareToInstagram = async () => {
+    try {
+      FeedbackService.buttonTap();
+      const uri = await captureCanvas();
+      if (!uri) return;
+
+      // First save to gallery
+      await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
+
+      // Try to open Instagram
+      const instagramUrl =
+        'instagram://library?AssetPath=' + encodeURIComponent(uri);
+      const canOpen = await Linking.canOpenURL('instagram://');
+
+      if (canOpen) {
+        await Linking.openURL(instagramUrl);
+        FeedbackService.success();
+        Alert.alert(
+          'Photo Saved',
+          'Your photo has been saved. Select it from your gallery in Instagram.',
+        );
+      } else {
+        FeedbackService.success();
+        Alert.alert(
+          'Photo Saved',
+          'Photo saved to gallery. Open Instagram and select it from your gallery.',
+        );
+      }
+    } catch (error: any) {
+      console.error('Instagram share error:', error);
+      FeedbackService.error();
+      Alert.alert('Error', 'Failed to share to Instagram.');
+    }
+  };
+
+  const shareToX = async () => {
+    try {
+      FeedbackService.buttonTap();
+      const uri = await captureCanvas();
+      if (!uri) return;
+
+      // First save to gallery
+      await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
+
+      // Try to open X/Twitter
+      const canOpen = await Linking.canOpenURL('twitter://');
+
+      if (canOpen) {
+        await Linking.openURL('twitter://post');
+        FeedbackService.success();
+        Alert.alert(
+          'Photo Saved',
+          'Your photo has been saved. Attach it from your gallery in X.',
+        );
+      } else {
+        FeedbackService.success();
+        Alert.alert(
+          'Photo Saved',
+          'Photo saved to gallery. Open X and attach it from your gallery.',
+        );
+      }
+    } catch (error: any) {
+      console.error('X share error:', error);
+      FeedbackService.error();
+      Alert.alert('Error', 'Failed to share to X.');
+    }
+  };
+
+  const saveToGallery = async () => {
+    try {
+      FeedbackService.buttonTap();
+      const uri = await captureCanvas();
+      if (!uri) return;
+
+      // Request permissions for saving to Photos
+      if (Platform.OS === 'android') {
+        const permission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        );
+        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
+          Alert.alert(
+            'Permission Required',
+            'Please grant storage permission to save photos',
+          );
+          return;
+        }
+      }
+
+      await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
+      FeedbackService.success();
+      Alert.alert('Success!', 'Saved to Gallery');
+    } catch (error: any) {
+      console.error('Gallery save error:', error);
+      FeedbackService.error();
+      Alert.alert('Error', 'Failed to save to Gallery');
+    }
+  };
+
+  const openShareMenu = async () => {
+    try {
+      FeedbackService.buttonTap();
+      const uri = await captureCanvas();
+      if (!uri) return;
+
+      // Use native share sheet
+      await Share.share({
+        url: uri,
+      });
+      FeedbackService.success();
+    } catch (error: any) {
+      if (error?.message !== 'User did not share') {
+        console.error('Share error:', error);
+        FeedbackService.error();
+        Alert.alert('Error', 'Failed to open share menu');
+      }
     }
   };
 
@@ -1507,15 +1659,79 @@ const ComposerScreen: React.FC = () => {
         >
           {t('export_title')}
         </Text>
-        <TouchableOpacity
-          style={[
-            styles.exportButton,
-            { backgroundColor: themeDefinition.colors.accent },
-          ]}
-          onPress={exportToPhotos}
-        >
-          <Text style={styles.exportButtonText}>{t('saveToPhotos')}</Text>
-        </TouchableOpacity>
+        <View style={styles.exportButtonsGrid}>
+          <TouchableOpacity
+            style={[
+              styles.exportGridButton,
+              { backgroundColor: themeDefinition.colors.surface },
+            ]}
+            onPress={shareToInstagram}
+          >
+            <Image source={InstagramIcon} style={styles.exportIcon} />
+            <Text
+              style={[
+                styles.exportGridButtonText,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              Instagram
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.exportGridButton,
+              { backgroundColor: themeDefinition.colors.surface },
+            ]}
+            onPress={shareToX}
+          >
+            <Image source={XIcon} style={styles.exportIcon} />
+            <Text
+              style={[
+                styles.exportGridButtonText,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              X
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.exportGridButton,
+              { backgroundColor: themeDefinition.colors.surface },
+            ]}
+            onPress={saveToGallery}
+          >
+            <Image source={GalleryIcon} style={styles.exportIcon} />
+            <Text
+              style={[
+                styles.exportGridButtonText,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              Gallery
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.exportGridButton,
+              { backgroundColor: themeDefinition.colors.surface },
+            ]}
+            onPress={openShareMenu}
+          >
+            <Image source={ShareIcon} style={styles.exportIcon} />
+            <Text
+              style={[
+                styles.exportGridButtonText,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              Share
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </VerticalPager>
   );
@@ -1922,6 +2138,29 @@ const styles = StyleSheet.create({
   exportButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  exportButtonsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    justifyContent: 'space-between',
+  },
+  exportGridButton: {
+    width: '47%',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  exportIcon: {
+    width: 32,
+    height: 32,
+    resizeMode: 'contain',
+  },
+  exportGridButtonText: {
+    fontSize: 14,
     fontWeight: '600',
   },
   // Label controls styles
