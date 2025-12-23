@@ -63,12 +63,12 @@ const sanitizeTextEffects = (
 class StorageService {
   private static instance: StorageService;
   private readonly STORAGE_KEYS = {
-    CURRENT_PROJECT: '@TextToSlides:currentProject',
-    RECENT_PROJECTS: '@TextToSlides:recentProjects',
-    PREFERENCES: '@TextToSlides:preferences',
-    APP_STATE: '@TextToSlides:appState',
-    PRO_STATUS: '@TextToSlides:proStatus',
-    FIRST_LAUNCH: '@TextToSlides:firstLaunch',
+    CURRENT_PROJECT: '@Snapduo:currentProject',
+    RECENT_PROJECTS: '@Snapduo:recentProjects',
+    PREFERENCES: '@Snapduo:preferences',
+    APP_STATE: '@Snapduo:appState',
+    PRO_STATUS: '@Snapduo:proStatus',
+    FIRST_LAUNCH: '@Snapduo:firstLaunch',
   };
 
   private constructor() {}

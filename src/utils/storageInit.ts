@@ -37,7 +37,7 @@ class StorageInitializer {
   }
 
   private async performInitialization(): Promise<void> {
-    const testKey = '@TextToSlides:init_test';
+    const testKey = '@Snapduo:init_test';
     const maxRetries = 3;
     let retryCount = 0;
 
@@ -58,7 +58,10 @@ class StorageInitializer {
         }
       } catch (error) {
         retryCount++;
-        console.log(`AsyncStorage initialization attempt ${retryCount} failed:`, error);
+        console.log(
+          `AsyncStorage initialization attempt ${retryCount} failed:`,
+          error,
+        );
 
         if (retryCount < maxRetries) {
           // Wait a bit before retrying
@@ -85,7 +88,7 @@ class StorageInitializer {
   async safeStorageOperation<T>(
     operation: () => Promise<T>,
     fallback: T,
-    operationName: string = 'storage operation'
+    operationName: string = 'storage operation',
   ): Promise<T> {
     try {
       // Ensure initialization
@@ -94,7 +97,10 @@ class StorageInitializer {
       // Perform the operation
       return await operation();
     } catch (error) {
-      console.warn(`Safe storage operation failed for ${operationName}:`, error);
+      console.warn(
+        `Safe storage operation failed for ${operationName}:`,
+        error,
+      );
       return fallback;
     }
   }
@@ -117,19 +123,23 @@ class StorageInitializer {
   /**
    * Get storage info for debugging
    */
-  async getStorageInfo(): Promise<{ isInitialized: boolean; keyCount: number; keys: string[] }> {
+  async getStorageInfo(): Promise<{
+    isInitialized: boolean;
+    keyCount: number;
+    keys: string[];
+  }> {
     try {
       const keys = await AsyncStorage.getAllKeys();
       return {
         isInitialized: this.isInitialized,
         keyCount: keys.length,
-        keys: keys.slice(0, 10) // Return first 10 keys for debugging
+        keys: keys.slice(0, 10), // Return first 10 keys for debugging
       };
     } catch (error) {
       return {
         isInitialized: this.isInitialized,
         keyCount: 0,
-        keys: []
+        keys: [],
       };
     }
   }

@@ -4,9 +4,10 @@
 
 ## 🚀 Project Overview
 
-This project was transformed from a TexttoSlides app into a comprehensive Before/After photo comparison editor. The app supports 4 themes (Light, Dark, Solar, Mono), sound & haptics, full localization (10 languages), and exports high-quality composites to Photos.
+This project was transformed from a TexttoSlides app into a comprehensive Before/After photo comparison editor called Snapduo. The app supports 4 themes (Light, Dark, Solar, Mono), sound & haptics, full localization (10 languages), and exports high-quality composites to Photos.
 
 ### Key Features
+
 - **Offline-first**: All core operations work offline
 - **4 Layout Types**: Side-by-Side, Vertical Split, Slider Reveal, Stacked with Label Bar
 - **Advanced Label Controls**: Customizable fonts, colors, positions, and sizing
@@ -18,6 +19,7 @@ This project was transformed from a TexttoSlides app into a comprehensive Before
 ## 🏗️ Architecture
 
 ### Tech Stack
+
 - **React Native** (0.81.4) with TypeScript
 - **@shopify/react-native-skia** (2.2.15) - High-performance canvas rendering
 - **react-native-reanimated** (4.1.0) - Smooth animations
@@ -28,6 +30,7 @@ This project was transformed from a TexttoSlides app into a comprehensive Before
 - **react-native-haptic-feedback** - Haptic feedback
 
 ### Project Structure
+
 ```
 src/
 ├── components/
@@ -51,12 +54,14 @@ src/
 ## ✅ Completed Features
 
 ### Core Functionality
+
 - [x] **Navigation System** - Complete React Navigation setup with proper routing
 - [x] **Photo Selection** - Native image picker with support for before/after photos
 - [x] **Home Screen** - Clean UI with primary photo picker action and template previews
 - [x] **Composer Screen** - Full-featured editor with tool panels and real-time preview
 
 ### Canvas & Rendering
+
 - [x] **Skia Canvas Integration** - High-performance rendering engine
 - [x] **4 Layout Types**:
   - [x] Side-by-Side (horizontal comparison)
@@ -69,6 +74,7 @@ src/
 - [x] **Watermark System** - Geometric overlay for free tier
 
 ### Label System
+
 - [x] **Toggle Labels** - Show/hide before/after text
 - [x] **Text Editing** - Customizable before/after text content
 - [x] **Font Controls**:
@@ -79,12 +85,14 @@ src/
 - [x] **Real-time Preview** - All changes reflect instantly in canvas
 
 ### Theme & Localization
+
 - [x] **4-Theme System** - Light, Dark, Solar, Mono with proper color tokens
 - [x] **Before/After Color Tokens** - Canvas-specific colors (labelBg, watermark, etc.)
 - [x] **10-Language Support** - Complete localization infrastructure
 - [x] **Theme-Aware UI** - All components respect current theme
 
 ### Technical Infrastructure
+
 - [x] **TypeScript Integration** - Full type safety with proper interfaces
 - [x] **State Management** - Composition state with undo/redo history (10 steps)
 - [x] **Error Handling** - Robust Skia rendering with fallbacks
@@ -94,7 +102,9 @@ src/
 ## 📋 TODO - Remaining Tasks
 
 ### High Priority
+
 - [ ] **Basic Export Functionality**
+
   - [ ] Render canvas to image file
   - [ ] Save to Photos with proper permissions
   - [ ] Share sheet integration
@@ -106,7 +116,9 @@ src/
   - [ ] Smooth position tracking
 
 ### Medium Priority
+
 - [ ] **Template System**
+
   - [ ] Create template presets (Classic, Minimal, Frame, etc.)
   - [ ] Template modal with live previews
   - [ ] Save custom templates
@@ -119,7 +131,9 @@ src/
   - [ ] Purchase restoration
 
 ### Low Priority
+
 - [ ] **Advanced Features**
+
   - [ ] Custom fonts for labels
   - [ ] Gradient backgrounds
   - [ ] Advanced shadow controls
@@ -135,27 +149,32 @@ src/
 ## 🎨 Design System
 
 ### Themes
+
 The app supports 4 carefully designed themes:
 
 **Light Theme**
+
 - Background: `#F8FAFC`
 - Surface: `#FFFFFF`
 - Text Primary: `#0F172A`
 - Accent: `#2563EB`
 
 **Dark Theme**
+
 - Background: `#0B1020`
 - Surface: `#111827`
 - Text Primary: `#E5E7EB`
 - Accent: `#60A5FA`
 
 **Solar Theme**
+
 - Background: `#FFF8E1`
 - Surface: `#FFFCF2`
 - Text Primary: `#4E342E`
 - Accent: `#F59E0B`
 
 **Mono Theme**
+
 - Background: `#F3F3F3`
 - Surface: `#FFFFFF`
 - Text Primary: `#1F1F1F`
@@ -171,22 +190,26 @@ The app supports 4 carefully designed themes:
 ## 🛠️ Development
 
 ### Prerequisites
+
 - Node.js >= 20
 - React Native development environment
 - iOS development setup (Xcode, etc.)
 
 ### Installation
+
 ```bash
 yarn install
 cd ios && pod install && cd ..
 ```
 
 ### Running the App
+
 ```bash
 yarn ios
 ```
 
 ### Available Scripts
+
 - `yarn ios` - Run on iOS simulator
 - `yarn start` - Start Metro bundler
 - `yarn lint` - Run ESLint
@@ -204,6 +227,7 @@ yarn ios
 ## 🔧 Technical Notes
 
 ### Skia Canvas Rendering
+
 The app uses react-native-skia for high-performance canvas rendering. Key implementation details:
 
 - **Group Clipping** - Used for rounded corners and masks
@@ -212,11 +236,13 @@ The app uses react-native-skia for high-performance canvas rendering. Key implem
 - **Theme Integration** - Dynamic color theming throughout canvas
 
 ### State Management
+
 - **Composition State** - Central state for all editor properties
 - **Undo/Redo History** - 10-step history with structural sharing
 - **Real-time Updates** - Optimized re-rendering for smooth interactions
 
 ### Performance Optimizations
+
 - **60fps Animations** - React Native Reanimated for smooth interactions
 - **Efficient Re-renders** - Minimal canvas updates on state changes
 - **Memory Management** - Proper cleanup of Skia resources
@@ -225,6 +251,7 @@ The app uses react-native-skia for high-performance canvas rendering. Key implem
 ## 📊 Implementation Status
 
 ### Completed (✅)
+
 - Core navigation and routing
 - Photo selection and loading
 - 4 layout types with Skia rendering
@@ -235,11 +262,13 @@ The app uses react-native-skia for high-performance canvas rendering. Key implem
 - Error handling and performance optimization
 
 ### In Progress (🚧)
+
 - Export functionality
 - Interactive slider controls
 - Template system
 
 ### Planned (📋)
+
 - IAP integration
 - Advanced features
 - Polish and UX improvements
@@ -260,4 +289,4 @@ This project is private and proprietary. All rights reserved.
 
 **Built with ❤️ using React Native, Skia, and Reanimated**
 
-*Transform your photos into compelling before/after stories* ✨
+_Transform your photos into compelling before/after stories_ ✨

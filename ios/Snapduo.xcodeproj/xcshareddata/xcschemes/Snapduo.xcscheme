@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "TexttoSlides.app"
-               BlueprintName = "TexttoSlides"
-               ReferencedContainer = "container:TexttoSlides.xcodeproj">
+               BuildableName = "Snapduo.app"
+               BlueprintName = "Snapduo"
+               ReferencedContainer = "container:Snapduo.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "TexttoSlidesTests.xctest"
-               BlueprintName = "TexttoSlidesTests"
-               ReferencedContainer = "container:TexttoSlides.xcodeproj">
+               BuildableName = "SnapduoTests.xctest"
+               BlueprintName = "SnapduoTests"
+               ReferencedContainer = "container:Snapduo.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "TexttoSlides.app"
-            BlueprintName = "TexttoSlides"
-            ReferencedContainer = "container:TexttoSlides.xcodeproj">
+            BuildableName = "Snapduo.app"
+            BlueprintName = "Snapduo"
+            ReferencedContainer = "container:Snapduo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "TexttoSlides.app"
-            BlueprintName = "TexttoSlides"
-            ReferencedContainer = "container:TexttoSlides.xcodeproj">
+            BuildableName = "Snapduo.app"
+            BlueprintName = "Snapduo"
+            ReferencedContainer = "container:Snapduo.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

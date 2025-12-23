@@ -1,5 +1,5 @@
 /**
- * Text-to-Slides Mobile App
+ * Snapduo Mobile App
  * https://github.com/facebook/react-native
  *
  * @format
@@ -7,9 +7,7 @@
 
 import React, { useEffect } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
-import {
-  SafeAreaProvider,
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
@@ -20,7 +18,7 @@ function App() {
   useEffect(() => {
     // Initialize IAP service
     IAPService.init();
-    
+
     // Cleanup on unmount
     return () => {
       IAPService.endConnection();
@@ -33,8 +31,8 @@ function App() {
         <ThemeProvider>
           <LanguageProvider>
             <View style={styles.container}>
-              <StatusBar 
-                barStyle="dark-content" 
+              <StatusBar
+                barStyle="dark-content"
                 backgroundColor="transparent"
                 translucent={false}
               />

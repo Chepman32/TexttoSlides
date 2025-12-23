@@ -3,8 +3,8 @@ import { Alert, Platform } from 'react-native';
 
 // Product IDs for App Store and Google Play (for future use)
 // const PRODUCT_IDS = Platform.select({
-//   ios: ['com.texttoslides.pro', 'com.texttoslides.pro.monthly'],
-//   android: ['com.texttoslides.pro', 'com.texttoslides.pro.monthly'],
+//   ios: ['com.snapduo.pro', 'com.snapduo.pro.monthly'],
+//   android: ['com.snapduo.pro', 'com.snapduo.pro.monthly'],
 //   default: []
 // });
 
@@ -58,8 +58,8 @@ class IAPService {
       // Simulate available products
       this.products = [
         {
-          productId: 'com.texttoslides.pro',
-          title: 'Text to Slides Pro',
+          productId: 'com.snapduo.pro',
+          title: 'Snapduo Pro',
           description:
             'Unlock all features: Remove watermark, unlimited slides, premium templates',
           price: '4.99',
@@ -68,8 +68,8 @@ class IAPService {
           type: 'iap',
         },
         {
-          productId: 'com.texttoslides.pro.monthly',
-          title: 'Text to Slides Pro Monthly',
+          productId: 'com.snapduo.pro.monthly',
+          title: 'Snapduo Pro Monthly',
           description: 'Monthly subscription to all Pro features',
           price: '1.99',
           localizedPrice: '$1.99/month',

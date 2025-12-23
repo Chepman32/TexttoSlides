@@ -28,7 +28,7 @@ icons=(
 # Source directory
 SRC_DIR="src/assets/icons/appIcon"
 # iOS assets directory
-IOS_DIR="ios/TexttoSlides/Images.xcassets"
+IOS_DIR="ios/Snapduo/Images.xcassets"
 
 echo "Generating iOS app icon sets..."
 
