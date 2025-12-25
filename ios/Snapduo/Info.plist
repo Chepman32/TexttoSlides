@@ -16,7 +16,7 @@
 			<dict>
 				<key>CFBundleIconFiles</key>
 				<array>
-					<string>AppIconBlueDark</string>
+					<string>AppIconBlueDark60x60</string>
 				</array>
 				<key>UIPrerenderedIcon</key>
 				<false/>
@@ -25,7 +25,7 @@
 			<dict>
 				<key>CFBundleIconFiles</key>
 				<array>
-					<string>AppIconGray</string>
+					<string>AppIconGray60x60</string>
 				</array>
 				<key>UIPrerenderedIcon</key>
 				<false/>
@@ -34,7 +34,7 @@
 			<dict>
 				<key>CFBundleIconFiles</key>
 				<array>
-					<string>AppIconYellow</string>
+					<string>AppIconYellow60x60</string>
 				</array>
 				<key>UIPrerenderedIcon</key>
 				<false/>
