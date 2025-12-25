@@ -1556,7 +1556,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           position: 'relative',
         }}
       >
-        <Canvas ref={ref} style={{ width: canvasWidth, height: canvasHeight }}>
+        <Canvas ref={ref} style={{ width: canvasWidth, height: canvasHeight }} pointerEvents="none">
           <Group clip={clipRect}>
             {renderBackground()}
             {renderImages()}
