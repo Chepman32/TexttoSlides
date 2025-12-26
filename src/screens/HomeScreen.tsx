@@ -470,9 +470,6 @@ const HomeScreen: React.FC = () => {
                           />
                         )}
                       </View>
-                      <Text style={styles.projectTitle} numberOfLines={1}>
-                        {project.text || `Project ${index + 1}`}
-                      </Text>
                     </TouchableOpacity>
                   </ContextMenu>
                 ))}
@@ -514,8 +511,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 32,
+    paddingBottom: 20
   },
   title: {
     fontSize: 32,
@@ -615,14 +611,12 @@ const styles = StyleSheet.create({
   },
   projectCard: {
     alignItems: 'center',
-    width: 100,
-    marginRight: 16,
+    marginRight: 12,
   },
   projectImage: {
-    width: 80,
-    height: 60,
-    borderRadius: 12,
-    marginBottom: 12,
+    width: 110,
+    height: 110,
+    borderRadius: 16,
     overflow: 'hidden',
   },
   projectPreviewContainer: {
@@ -646,11 +640,6 @@ const styles = StyleSheet.create({
   projectImagePlaceholder: {
     width: '100%',
     height: '100%',
-  },
-  projectTitle: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
   },
   proTipSection: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
