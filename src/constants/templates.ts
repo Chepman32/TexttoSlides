@@ -11,7 +11,6 @@ export interface Template {
     layout:
       | 'side'
       | 'vertical'
-      | 'stacked'
       | 'slider'
       | 'polaroid'
       | 'deviceMockup'
@@ -122,7 +121,7 @@ export const defaultTemplates: Template[] = [
         fontFamily: 'System',
         fontSize: 16,
         fontWeight: 'Bold',
-        color: '#FFFFFF',
+        color: '#000000',
         position: 'bl',
         margin: 12,
         show: true,
@@ -140,45 +139,7 @@ export const defaultTemplates: Template[] = [
       watermarkOn: true,
     },
   },
-  {
-    id: 'stacked-bar',
-    name: 'Stacked',
-    description: 'Stacked with info bar',
-    preview: {
-      backgroundColor: '#F3F4F6',
-      accentColor: '#6366F1',
-      layout: 'stacked',
-      hasFrame: false,
-    },
-    composition: {
-      layout: 'stacked',
-      spacing: 0,
-      cornerRadius: 12,
-      aspect: '4:3',
-      labels: {
-        textBefore: 'Before',
-        textAfter: 'After',
-        fontFamily: 'System',
-        fontSize: 14,
-        fontWeight: 'Bold',
-        color: '#1F2937',
-        position: 'bl',
-        margin: 8,
-        show: true,
-        textEffects: [],
-      },
-      background: {
-        type: 'solid',
-        colors: ['#F3F4F6'],
-      },
-      frame: {
-        on: false,
-        thickness: 2,
-        color: '#6366F1',
-      },
-      watermarkOn: true,
-    },
-  },
+
   {
     id: 'device-showcase',
     name: 'Device Showcase',
