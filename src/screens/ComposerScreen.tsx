@@ -216,10 +216,8 @@ const ComposerScreen: React.FC = () => {
   const startOffsetRef = useRef<ImageOffset>({ x: 0, y: 0 });
   const compositionRef = useRef(composition);
 
-  // Keep compositionRef in sync
-  useEffect(() => {
-    compositionRef.current = composition;
-  }, [composition]);
+  // Keep compositionRef in sync (synchronous update for gesture handlers)
+  compositionRef.current = composition;
 
   // Track if we're dragging the slider handle
   const isDraggingSliderRef = useRef(false);
@@ -467,6 +465,10 @@ const ComposerScreen: React.FC = () => {
           }));
         },
         onPanResponderRelease: () => {
+          isDraggingSliderRef.current = false;
+          panningImageRef.current = null;
+        },
+        onPanResponderTerminate: () => {
           isDraggingSliderRef.current = false;
           panningImageRef.current = null;
         },
