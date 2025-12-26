@@ -31,11 +31,52 @@ type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>;
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+const PRO_TIPS = [
+  {
+    title: 'Use a simple background',
+    description:
+      'Clean backgrounds keep attention on the subject, not the surroundings.',
+  },
+  {
+    title: 'Match your framing',
+    description:
+      'Keep the subject in the same position (center/thirds) for a cleaner comparison.',
+  },
+  {
+    title: 'Keep horizons straight',
+    description:
+      'A level horizon instantly makes the comparison look more professional.',
+  },
+  {
+    title: 'Remove visual clutter',
+    description:
+      'Hide distractions (cables, bottles, random objects) before taking "before".',
+  },
+  {
+    title: 'Prefer soft light',
+    description:
+      'Overcast daylight or diffused window light reduces harsh shadows.',
+  },
+  {
+    title: 'Crop equally on both sides',
+    description:
+      'Use Slider Reveal to crop equally. If you crop one image, mirror the crop on the other for fairness.',
+  },
+  {
+    title: 'Keep text minimal',
+    description:
+      'Short labels work best; avoid tiny captions that get lost on small screens.',
+  },
+];
+
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const { themeDefinition } = useTheme();
   const { t } = useLanguage();
   const [recentProjects, setRecentProjects] = useState<ProjectState[]>([]);
+  const [currentTip] = useState(
+    () => PRO_TIPS[Math.floor(Math.random() * PRO_TIPS.length)],
+  );
 
   const loadRecentProjects = useCallback(async () => {
     try {
@@ -482,10 +523,9 @@ const HomeScreen: React.FC = () => {
             <View style={styles.proTipContent}>
               <Text style={styles.proTipIcon}>💡</Text>
               <View style={styles.proTipText}>
-                <Text style={styles.proTipTitle}>Pro Tip</Text>
+                <Text style={styles.proTipTitle}>{currentTip.title}</Text>
                 <Text style={styles.proTipDescription}>
-                  Choose photos with similar lighting and compositionn for the
-                  best before/after effect
+                  {currentTip.description}
                 </Text>
               </View>
             </View>
@@ -511,7 +551,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    paddingBottom: 20
+    paddingBottom: 20,
   },
   title: {
     fontSize: 32,
