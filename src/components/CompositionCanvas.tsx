@@ -352,10 +352,15 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const notchColor = '#0C0F15';
         const placeholderColor = themeDefinition.colors.border;
 
+        // Get offsets for device mockup
+        const offsetA = composition.photoAOffset || { x: 0, y: 0 };
+        const offsetB = composition.photoBOffset || { x: 0, y: 0 };
+
         const deviceConfigs = [
           {
             key: 'device-before',
             image: imageA,
+            offset: offsetA,
             topLeftX: leftX,
             rotation: -6,
             isLeft: true,
@@ -363,6 +368,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           {
             key: 'device-after',
             image: imageB,
+            offset: offsetB,
             topLeftX: rightX,
             rotation: 6,
             isLeft: false,
@@ -372,6 +378,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const buildDevice = (
           key: string,
           image: ReturnType<typeof useImage>,
+          offset: ImageOffset,
           topLeftX: number,
           rotationDeg: number,
           isLeft: boolean = false,
@@ -389,6 +396,16 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           const adjustedNotchX = isLeft
             ? notch.x - leftNotchHorizontalOffset
             : notch.x + rightNotchHorizontalOffset;
+
+          // Calculate cover fit position with offset for the screen area
+          const imagePos = calculateCoverFitPosition(
+            image,
+            screenWidth,
+            screenHeight,
+            bezelX,
+            bezelY,
+            offset,
+          );
 
           return (
             <Group
@@ -454,14 +471,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: screenRadius,
                 }}
               >
-                {image ? (
+                {image && imagePos ? (
                   <Image
                     image={image}
-                    fit="cover"
-                    x={bezelX}
-                    y={bezelY}
-                    width={screenWidth}
-                    height={screenHeight}
+                    x={imagePos.x}
+                    y={imagePos.y}
+                    width={imagePos.width}
+                    height={imagePos.height}
                   />
                 ) : (
                   <RoundedRect
@@ -484,6 +500,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               buildDevice(
                 config.key,
                 config.image,
+                config.offset,
                 config.topLeftX,
                 config.rotation,
                 config.isLeft,
@@ -805,120 +822,136 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const cardRadius = 16;
         const photoRadius = 10;
 
+        // Get offsets for polaroid
+        const offsetA = composition.photoAOffset || { x: 0, y: 0 };
+        const offsetB = composition.photoBOffset || { x: 0, y: 0 };
+
         const buildPolaroid = (
           key: string,
           image: ReturnType<typeof useImage>,
+          offset: ImageOffset,
           centerX: number,
           centerY: number,
           rotationDeg: number,
           tapeConfig: { shiftX: number; shiftY: number; rotationDeg: number },
-        ) => (
-          <Group
-            key={key}
-            transform={[
-              { translateX: centerX },
-              { translateY: centerY },
-              { rotate: degToRad(rotationDeg) },
-            ]}
-          >
-            <RoundedRect
-              x={-polaroidWidth / 2 + shadowOffset}
-              y={-polaroidHeight / 2 + shadowOffset}
-              width={polaroidWidth}
-              height={polaroidHeight}
-              r={cardRadius}
-              color="rgba(0,0,0,0.14)"
-              opacity={0.35}
-            />
-            <RoundedRect
-              x={-polaroidWidth / 2}
-              y={-polaroidHeight / 2}
-              width={polaroidWidth}
-              height={polaroidHeight}
-              r={cardRadius}
-              color="#FFFFFF"
-            />
-            <RoundedRect
-              x={-polaroidWidth / 2}
-              y={-polaroidHeight / 2}
-              width={polaroidWidth}
-              height={polaroidHeight}
-              r={cardRadius}
-              style="stroke"
-              strokeWidth={2}
-              color="rgba(0,0,0,0.08)"
-            />
+        ) => {
+          // Calculate cover fit position with offset for the photo area
+          const imagePos = calculateCoverFitPosition(
+            image,
+            photoWidth,
+            photoHeight,
+            photoX,
+            photoY,
+            offset,
+          );
+
+          return (
             <Group
-              clip={{
-                x: photoX,
-                y: photoY,
-                width: photoWidth,
-                height: photoHeight,
-                rx: photoRadius,
-                ry: photoRadius,
-              }}
-            >
-              {image ? (
-                <Image
-                  image={image}
-                  fit="cover"
-                  x={photoX}
-                  y={photoY}
-                  width={photoWidth}
-                  height={photoHeight}
-                />
-              ) : (
-                <RoundedRect
-                  x={photoX}
-                  y={photoY}
-                  width={photoWidth}
-                  height={photoHeight}
-                  r={photoRadius}
-                  color="#111111"
-                />
-              )}
-            </Group>
-            <RoundedRect
-              x={photoX}
-              y={photoY}
-              width={photoWidth}
-              height={photoHeight}
-              r={photoRadius}
-              style="stroke"
-              strokeWidth={2}
-              color="rgba(0,0,0,0.12)"
-            />
-            <Group
+              key={key}
               transform={[
-                { translateX: tapeConfig.shiftX },
-                {
-                  translateY:
-                    -polaroidHeight / 2 + tapeHeight / 2 + tapeConfig.shiftY,
-                },
-                { rotate: degToRad(tapeConfig.rotationDeg) },
+                { translateX: centerX },
+                { translateY: centerY },
+                { rotate: degToRad(rotationDeg) },
               ]}
             >
               <RoundedRect
-                x={-tapeWidth / 2}
-                y={-tapeHeight / 2}
-                width={tapeWidth}
-                height={tapeHeight}
-                r={6}
-                color={tapeColor}
-                opacity={0.9}
-              />
-              <RoundedRect
-                x={-tapeWidth * 0.45}
-                y={-tapeHeight / 2 + 3}
-                width={tapeWidth * 0.9}
-                height={tapeHeight / 2}
-                r={4}
-                color={tapeHighlightColor}
+                x={-polaroidWidth / 2 + shadowOffset}
+                y={-polaroidHeight / 2 + shadowOffset}
+                width={polaroidWidth}
+                height={polaroidHeight}
+                r={cardRadius}
+                color="rgba(0,0,0,0.14)"
                 opacity={0.35}
               />
+              <RoundedRect
+                x={-polaroidWidth / 2}
+                y={-polaroidHeight / 2}
+                width={polaroidWidth}
+                height={polaroidHeight}
+                r={cardRadius}
+                color="#FFFFFF"
+              />
+              <RoundedRect
+                x={-polaroidWidth / 2}
+                y={-polaroidHeight / 2}
+                width={polaroidWidth}
+                height={polaroidHeight}
+                r={cardRadius}
+                style="stroke"
+                strokeWidth={2}
+                color="rgba(0,0,0,0.08)"
+              />
+              <Group
+                clip={{
+                  x: photoX,
+                  y: photoY,
+                  width: photoWidth,
+                  height: photoHeight,
+                  rx: photoRadius,
+                  ry: photoRadius,
+                }}
+              >
+                {image && imagePos ? (
+                  <Image
+                    image={image}
+                    x={imagePos.x}
+                    y={imagePos.y}
+                    width={imagePos.width}
+                    height={imagePos.height}
+                  />
+                ) : (
+                  <RoundedRect
+                    x={photoX}
+                    y={photoY}
+                    width={photoWidth}
+                    height={photoHeight}
+                    r={photoRadius}
+                    color="#111111"
+                  />
+                )}
+              </Group>
+              <RoundedRect
+                x={photoX}
+                y={photoY}
+                width={photoWidth}
+                height={photoHeight}
+                r={photoRadius}
+                style="stroke"
+                strokeWidth={2}
+                color="rgba(0,0,0,0.12)"
+              />
+              <Group
+                transform={[
+                  { translateX: tapeConfig.shiftX },
+                  {
+                    translateY:
+                      -polaroidHeight / 2 + tapeHeight / 2 + tapeConfig.shiftY,
+                  },
+                  { rotate: degToRad(tapeConfig.rotationDeg) },
+                ]}
+              >
+                <RoundedRect
+                  x={-tapeWidth / 2}
+                  y={-tapeHeight / 2}
+                  width={tapeWidth}
+                  height={tapeHeight}
+                  r={6}
+                  color={tapeColor}
+                  opacity={0.9}
+                />
+                <RoundedRect
+                  x={-tapeWidth * 0.45}
+                  y={-tapeHeight / 2 + 3}
+                  width={tapeWidth * 0.9}
+                  height={tapeHeight / 2}
+                  r={4}
+                  color={tapeHighlightColor}
+                  opacity={0.35}
+                />
+              </Group>
             </Group>
-          </Group>
-        );
+          );
+        };
 
         const offsetX = baseSize * 0.18;
         const offsetY = baseSize * 0.02;
@@ -927,6 +960,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           buildPolaroid(
             'before-polaroid',
             imageA,
+            offsetA,
             canvasWidth / 2 - offsetX,
             canvasHeight / 2 - offsetY,
             -8,
@@ -939,6 +973,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           buildPolaroid(
             'after-polaroid',
             imageB,
+            offsetB,
             canvasWidth / 2 + offsetX,
             canvasHeight / 2 + offsetY,
             5,

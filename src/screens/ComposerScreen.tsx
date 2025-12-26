@@ -332,6 +332,26 @@ const ComposerScreen: React.FC = () => {
               panningImageRef.current = 'B';
               startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
             }
+          } else if (comp.layout === 'polaroid') {
+            // Polaroid - left polaroid is A, right polaroid is B
+            // Simple left/right split at center
+            if (locationX < canvasWidth / 2) {
+              panningImageRef.current = 'A';
+              startOffsetRef.current = comp.photoAOffset || { x: 0, y: 0 };
+            } else {
+              panningImageRef.current = 'B';
+              startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
+            }
+          } else if (comp.layout === 'deviceMockup') {
+            // Device mockup - left device is A, right device is B
+            // Simple left/right split at center
+            if (locationX < canvasWidth / 2) {
+              panningImageRef.current = 'A';
+              startOffsetRef.current = comp.photoAOffset || { x: 0, y: 0 };
+            } else {
+              panningImageRef.current = 'B';
+              startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
+            }
           } else {
             // For other layouts, default to image A
             panningImageRef.current = 'A';
@@ -392,8 +412,26 @@ const ComposerScreen: React.FC = () => {
           } else if (comp.layout === 'side') {
             // Each image takes half the width
             containerWidth = (canvasWidth - comp.spacing) / 2;
+          } else if (comp.layout === 'polaroid') {
+            // Polaroid photo area dimensions
+            const baseSize = Math.min(canvasWidth, canvasHeight);
+            const polaroidWidth = baseSize * 0.55;
+            const polaroidHeight = baseSize * 0.58;
+            const sidePadding = polaroidWidth * 0.06;
+            const topPadding = polaroidHeight * 0.05;
+            const bottomPadding = polaroidHeight * 0.15;
+            containerWidth = polaroidWidth - sidePadding * 2;
+            containerHeight = polaroidHeight - topPadding - bottomPadding;
+          } else if (comp.layout === 'deviceMockup') {
+            // Device screen dimensions
+            const deviceWidth = canvasWidth * 0.42;
+            const deviceHeight = canvasHeight * 0.9;
+            const bezelX = deviceWidth * 0.068;
+            const bezelY = deviceHeight * 0.082;
+            containerWidth = deviceWidth - bezelX * 2;
+            containerHeight = deviceHeight - bezelY * 2;
           }
-          // slider uses full canvas dimensions
+          // slider and diagonal use full canvas dimensions
 
           let newOffset: ImageOffset = {
             x: startOffsetRef.current.x + gestureState.dx,
