@@ -1594,7 +1594,11 @@ const ComposerScreen: React.FC = () => {
         <View style={styles.backgroundOptions}>
           {[
             { type: 'solid', color: '#FFFFFF', label: 'White' },
-            { type: 'solid', color: '#F8FAFC', label: 'Light' },
+            {
+              type: 'gradient',
+              colors: ['#FFEDD5', '#FED7AA'],
+              label: 'Orange',
+            },
             { type: 'solid', color: '#111827', label: 'Dark' },
             { type: 'solid', color: '#FFF8E1', label: 'Warm' },
             {
@@ -1603,7 +1607,11 @@ const ComposerScreen: React.FC = () => {
               label: 'Purple',
             },
             { type: 'gradient', colors: ['#FEF3C7', '#FDE68A'], label: 'Gold' },
-            { type: 'transparent', color: 'transparent', label: 'None' },
+            {
+              type: 'gradient',
+              colors: ['#DCFCE7', '#BBF7D0'],
+              label: 'Green',
+            },
           ].map((bg, index) => (
             <TouchableOpacity
               key={index}
