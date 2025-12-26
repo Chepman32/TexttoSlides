@@ -75,7 +75,7 @@ export interface CompositionState {
   layout: LayoutType;
   spacing: number;
   cornerRadius: number;
-  aspect: 'free' | '1:1' | '3:2' | '4:3' | '16:9';
+  aspect: '1:1' | '9:16' | '16:9';
   labels: LabelStyle;
   background: BackgroundConfig;
   frame?: FrameConfig;

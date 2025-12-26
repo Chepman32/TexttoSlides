@@ -74,6 +74,7 @@ const resources = {
       composer_crop1to1: '1:1',
       composer_crop3to2: '3:2',
       composer_crop4to3: '4:3',
+      composer_crop9to16: '9:16',
       composer_crop16to9: '16:9',
 
       // Labels Panel

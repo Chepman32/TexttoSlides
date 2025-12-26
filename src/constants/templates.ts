@@ -36,7 +36,7 @@ export const defaultTemplates: Template[] = [
       layout: 'side',
       spacing: 12,
       cornerRadius: 12,
-      aspect: 'free',
+      aspect: '1:1',
       labels: {
         textBefore: 'Before',
         textAfter: 'After',
@@ -57,6 +57,7 @@ export const defaultTemplates: Template[] = [
         on: false,
         thickness: 2,
         color: '#E5E7EB',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -75,7 +76,7 @@ export const defaultTemplates: Template[] = [
       layout: 'vertical',
       spacing: 12,
       cornerRadius: 12,
-      aspect: '4:3',
+      aspect: '1:1',
       labels: {
         textBefore: 'Before',
         textAfter: 'After',
@@ -96,6 +97,7 @@ export const defaultTemplates: Template[] = [
         on: false,
         thickness: 2,
         color: '#E5E7EB',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -136,6 +138,7 @@ export const defaultTemplates: Template[] = [
         on: false,
         thickness: 2,
         color: '#EC4899',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -218,6 +221,7 @@ export const defaultTemplates: Template[] = [
         on: false,
         thickness: 2,
         color: '#FFFFFF',
+        padding: 0,
       },
       watermarkOn: false,
     },
@@ -236,7 +240,7 @@ export const defaultTemplates: Template[] = [
       layout: 'vertical',
       spacing: 16,
       cornerRadius: 12,
-      aspect: '4:3',
+      aspect: '1:1',
       labels: {
         textBefore: 'BEFORE',
         textAfter: 'AFTER',
@@ -257,6 +261,7 @@ export const defaultTemplates: Template[] = [
         on: true,
         thickness: 4,
         color: '#F59E0B',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -286,7 +291,7 @@ export const defaultTemplates: Template[] = [
         position: 'bl',
         margin: 16,
         show: true,
-        textEffects: [createTextEffectInstance('dropShadow')],
+        textEffects: [],
       },
       background: {
         type: 'solid',
@@ -296,6 +301,7 @@ export const defaultTemplates: Template[] = [
         on: true,
         thickness: 3,
         color: '#10B981',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -336,6 +342,7 @@ export const defaultTemplates: Template[] = [
         on: false,
         thickness: 2,
         color: '#8B5CF6',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -354,7 +361,7 @@ export const defaultTemplates: Template[] = [
       layout: 'side',
       spacing: 12,
       cornerRadius: 8,
-      aspect: 'free',
+      aspect: '1:1',
       labels: {
         textBefore: 'Before',
         textAfter: 'After',
@@ -375,6 +382,7 @@ export const defaultTemplates: Template[] = [
         on: false,
         thickness: 2,
         color: '#E5E7EB',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -414,6 +422,7 @@ export const defaultTemplates: Template[] = [
         on: true,
         thickness: 3,
         color: '#7C3AED',
+        padding: 0,
       },
       watermarkOn: true,
     },
@@ -432,7 +441,7 @@ export const defaultTemplates: Template[] = [
       layout: 'side',
       spacing: 24,
       cornerRadius: 0,
-      aspect: 'free',
+      aspect: '1:1',
       labels: {
         textBefore: 'Before',
         textAfter: 'After',
@@ -477,7 +486,7 @@ export const defaultTemplates: Template[] = [
       layout: 'diagonalStacked',
       spacing: 0,
       cornerRadius: 4,
-      aspect: '4:3',
+      aspect: '1:1',
       labels: {
         textBefore: 'before',
         textAfter: 'after',
@@ -518,6 +527,7 @@ export const applyTemplate = (
     photoBUri: currentComposition.photoBUri,
     // Merge labels to preserve custom text if user has set it
     labels: {
+      ...currentComposition.labels,
       ...template.composition.labels,
       textBefore:
         currentComposition.labels.textBefore ||
@@ -529,5 +539,8 @@ export const applyTemplate = (
         'After',
       textEffects: template.composition.labels?.textEffects || [],
     },
+    // Reset imageFilters - only apply if template explicitly defines them
+    // This ensures vintage filter is only used in old school template
+    imageFilters: template.composition.imageFilters,
   };
 };

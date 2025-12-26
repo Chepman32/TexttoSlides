@@ -103,22 +103,20 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       let calculatedImageHeight = 300;
 
       // Calculate dimensions based on aspect ratio and layout
-      if (composition.aspect !== 'free') {
-        switch (composition.aspect) {
-          case '1:1':
-            calculatedCanvasHeight = canvasWidth;
-            calculatedImageWidth = canvasWidth;
-            calculatedImageHeight = canvasWidth;
-            break;
-          case '4:3':
-            calculatedCanvasHeight = (canvasWidth * 3) / 4;
-            calculatedImageHeight = calculatedCanvasHeight;
-            break;
-          case '16:9':
-            calculatedCanvasHeight = (canvasWidth * 9) / 16;
-            calculatedImageHeight = calculatedCanvasHeight;
-            break;
-        }
+      switch (composition.aspect) {
+        case '1:1':
+          calculatedCanvasHeight = canvasWidth;
+          calculatedImageWidth = canvasWidth;
+          calculatedImageHeight = canvasWidth;
+          break;
+        case '9:16':
+          calculatedCanvasHeight = (canvasWidth * 16) / 9;
+          calculatedImageHeight = calculatedCanvasHeight;
+          break;
+        case '16:9':
+          calculatedCanvasHeight = (canvasWidth * 9) / 16;
+          calculatedImageHeight = calculatedCanvasHeight;
+          break;
       }
 
       // Adjust for layout

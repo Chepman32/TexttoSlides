@@ -317,8 +317,8 @@ const ComposerScreen: React.FC = () => {
                 case '1:1':
                   canvasHeight = canvasWidth;
                   break;
-                case '4:3':
-                  canvasHeight = (canvasWidth * 3) / 4;
+                case '9:16':
+                  canvasHeight = (canvasWidth * 16) / 9;
                   break;
                 case '16:9':
                   canvasHeight = (canvasWidth * 9) / 16;
@@ -392,8 +392,8 @@ const ComposerScreen: React.FC = () => {
               case '1:1':
                 canvasHeight = canvasWidth;
                 break;
-              case '4:3':
-                canvasHeight = (canvasWidth * 3) / 4;
+              case '9:16':
+                canvasHeight = (canvasWidth * 16) / 9;
                 break;
               case '16:9':
                 canvasHeight = (canvasWidth * 9) / 16;
@@ -1095,7 +1095,7 @@ const ComposerScreen: React.FC = () => {
           {(
             [
               { key: '1:1', label: t('composer_crop1to1') },
-              { key: '4:3', label: t('composer_crop4to3') },
+              { key: '9:16', label: t('composer_crop9to16') },
               { key: '16:9', label: t('composer_crop16to9') },
             ] as const
           ).map(({ key, label }) => (
