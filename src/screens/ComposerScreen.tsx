@@ -2068,47 +2068,6 @@ const ComposerScreen: React.FC = () => {
             ← {t('back')}
           </Text>
         </TouchableOpacity>
-
-        <View style={styles.topActions}>
-          {composition.photoAUri && composition.photoBUri && (
-            <TouchableOpacity
-              style={[
-                styles.swapButton,
-                { borderColor: themeDefinition.colors.border },
-              ]}
-              onPress={swapPhotos}
-            >
-              <Text
-                style={[
-                  styles.swapButtonText,
-                  { color: themeDefinition.colors.textSecondary },
-                ]}
-              >
-                {t('composer_swap')}
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            style={[
-              styles.templateButton,
-              { borderColor: themeDefinition.colors.border },
-            ]}
-            onPress={() => {
-              // TODO: Navigate to Templates
-              Alert.alert('Templates', 'Templates coming soon!');
-            }}
-          >
-            <Text
-              style={[
-                styles.templateButtonText,
-                { color: themeDefinition.colors.textSecondary },
-              ]}
-            >
-              {t('composer_template')}
-            </Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       {/* Canvas area */}

@@ -396,16 +396,6 @@ const HomeScreen: React.FC = () => {
               </View>
               <Text style={styles.actionLabel}>{t('use_last')}</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleTemplate}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: '#9370DB' }]}>
-                <Text style={styles.actionIconText}>⏱</Text>
-              </View>
-              <Text style={styles.actionLabel}>{t('templates')}</Text>
-            </TouchableOpacity>
           </View>
 
           {/* Recent Projects */}
