@@ -1094,7 +1094,6 @@ const ComposerScreen: React.FC = () => {
         <View style={styles.aspectButtons}>
           {(
             [
-              { key: 'free', label: t('composer_cropFree') },
               { key: '1:1', label: t('composer_crop1to1') },
               { key: '4:3', label: t('composer_crop4to3') },
               { key: '16:9', label: t('composer_crop16to9') },
