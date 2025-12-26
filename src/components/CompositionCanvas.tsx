@@ -1319,11 +1319,12 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           alignItems: 'center' as const,
         };
 
-        const dynamicFontSize = Math.max(12, Math.round(fontSize * 0.9));
+        // Fixed font size for device mockup labels - not adjustable
+        const deviceMockupFontSize = 19;
 
         const deviceLabelStyle = {
           ...labelStyle,
-          fontSize: dynamicFontSize,
+          fontSize: deviceMockupFontSize,
           backgroundColor: 'transparent',
           paddingHorizontal: 0,
           paddingVertical: 0,

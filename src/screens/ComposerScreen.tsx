@@ -1228,78 +1228,82 @@ const ComposerScreen: React.FC = () => {
       {/* === SECTION 2: Font Size, Weight & Colors === */}
       {composition.labels.show && (
         <View style={styles.pageSection}>
-          {/* Font Size */}
-          <View style={styles.toolSection}>
-            <Text
-              style={[
-                styles.toolSectionTitle,
-                { color: themeDefinition.colors.textPrimary },
-              ]}
-            >
-              {t('labels_size')} ({composition.labels.fontSize}px)
-            </Text>
-            <View style={styles.sliderContainer}>
-              <TouchableOpacity
+          {/* Font Size - hidden for device mockup (fixed at 19px) */}
+          {composition.layout !== 'deviceMockup' && (
+            <View style={styles.toolSection}>
+              <Text
                 style={[
-                  styles.sliderButton,
-                  { backgroundColor: themeDefinition.colors.surface },
+                  styles.toolSectionTitle,
+                  { color: themeDefinition.colors.textPrimary },
                 ]}
-                onPress={() => {
-                  FeedbackService.buttonTap();
-                  updateLabels({
-                    fontSize: Math.max(12, composition.labels.fontSize - 2),
-                  });
-                }}
               >
-                <Text
+                {t('labels_size')} ({composition.labels.fontSize}px)
+              </Text>
+              <View style={styles.sliderContainer}>
+                <TouchableOpacity
                   style={[
-                    styles.sliderButtonText,
-                    { color: themeDefinition.colors.textPrimary },
+                    styles.sliderButton,
+                    { backgroundColor: themeDefinition.colors.surface },
                   ]}
+                  onPress={() => {
+                    FeedbackService.buttonTap();
+                    updateLabels({
+                      fontSize: Math.max(12, composition.labels.fontSize - 2),
+                    });
+                  }}
                 >
-                  -
-                </Text>
-              </TouchableOpacity>
-              <Slider
-                style={styles.slider}
-                minimumValue={12}
-                maximumValue={48}
-                value={composition.labels.fontSize}
-                onValueChange={value => {
-                  updateLabels({ fontSize: Math.round(value) });
-                }}
-                onSlidingComplete={() => {
-                  FeedbackService.buttonTap();
-                }}
-                minimumTrackTintColor={themeDefinition.colors.accent}
-                maximumTrackTintColor={themeDefinition.colors.border}
-                thumbStyle={{ backgroundColor: themeDefinition.colors.accent }}
-                trackStyle={{ borderRadius: 2 }}
-                step={1}
-              />
-              <TouchableOpacity
-                style={[
-                  styles.sliderButton,
-                  { backgroundColor: themeDefinition.colors.surface },
-                ]}
-                onPress={() => {
-                  FeedbackService.buttonTap();
-                  updateLabels({
-                    fontSize: Math.min(48, composition.labels.fontSize + 2),
-                  });
-                }}
-              >
-                <Text
+                  <Text
+                    style={[
+                      styles.sliderButtonText,
+                      { color: themeDefinition.colors.textPrimary },
+                    ]}
+                  >
+                    -
+                  </Text>
+                </TouchableOpacity>
+                <Slider
+                  style={styles.slider}
+                  minimumValue={12}
+                  maximumValue={48}
+                  value={composition.labels.fontSize}
+                  onValueChange={value => {
+                    updateLabels({ fontSize: Math.round(value) });
+                  }}
+                  onSlidingComplete={() => {
+                    FeedbackService.buttonTap();
+                  }}
+                  minimumTrackTintColor={themeDefinition.colors.accent}
+                  maximumTrackTintColor={themeDefinition.colors.border}
+                  thumbStyle={{
+                    backgroundColor: themeDefinition.colors.accent,
+                  }}
+                  trackStyle={{ borderRadius: 2 }}
+                  step={1}
+                />
+                <TouchableOpacity
                   style={[
-                    styles.sliderButtonText,
-                    { color: themeDefinition.colors.textPrimary },
+                    styles.sliderButton,
+                    { backgroundColor: themeDefinition.colors.surface },
                   ]}
+                  onPress={() => {
+                    FeedbackService.buttonTap();
+                    updateLabels({
+                      fontSize: Math.min(48, composition.labels.fontSize + 2),
+                    });
+                  }}
                 >
-                  +
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.sliderButtonText,
+                      { color: themeDefinition.colors.textPrimary },
+                    ]}
+                  >
+                    +
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Font Weight */}
           <View style={styles.toolSection}>
