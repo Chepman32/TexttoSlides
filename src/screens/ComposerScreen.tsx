@@ -80,7 +80,7 @@ const ComposerScreen: React.FC = () => {
   const getTemplateNameKey = (templateId: string) => {
     const templateNameMap: { [key: string]: string } = {
       'side-by-side': 'composer_layoutSideBySide',
-      'horizontal-split': 'horizontal_split',
+      'horizontal-split': 'composer_layoutVertical',
       'diagonal-split': 'composer_layoutDiagonal',
       'slider-reveal': 'composer_layoutSlider',
       'stacked-bar': 'composer_layoutStacked',
@@ -855,7 +855,45 @@ const ComposerScreen: React.FC = () => {
 
   // Modal-based text editing functions removed - now using inline TextInput
 
-  const canvasHeight = screenHeight * 0.45;
+  // Calculate canvas height based on aspect ratio (same logic as CompositionCanvas)
+  // But cap it to ensure tool panel remains accessible
+  const canvasWidth = screenWidth - 32;
+  const maxCanvasHeight = screenHeight * 0.55; // Max 55% of screen height to leave room for tools
+
+  const canvasHeight = useMemo(() => {
+    let height = canvasWidth; // Default 1:1
+    switch (composition.aspect) {
+      case '1:1':
+        height = canvasWidth;
+        break;
+      case '9:16':
+        height = (canvasWidth * 16) / 9;
+        break;
+      case '16:9':
+        height = (canvasWidth * 9) / 16;
+        break;
+    }
+    // Add extra space for below-image labels if needed
+    if (
+      composition.labels.show &&
+      composition.labels.position === 'belowCenter'
+    ) {
+      const labelAreaHeight =
+        Math.ceil(composition.labels.fontSize * 1.3) +
+        8 +
+        composition.labels.margin;
+      height += labelAreaHeight;
+    }
+    // Cap the height to ensure tool panel is accessible
+    return Math.min(height, maxCanvasHeight);
+  }, [
+    composition.aspect,
+    composition.labels.show,
+    composition.labels.position,
+    composition.labels.fontSize,
+    composition.labels.margin,
+    maxCanvasHeight,
+  ]);
 
   const applyTemplateToComposition = (template: Template) => {
     FeedbackService.buttonTap();
@@ -1107,34 +1145,35 @@ const ComposerScreen: React.FC = () => {
               { key: '16:9', label: t('composer_crop16to9') },
             ] as const
           )
-            .filter(({ key }) =>
-              composition.layout !== 'deviceMockup' || key === '1:1'
+            .filter(
+              ({ key }) =>
+                composition.layout !== 'deviceMockup' || key === '1:1',
             )
             .map(({ key, label }) => (
-            <TouchableOpacity
-              key={key}
-              style={[
-                styles.aspectButton,
-                composition.aspect === key && styles.activeAspectButton,
-                { borderColor: themeDefinition.colors.border },
-              ]}
-              onPress={() => setAspectRatio(key)}
-            >
-              <Text
+              <TouchableOpacity
+                key={key}
                 style={[
-                  styles.aspectButtonText,
-                  {
-                    color:
-                      composition.aspect === key
-                        ? themeDefinition.colors.accent
-                        : themeDefinition.colors.textSecondary,
-                  },
+                  styles.aspectButton,
+                  composition.aspect === key && styles.activeAspectButton,
+                  { borderColor: themeDefinition.colors.border },
                 ]}
+                onPress={() => setAspectRatio(key)}
               >
-                {label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <Text
+                  style={[
+                    styles.aspectButtonText,
+                    {
+                      color:
+                        composition.aspect === key
+                          ? themeDefinition.colors.accent
+                          : themeDefinition.colors.textSecondary,
+                    },
+                  ]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            ))}
         </View>
       </View>
     </VerticalPager>

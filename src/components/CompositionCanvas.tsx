@@ -1153,15 +1153,22 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const offsetA = composition.photoAOffset || { x: 0, y: 0 };
         const offsetB = composition.photoBOffset || { x: 0, y: 0 };
 
-        // Photo dimensions - each photo takes about 65% of canvas
-        const photoWidth = canvasWidth * 0.65;
-        const photoHeight = canvasHeight * 0.65;
+        // Photo dimensions - adjust based on aspect ratio
+        // For tall canvases (9:16), use smaller percentage to fit both photos
+        const aspectRatio = canvasHeight / canvasWidth;
+        const isTallCanvas = aspectRatio > 1.2;
+
+        // For tall canvases, reduce photo size to ensure both fit
+        const photoSizePercent = isTallCanvas ? 0.55 : 0.65;
+        const photoWidth = canvasWidth * photoSizePercent;
+        const photoHeight = canvasHeight * photoSizePercent;
 
         // Positions - before photo top-left, after photo bottom-right
+        // Adjust positions for tall canvases to ensure overlap and visibility
         const beforeX = canvasWidth * 0.02;
         const beforeY = canvasHeight * 0.02;
-        const afterX = canvasWidth * 0.33;
-        const afterY = canvasHeight * 0.33;
+        const afterX = canvasWidth * (isTallCanvas ? 0.43 : 0.33);
+        const afterY = canvasHeight * (isTallCanvas ? 0.43 : 0.33);
 
         // Frame settings
         const frameThickness = composition.frame?.on
@@ -1787,12 +1794,16 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         );
       } else if (layout === 'diagonalStacked') {
         // Labels for diagonal stacked layout - position relative to each photo
-        const photoWidth = canvasWidth * 0.65;
-        const photoHeight = canvasHeight * 0.65;
+        // Use same calculations as the image rendering
+        const aspectRatio = canvasHeight / canvasWidth;
+        const isTallCanvas = aspectRatio > 1.2;
+        const photoSizePercent = isTallCanvas ? 0.55 : 0.65;
+        const photoWidth = canvasWidth * photoSizePercent;
+        const photoHeight = canvasHeight * photoSizePercent;
         const beforeX = canvasWidth * 0.02;
         const beforeY = canvasHeight * 0.02;
-        const afterX = canvasWidth * 0.33;
-        const afterY = canvasHeight * 0.33;
+        const afterX = canvasWidth * (isTallCanvas ? 0.43 : 0.33);
+        const afterY = canvasHeight * (isTallCanvas ? 0.43 : 0.33);
 
         // Calculate label positions based on position setting
         const getBeforeLabelStyle = () => {
