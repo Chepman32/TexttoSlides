@@ -1178,7 +1178,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         fontSize: fontSize,
         fontWeight: getFontWeight(composition.labels.fontWeight) as any,
         color: composition.labels.color,
-        backgroundColor: themeDefinition.colors.labelBg,
+        backgroundColor:
+          composition.labels.backgroundColor || themeDefinition.colors.labelBg,
         paddingHorizontal: labelPaddingHorizontal,
         paddingVertical: labelPaddingVertical,
         borderRadius: 4,

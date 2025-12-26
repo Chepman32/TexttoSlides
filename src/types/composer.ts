@@ -16,6 +16,7 @@ export interface LabelStyle {
   fontSize: number;
   fontWeight: 'Regular' | 'Medium' | 'Bold';
   color: string;
+  backgroundColor?: string; // Background color for labels (transparent if not set)
   stroke?: {
     width: number;
     color: string;

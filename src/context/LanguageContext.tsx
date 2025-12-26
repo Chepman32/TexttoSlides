@@ -84,6 +84,7 @@ const resources = {
       labels_weight: 'Weight',
       labels_size: 'Size',
       labels_color: 'Color',
+      labels_background: 'Background',
       labels_position: 'Position',
       labels_margin: 'Margin',
       labels_presetClassic: 'Classic',

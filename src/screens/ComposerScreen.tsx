@@ -1131,43 +1131,44 @@ const ComposerScreen: React.FC = () => {
     <VerticalPager
       style={styles.toolPanel}
       contentContainerStyle={styles.toolPanelContent}
+      pageCount={3}
     >
-      <View style={styles.toolSection}>
-        <View style={styles.toggleRow}>
-          <Text
-            style={[
-              styles.toolSectionTitle,
-              { color: themeDefinition.colors.textPrimary },
-            ]}
-          >
-            {t('labels_toggle')}
-          </Text>
-          <TouchableOpacity
-            style={[
-              styles.toggle,
-              composition.labels.show && styles.activeToggle,
-              { borderColor: themeDefinition.colors.border },
-            ]}
-            onPress={() => updateLabels({ show: !composition.labels.show })}
-          >
-            <View
+      {/* === SECTION 1: Toggle & Text Content === */}
+      <View style={styles.pageSection}>
+        <View style={styles.toolSection}>
+          <View style={styles.toggleRow}>
+            <Text
               style={[
-                styles.toggleThumb,
-                composition.labels.show && styles.activeToggleThumb,
-                {
-                  backgroundColor: composition.labels.show
-                    ? themeDefinition.colors.accent
-                    : themeDefinition.colors.border,
-                },
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
               ]}
-            />
-          </TouchableOpacity>
+            >
+              {t('labels_toggle')}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.toggle,
+                composition.labels.show && styles.activeToggle,
+                { borderColor: themeDefinition.colors.border },
+              ]}
+              onPress={() => updateLabels({ show: !composition.labels.show })}
+            >
+              <View
+                style={[
+                  styles.toggleThumb,
+                  composition.labels.show && styles.activeToggleThumb,
+                  {
+                    backgroundColor: composition.labels.show
+                      ? themeDefinition.colors.accent
+                      : themeDefinition.colors.border,
+                  },
+                ]}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {composition.labels.show && (
-        <>
-          {/* Text Content */}
+        {composition.labels.show && (
           <View style={styles.toolSection}>
             <Text
               style={[
@@ -1221,7 +1222,12 @@ const ComposerScreen: React.FC = () => {
               maxLength={50}
             />
           </View>
+        )}
+      </View>
 
+      {/* === SECTION 2: Font Size, Weight & Colors === */}
+      {composition.labels.show && (
+        <View style={styles.pageSection}>
           {/* Font Size */}
           <View style={styles.toolSection}>
             <Text
@@ -1392,6 +1398,70 @@ const ComposerScreen: React.FC = () => {
             </ScrollView>
           </View>
 
+          {/* Label Background Color */}
+          <View style={styles.toolSection}>
+            <Text
+              style={[
+                styles.toolSectionTitle,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              {t('labels_background') || 'Background'}
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={styles.colorOptions}>
+                {/* Transparent option */}
+                <TouchableOpacity
+                  style={[
+                    styles.colorOption,
+                    styles.transparentOption,
+                    !composition.labels.backgroundColor && {
+                      borderWidth: 3,
+                      borderColor: themeDefinition.colors.accent,
+                    },
+                  ]}
+                  onPress={() => {
+                    FeedbackService.buttonTap();
+                    updateLabels({ backgroundColor: undefined });
+                  }}
+                >
+                  <View style={styles.transparentPattern} />
+                </TouchableOpacity>
+                {[
+                  'rgba(0,0,0,0.5)',
+                  'rgba(255,255,255,0.5)',
+                  'rgba(0,0,0,0.8)',
+                  'rgba(255,255,255,0.8)',
+                  '#000000',
+                  '#FFFFFF',
+                  '#FF0000',
+                  '#0000FF',
+                ].map(color => (
+                  <TouchableOpacity
+                    key={color}
+                    style={[
+                      styles.colorOption,
+                      { backgroundColor: color },
+                      composition.labels.backgroundColor === color && {
+                        borderWidth: 3,
+                        borderColor: themeDefinition.colors.accent,
+                      },
+                    ]}
+                    onPress={() => {
+                      FeedbackService.buttonTap();
+                      updateLabels({ backgroundColor: color });
+                    }}
+                  />
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
+
+      {/* === SECTION 3: Position & Effects === */}
+      {composition.labels.show && (
+        <View style={styles.pageSection}>
           {/* Position */}
           <View style={styles.toolSection}>
             <Text
@@ -1497,7 +1567,7 @@ const ComposerScreen: React.FC = () => {
               })}
             </View>
           </View>
-        </>
+        </View>
       )}
     </VerticalPager>
   );
@@ -2412,6 +2482,20 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 2,
     borderColor: 'transparent',
+  },
+  transparentOption: {
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+  },
+  transparentPattern: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#CCCCCC',
+    // Checkerboard pattern simulated with diagonal stripes
+    borderWidth: 0,
+  },
+  pageSection: {
+    marginBottom: 16,
   },
   positionGrid: {
     flexDirection: 'row',
