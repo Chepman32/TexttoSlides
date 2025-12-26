@@ -1174,12 +1174,17 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       const labelPaddingHorizontal = 8;
       const labelPaddingVertical = 4;
 
+      // Default colors: black text on white background for most templates
+      // Device mockup and polaroid have their own special styling
+      const defaultTextColor = '#000000';
+      const defaultBackgroundColor = '#FFFFFF';
+
       const labelStyle = {
         fontSize: fontSize,
         fontWeight: getFontWeight(composition.labels.fontWeight) as any,
-        color: composition.labels.color,
+        color: composition.labels.color || defaultTextColor,
         backgroundColor:
-          composition.labels.backgroundColor || themeDefinition.colors.labelBg,
+          composition.labels.backgroundColor || defaultBackgroundColor,
         paddingHorizontal: labelPaddingHorizontal,
         paddingVertical: labelPaddingVertical,
         borderRadius: 4,
@@ -1504,6 +1509,65 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 textAlign: 'right' as const,
               },
             ])}
+          </>
+        );
+      } else if (layout === 'slider') {
+        // Labels for slider reveal layout - Before on right side, After on left side
+        const sliderPos = composition.sliderPosition ?? 0.5;
+        const sliderX = canvasWidth * sliderPos;
+
+        return (
+          <>
+            {/* After label (left side of slider) */}
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute' as const,
+                top: 0,
+                left: 0,
+                width: sliderX,
+                height: canvasHeight,
+              }}
+            >
+              <View
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  [isTop ? 'top' : 'bottom']: containerPadding,
+                  left: containerPadding,
+                }}
+              >
+                {renderTextWithEffects(textAfter, [
+                  labelStyle,
+                  { textAlign: 'left' as const },
+                ])}
+              </View>
+            </View>
+            {/* Before label (right side of slider) */}
+            <View
+              pointerEvents="none"
+              style={{
+                position: 'absolute' as const,
+                top: 0,
+                left: sliderX,
+                width: canvasWidth - sliderX,
+                height: canvasHeight,
+              }}
+            >
+              <View
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  [isTop ? 'top' : 'bottom']: containerPadding,
+                  right: containerPadding,
+                }}
+              >
+                {renderTextWithEffects(textBefore, [
+                  labelStyle,
+                  { textAlign: 'right' as const },
+                ])}
+              </View>
+            </View>
           </>
         );
       }
