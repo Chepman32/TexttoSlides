@@ -1739,12 +1739,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const getBeforeLabelStyle = () => {
           const baseStyle: any = { position: 'absolute' as const };
 
-          // Vertical position - for Before photo, bottom positions should be above the overlap area
+          // Vertical position
           if (position === 'tl' || position === 'tr') {
             baseStyle.top = beforeY + containerPadding;
           } else {
-            // Position at the top area of the Before photo to avoid overlap with After photo
-            baseStyle.top = beforeY + containerPadding;
+            // For bottom positions, place at the bottom of the Before photo
+            baseStyle.top =
+              beforeY + photoHeight - fontSize - containerPadding - 8;
           }
 
           // Horizontal position
@@ -1752,8 +1753,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             baseStyle.left = beforeX + containerPadding;
             baseStyle.textAlign = 'left';
           } else {
-            // For right positions, place near the right edge of Before photo but before overlap
-            baseStyle.left = beforeX + photoWidth * 0.4;
+            // For right positions, place at the right edge of the visible area (before After photo starts)
+            baseStyle.right = canvasWidth - afterX + containerPadding;
             baseStyle.textAlign = 'right';
           }
 
