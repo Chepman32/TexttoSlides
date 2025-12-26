@@ -816,6 +816,12 @@ const ComposerScreen: React.FC = () => {
 
   const setAspectRatio = (aspect: CompositionState['aspect']) => {
     FeedbackService.buttonTap();
+
+    // Prevent setting non-1:1 aspect for device mockup layout
+    if (composition.layout === 'deviceMockup' && aspect !== '1:1') {
+      return;
+    }
+
     updateComposition({ aspect });
   };
 
@@ -1100,7 +1106,11 @@ const ComposerScreen: React.FC = () => {
               { key: '9:16', label: t('composer_crop9to16') },
               { key: '16:9', label: t('composer_crop16to9') },
             ] as const
-          ).map(({ key, label }) => (
+          )
+            .filter(({ key }) =>
+              composition.layout !== 'deviceMockup' || key === '1:1'
+            )
+            .map(({ key, label }) => (
             <TouchableOpacity
               key={key}
               style={[
