@@ -22,7 +22,7 @@ export interface LabelStyle {
     color: string;
   };
   textEffects?: TextEffectInstance[];
-  position: 'tl' | 'tr' | 'bl' | 'br';
+  position: 'tl' | 'tr' | 'bl' | 'br' | 'tc' | 'bc' | 'belowCenter';
   margin: number;
   show: boolean;
 }

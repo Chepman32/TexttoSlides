@@ -91,6 +91,7 @@ const ComposerScreen: React.FC = () => {
       bold: 'bold',
       diagonal: 'composer_layoutDiagonal',
       modern: 'modern',
+      'photo-restoration': 'old_school',
     };
     return templateNameMap[templateId] || templateId;
   };
@@ -1482,6 +1483,9 @@ const ComposerScreen: React.FC = () => {
                 { key: 'tr', label: 'Top Right' },
                 { key: 'bl', label: 'Bottom Left' },
                 { key: 'br', label: 'Bottom Right' },
+                ...(selectedTemplateId === 'photo-restoration'
+                  ? [{ key: 'belowCenter', label: 'Below Center' }]
+                  : []),
               ].map(({ key, label }) => (
                 <TouchableOpacity
                   key={key}

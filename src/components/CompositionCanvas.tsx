@@ -126,13 +126,32 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         calculatedImageHeight = canvasHeight * 0.88;
       }
 
+      // Add extra space for below-image labels
+      let labelAreaHeight = 0;
+      if (
+        composition.labels.show &&
+        composition.labels.position === 'belowCenter'
+      ) {
+        labelAreaHeight =
+          composition.labels.fontSize + 16 + composition.labels.margin;
+      }
+
       return {
-        canvasHeight: calculatedCanvasHeight,
+        canvasHeight: calculatedCanvasHeight + labelAreaHeight,
         imageWidth: calculatedImageWidth,
         imageHeight: calculatedImageHeight,
         layout: calculatedLayout,
+        labelAreaHeight,
       };
-    }, [composition.aspect, composition.layout, composition.spacing]);
+    }, [
+      composition.aspect,
+      composition.layout,
+      composition.spacing,
+      composition.labels.show,
+      composition.labels.position,
+      composition.labels.fontSize,
+      composition.labels.margin,
+    ]);
 
     const canvasCornerRadius = composition.cornerRadius;
     const clipRect = useMemo(() => {
@@ -1249,7 +1268,55 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       const textAlignment = isLeft ? 'left' : 'right';
 
       if (layout === 'side') {
-        // Labels for side by side layout
+        // Check for belowCenter position - labels outside/below images
+        if (position === 'belowCenter') {
+          const belowCenterLabelStyle = {
+            ...labelStyle,
+            backgroundColor: 'transparent',
+            paddingHorizontal: 0,
+            paddingVertical: 0,
+          };
+
+          return (
+            <>
+              {/* Before label - centered below left image */}
+              <View
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  top: imageHeight + margin,
+                  left: 0,
+                  width: imageWidth,
+                  alignItems: 'center',
+                }}
+              >
+                {renderTextWithEffects(textBefore, [
+                  belowCenterLabelStyle,
+                  { textAlign: 'center' as const },
+                ])}
+              </View>
+
+              {/* After label - centered below right image */}
+              <View
+                pointerEvents="none"
+                style={{
+                  position: 'absolute',
+                  top: imageHeight + margin,
+                  left: imageWidth + composition.spacing,
+                  width: imageWidth,
+                  alignItems: 'center',
+                }}
+              >
+                {renderTextWithEffects(textAfter, [
+                  belowCenterLabelStyle,
+                  { textAlign: 'center' as const },
+                ])}
+              </View>
+            </>
+          );
+        }
+
+        // Labels for side by side layout (overlaid on images)
         const baseContainerStyle = {
           position: 'absolute' as const,
           top: 0,

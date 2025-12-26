@@ -200,6 +200,7 @@ const resources = {
       polaroid_collage: 'Polaroid\nCollage',
       minimal: 'Minimal',
       elegant: 'Elegant',
+      old_school: 'Old School',
 
       // Layout Options
       stacked_with_label_bar: 'Stacked with Label Bar',
@@ -355,6 +356,7 @@ const resources = {
       polaroid_collage: 'Поляроид\nКоллаж',
       minimal: 'Минимальный',
       elegant: 'Элегантный',
+      old_school: 'Олдскул',
 
       // Layout Options
       stacked_with_label_bar: 'С полосой подписей',
@@ -506,6 +508,7 @@ const resources = {
       polaroid_collage: 'Polaroid\nCollage',
       minimal: 'Minimal',
       elegant: 'Elegant',
+      old_school: 'Old School',
 
       // Layout Options
       stacked_with_label_bar: 'Gestapelt mit Beschriftungsleiste',
@@ -657,13 +660,14 @@ const resources = {
       polaroid_collage: 'Collage\nPolaroid',
       minimal: 'Minimal',
       elegant: 'Élégant',
+      old_school: 'Old School',
 
       // Layout Options
-      stacked_with_label_bar: 'Empilé avec barre d’étiquettes',
+      stacked_with_label_bar: "Empilé avec barre d'étiquettes",
       diagonal_split: 'Division diagonale',
 
       // Aspect Ratio
-      aspect_ratio: 'Ratio d’aspect',
+      aspect_ratio: "Ratio d'aspect",
       free: 'Libre',
 
       // Photo Selection
@@ -806,6 +810,7 @@ const resources = {
       polaroid_collage: 'Colagem\nPolaroid',
       minimal: 'Minimalista',
       elegant: 'Elegante',
+      old_school: 'Old School',
 
       // Layout Options
       stacked_with_label_bar: 'Empilhado com barra de rótulo',
@@ -955,6 +960,7 @@ const resources = {
       polaroid_collage: 'ポラロイド\nコラージュ',
       minimal: 'ミニマル',
       elegant: 'エレガント',
+      old_school: 'オールドスクール',
 
       // Layout Options
       stacked_with_label_bar: 'ラベルバー付きスタック',
@@ -1098,6 +1104,7 @@ const resources = {
       polaroid_collage: '宝丽来\n拼贴',
       minimal: '简约',
       elegant: '优雅',
+      old_school: '老派风格',
 
       // Layout Options
       stacked_with_label_bar: '带标签栏的堆叠',
@@ -1245,6 +1252,7 @@ const resources = {
       polaroid_collage: '폴라로이드\n콜라주',
       minimal: '미니멀',
       elegant: '우아한',
+      old_school: '올드스쿨',
 
       // Layout Options
       stacked_with_label_bar: '라벨 바와 함께 쌓이기',
@@ -1392,6 +1400,7 @@ const resources = {
       polaroid_collage: 'Поляроїд\nКолаж',
       minimal: 'Мінімальний',
       elegant: 'Елегантний',
+      old_school: 'Олдскул',
 
       // Layout Options
       stacked_with_label_bar: 'Складений з панеллю міток',
@@ -1528,6 +1537,7 @@ const resources = {
       polaroid_collage: 'Collage\nPolaroid',
       minimal: 'Minimalista',
       elegant: 'Elegante',
+      old_school: 'Old School',
 
       // Layout Options
       stacked_with_label_bar: 'Apilado con barra de etiquetas',

@@ -417,6 +417,46 @@ export const defaultTemplates: Template[] = [
       watermarkOn: true,
     },
   },
+  {
+    id: 'photo-restoration',
+    name: 'Photo Restoration',
+    description: 'Clean restoration style with labels below images',
+    preview: {
+      backgroundColor: '#FFFFFF',
+      accentColor: '#1F2937',
+      layout: 'side',
+      hasFrame: false,
+    },
+    composition: {
+      layout: 'side',
+      spacing: 24,
+      cornerRadius: 0,
+      aspect: 'free',
+      labels: {
+        textBefore: 'Before',
+        textAfter: 'After',
+        fontFamily: 'System',
+        fontSize: 18,
+        fontWeight: 'Bold',
+        color: '#1F2937',
+        position: 'belowCenter',
+        margin: 12,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#FFFFFF'],
+      },
+      frame: {
+        on: false,
+        thickness: 0,
+        color: '#E5E7EB',
+        padding: 0,
+      },
+      watermarkOn: false,
+    },
+  },
 ];
 
 // Function to apply template to current composition
