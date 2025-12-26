@@ -15,9 +15,19 @@ import {
   LinearGradient,
   vec,
   SkImage,
+  ColorMatrix,
 } from '@shopify/react-native-skia';
-import { CompositionState, ImageOffset } from '../types/composer';
+import {
+  CompositionState,
+  ImageOffset,
+  ImageFilterConfig,
+} from '../types/composer';
 import { useTheme } from '../context/ThemeContext';
+import {
+  getFilterMatrix,
+  IDENTITY_MATRIX,
+  interpolateMatrix,
+} from '../utils/imageFilters';
 
 interface CompositionCanvasProps {
   composition: CompositionState;
@@ -85,6 +95,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
     // Note: Labels are now rendered as React Native Text overlaid on the canvas
 
+    const LINE_HEIGHT_MULTIPLIER = 1.3;
+
     const { canvasHeight, imageWidth, imageHeight, layout } = useMemo(() => {
       let calculatedCanvasHeight = 400;
       let calculatedImageWidth = canvasWidth;
@@ -118,6 +130,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       } else if (calculatedLayout === 'side') {
         // For side-by-side, each image takes half the width
         calculatedImageWidth = (canvasWidth - composition.spacing) / 2;
+        // Match canvas height to image height for side layout
+        calculatedCanvasHeight = calculatedImageHeight;
       }
 
       if (calculatedLayout === 'deviceMockup') {
@@ -133,7 +147,9 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         composition.labels.position === 'belowCenter'
       ) {
         labelAreaHeight =
-          composition.labels.fontSize + 16 + composition.labels.margin;
+          Math.ceil(composition.labels.fontSize * LINE_HEIGHT_MULTIPLIER) +
+          8 +
+          composition.labels.margin;
       }
 
       return {
@@ -210,6 +226,44 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       };
     }, [canvasHeight, canvasWidth, composition.layout, composition.spacing]);
 
+    /**
+     * Renders an Image with optional ColorMatrix filter
+     * Conditionally applies filter only if filter config is provided
+     */
+    const renderImageWithFilter = (
+      image: SkImage,
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+      filterConfig?: ImageFilterConfig,
+    ) => {
+      const hasFilter = filterConfig && filterConfig.type !== 'none';
+
+      if (!hasFilter) {
+        // No filter - render image directly
+        return (
+          <Image image={image} x={x} y={y} width={width} height={height} />
+        );
+      }
+
+      // Get the appropriate filter matrix
+      const matrix =
+        filterConfig.customMatrix || getFilterMatrix(filterConfig.type);
+
+      // Apply intensity interpolation if specified
+      const finalMatrix =
+        filterConfig.intensity !== undefined
+          ? interpolateMatrix(IDENTITY_MATRIX, matrix, filterConfig.intensity)
+          : matrix;
+
+      return (
+        <Image image={image} x={x} y={y} width={width} height={height}>
+          <ColorMatrix matrix={finalMatrix} />
+        </Image>
+      );
+    };
+
     const renderImages = () => {
       if (layout !== 'deviceMockup' && (!imageA || !imageB)) {
         // Render placeholder rectangles if images aren't loaded
@@ -278,9 +332,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           offsetB,
         );
 
+        // Get filter configurations
+        const filterA = composition.imageFilters?.photoA;
+        const filterB = composition.imageFilters?.photoB;
+
         elements.push(
           <Group key="side-images">
-            {/* Before image (left) */}
+            {/* Before image (left) with optional filter */}
             {imageA && imageAPos && (
               <Group
                 clip={{
@@ -292,16 +350,17 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Image
-                  image={imageA}
-                  x={imageAPos.x}
-                  y={imageAPos.y}
-                  width={imageAPos.width}
-                  height={imageAPos.height}
-                />
+                {renderImageWithFilter(
+                  imageA,
+                  imageAPos.x,
+                  imageAPos.y,
+                  imageAPos.width,
+                  imageAPos.height,
+                  filterA,
+                )}
               </Group>
             )}
-            {/* After image (right) */}
+            {/* After image (right) with optional filter */}
             {imageB && imageBPos && (
               <Group
                 clip={{
@@ -313,13 +372,14 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Image
-                  image={imageB}
-                  x={imageBPos.x}
-                  y={imageBPos.y}
-                  width={imageBPos.width}
-                  height={imageBPos.height}
-                />
+                {renderImageWithFilter(
+                  imageB,
+                  imageBPos.x,
+                  imageBPos.y,
+                  imageBPos.width,
+                  imageBPos.height,
+                  filterB,
+                )}
               </Group>
             )}
 
@@ -1344,6 +1404,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
       const labelStyle = {
         fontSize: fontSize,
+        lineHeight: Math.ceil(fontSize * LINE_HEIGHT_MULTIPLIER),
         fontWeight: getFontWeight(composition.labels.fontWeight) as any,
         color: composition.labels.color || defaultTextColor,
         backgroundColor:
@@ -1967,6 +2028,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           width: canvasWidth,
           height: canvasHeight,
           position: 'relative',
+          overflow: 'visible',
         }}
       >
         <Canvas

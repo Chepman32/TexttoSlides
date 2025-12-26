@@ -52,6 +52,19 @@ export interface ImageDimensions {
   height: number;
 }
 
+export type ImageFilterType = 'none' | 'sepia' | 'vintage' | 'grayscale';
+
+export interface ImageFilterConfig {
+  type: ImageFilterType;
+  intensity?: number; // 0-1, for future use
+  customMatrix?: number[]; // Allow custom 20-value matrices
+}
+
+export interface ImageFiltersConfig {
+  photoA?: ImageFilterConfig; // Filter for Before image
+  photoB?: ImageFilterConfig; // Filter for After image
+}
+
 export interface CompositionState {
   photoAUri?: string;
   photoBUri?: string;
@@ -68,6 +81,7 @@ export interface CompositionState {
   frame?: FrameConfig;
   watermarkOn: boolean;
   sliderPosition?: number; // 0-1, position of slider divider (0.5 = middle)
+  imageFilters?: ImageFiltersConfig;
 }
 
 export interface Template {

@@ -456,6 +456,11 @@ export const defaultTemplates: Template[] = [
         padding: 0,
       },
       watermarkOn: false,
+      imageFilters: {
+        photoA: {
+          type: 'vintage',
+        },
+      },
     },
   },
   {
