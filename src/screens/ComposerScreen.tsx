@@ -855,12 +855,11 @@ const ComposerScreen: React.FC = () => {
 
   // Modal-based text editing functions removed - now using inline TextInput
 
-  // Calculate canvas height based on aspect ratio (same logic as CompositionCanvas)
-  // But cap it to ensure tool panel remains accessible
+  // Calculate canvas dimensions based on aspect ratio (same logic as CompositionCanvas)
   const canvasWidth = screenWidth - 32;
   const maxCanvasHeight = screenHeight * 0.55; // Max 55% of screen height to leave room for tools
 
-  const canvasHeight = useMemo(() => {
+  const { canvasHeight, scale } = useMemo(() => {
     let height = canvasWidth; // Default 1:1
     switch (composition.aspect) {
       case '1:1':
@@ -884,8 +883,12 @@ const ComposerScreen: React.FC = () => {
         composition.labels.margin;
       height += labelAreaHeight;
     }
-    // Cap the height to ensure tool panel is accessible
-    return Math.min(height, maxCanvasHeight);
+    // Calculate scale factor if canvas is too tall
+    const scaleValue = height > maxCanvasHeight ? maxCanvasHeight / height : 1;
+    return {
+      canvasHeight: Math.min(height, maxCanvasHeight),
+      scale: scaleValue,
+    };
   }, [
     composition.aspect,
     composition.labels.show,
@@ -2190,16 +2193,26 @@ const ComposerScreen: React.FC = () => {
           </View>
         ) : (
           <View
-            ref={canvasRef}
-            collapsable={false}
             style={{
+              width: '100%',
+              height: canvasHeight,
               alignItems: 'center',
-              borderRadius: composition.cornerRadius,
-              overflow: 'hidden',
+              justifyContent: 'center',
             }}
-            {...panResponder.panHandlers}
           >
-            <CompositionCanvas composition={composition} />
+            <View
+              ref={canvasRef}
+              collapsable={false}
+              style={{
+                alignItems: 'center',
+                borderRadius: composition.cornerRadius,
+                overflow: 'hidden',
+                transform: [{ scale }],
+              }}
+              {...panResponder.panHandlers}
+            >
+              <CompositionCanvas composition={composition} />
+            </View>
           </View>
         )}
       </View>
