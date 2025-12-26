@@ -491,11 +491,27 @@ const ComposerScreen: React.FC = () => {
           // Capture thumbnail if canvas is ready and requested
           if (captureThumbnail && canvasRef.current) {
             try {
+              // Calculate thumbnail dimensions based on aspect ratio
+              let thumbnailWidth = 200;
+              let thumbnailHeight = 200;
+
+              switch (comp.aspect) {
+                case '1:1':
+                  thumbnailHeight = 200;
+                  break;
+                case '9:16':
+                  thumbnailHeight = Math.round((200 * 16) / 9);
+                  break;
+                case '16:9':
+                  thumbnailHeight = Math.round((200 * 9) / 16);
+                  break;
+              }
+
               thumbnail = await captureRef(canvasRef, {
                 format: 'png',
                 quality: 0.5,
-                width: 200,
-                height: 200,
+                width: thumbnailWidth,
+                height: thumbnailHeight,
               });
             } catch (thumbError) {
               console.log('Could not capture thumbnail:', thumbError);

@@ -69,6 +69,25 @@ const PRO_TIPS = [
   },
 ];
 
+// Helper function to calculate preview dimensions based on aspect ratio
+const getPreviewDimensions = (
+  aspect: '1:1' | '9:16' | '16:9' | undefined,
+  baseWidth: number = 110
+) => {
+  if (!aspect) return { width: baseWidth, height: baseWidth };
+
+  switch (aspect) {
+    case '1:1':
+      return { width: baseWidth, height: baseWidth };
+    case '9:16':
+      return { width: baseWidth, height: Math.round((baseWidth * 16) / 9) };
+    case '16:9':
+      return { width: baseWidth, height: Math.round((baseWidth * 9) / 16) };
+    default:
+      return { width: baseWidth, height: baseWidth };
+  }
+};
+
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const { themeDefinition } = useTheme();
@@ -450,57 +469,86 @@ const HomeScreen: React.FC = () => {
                       style={styles.projectCard}
                       onPress={() => handleRecentProject(project.id)}
                     >
-                      <View style={styles.projectImage}>
-                        {/* Show thumbnail if available, otherwise show both images side by side */}
-                        {project.thumbnail ? (
-                          <Image
-                            source={{ uri: project.thumbnail }}
-                            style={styles.projectThumbnail}
-                            resizeMode="cover"
-                          />
-                        ) : project.images && project.images.length > 0 ? (
-                          <View style={styles.projectPreviewContainer}>
-                            {project.images[0] && (
+                      {(() => {
+                        const previewDims = getPreviewDimensions(
+                          project.composition?.aspect
+                        );
+                        // Only use thumbnail for 1:1 aspect ratio (old thumbnails are distorted for other ratios)
+                        const shouldUseThumbnail =
+                          project.thumbnail &&
+                          (!project.composition?.aspect ||
+                            project.composition.aspect === '1:1');
+
+                        return (
+                          <View
+                            style={[
+                              styles.projectImage,
+                              { height: previewDims.height },
+                            ]}
+                          >
+                            {/* Show thumbnail only for 1:1, otherwise show raw images in correct layout */}
+                            {shouldUseThumbnail ? (
                               <Image
-                                source={{ uri: project.images[0] }}
-                                style={[
-                                  styles.projectPreviewImage,
-                                  project.images.length === 1 &&
-                                    styles.projectPreviewImageFull,
-                                ]}
+                                source={{ uri: project.thumbnail }}
+                                style={styles.projectThumbnail}
                                 resizeMode="cover"
                               />
-                            )}
-                            {project.images[1] && (
-                              <Image
-                                source={{ uri: project.images[1] }}
-                                style={styles.projectPreviewImage}
-                                resizeMode="cover"
+                            ) : project.images && project.images.length > 0 ? (
+                              <View
+                                style={[
+                                  styles.projectPreviewContainer,
+                                  {
+                                    height: previewDims.height,
+                                    flexDirection:
+                                      project.composition?.aspect === '9:16'
+                                        ? 'column'
+                                        : 'row',
+                                  },
+                                ]}
+                              >
+                                {project.images[0] && (
+                                  <Image
+                                    source={{ uri: project.images[0] }}
+                                    style={[
+                                      styles.projectPreviewImage,
+                                      project.images.length === 1 &&
+                                        styles.projectPreviewImageFull,
+                                    ]}
+                                    resizeMode="cover"
+                                  />
+                                )}
+                                {project.images[1] && (
+                                  <Image
+                                    source={{ uri: project.images[1] }}
+                                    style={styles.projectPreviewImage}
+                                    resizeMode="cover"
+                                  />
+                                )}
+                              </View>
+                            ) : (
+                              <View
+                                style={[
+                                  styles.projectImagePlaceholder,
+                                  {
+                                    backgroundColor: [
+                                      '#98FB98',
+                                      '#87CEEB',
+                                      '#DDA0DD',
+                                      '#FFB6C1',
+                                      '#98D8E8',
+                                      '#F0E68C',
+                                      '#DEB887',
+                                      '#D8BFD8',
+                                      '#F5DEB3',
+                                      '#B0E0E6',
+                                    ][index % 10],
+                                  },
+                                ]}
                               />
                             )}
                           </View>
-                        ) : (
-                          <View
-                            style={[
-                              styles.projectImagePlaceholder,
-                              {
-                                backgroundColor: [
-                                  '#98FB98',
-                                  '#87CEEB',
-                                  '#DDA0DD',
-                                  '#FFB6C1',
-                                  '#98D8E8',
-                                  '#F0E68C',
-                                  '#DEB887',
-                                  '#D8BFD8',
-                                  '#F5DEB3',
-                                  '#B0E0E6',
-                                ][index % 10],
-                              },
-                            ]}
-                          />
-                        )}
-                      </View>
+                        );
+                      })()}
                     </TouchableOpacity>
                   </ContextMenu>
                 ))}
@@ -645,15 +693,17 @@ const styles = StyleSheet.create({
   },
   projectImage: {
     width: 110,
-    height: 110,
+    // height removed - will be set dynamically based on aspect ratio
     borderRadius: 16,
     overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   projectPreviewContainer: {
     flex: 1,
     flexDirection: 'row',
     width: '100%',
-    height: '100%',
+    // height removed - will be set dynamically based on aspect ratio
   },
   projectPreviewImage: {
     flex: 1,
@@ -665,7 +715,7 @@ const styles = StyleSheet.create({
   projectThumbnail: {
     width: '100%',
     height: '100%',
-    borderRadius: 8,
+    borderRadius: 16,
   },
   projectImagePlaceholder: {
     width: '100%',
