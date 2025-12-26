@@ -1596,8 +1596,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           alignItems: 'center' as const,
         };
 
-        // Fixed font size for device mockup labels - not adjustable
-        const deviceMockupFontSize = 19;
+        // Use template's font size configuration
+        const deviceMockupFontSize = composition.labels.fontSize || 19;
 
         const deviceLabelStyle = {
           ...labelStyle,

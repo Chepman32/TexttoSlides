@@ -163,7 +163,7 @@ export const defaultTemplates: Template[] = [
         textBefore: 'BEFORE',
         textAfter: 'AFTER',
         fontFamily: 'System',
-        fontSize: 14,
+        fontSize: 8,
         fontWeight: 'Bold',
         color: '#E9EEFF',
         position: 'tl',
