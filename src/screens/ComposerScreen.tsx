@@ -223,6 +223,25 @@ const ComposerScreen: React.FC = () => {
   const isDraggingSliderRef = useRef(false);
   const sliderStartPositionRef = useRef(0.5);
 
+  // Calculate max offset for image panning based on cover fit
+  const calculateMaxOffset = (
+    imgWidth: number,
+    imgHeight: number,
+    containerWidth: number,
+    containerHeight: number,
+  ) => {
+    if (!imgWidth || !imgHeight) return { maxX: 0, maxY: 0 };
+    const scaleX = containerWidth / imgWidth;
+    const scaleY = containerHeight / imgHeight;
+    const scale = Math.max(scaleX, scaleY);
+    const scaledWidth = imgWidth * scale;
+    const scaledHeight = imgHeight * scale;
+    return {
+      maxX: Math.max(0, (scaledWidth - containerWidth) / 2),
+      maxY: Math.max(0, (scaledHeight - containerHeight) / 2),
+    };
+  };
+
   // Pan responder for image panning and slider dragging
   const panResponder = useMemo(
     () =>
@@ -237,17 +256,29 @@ const ComposerScreen: React.FC = () => {
           const { locationX, locationY } = evt.nativeEvent;
           const canvasWidth = screenWidth - 32;
 
-          // Check if this is a slider layout and user touched near the slider handle
+          // Check if this is a slider layout
           if (comp.layout === 'slider') {
             const sliderPos = comp.sliderPosition ?? 0.5;
             const sliderX = canvasWidth * sliderPos;
-            // Check if touch is within 30px of the slider line
+            // Check if touch is within 30px of the slider line - drag slider
             if (Math.abs(locationX - sliderX) < 30) {
               isDraggingSliderRef.current = true;
               sliderStartPositionRef.current = sliderPos;
               panningImageRef.current = null;
               return;
             }
+            // Otherwise, pan the image based on touch position:
+            // Left of slider → pan imageB (After)
+            // Right of slider → pan imageA (Before)
+            isDraggingSliderRef.current = false;
+            if (locationX < sliderX) {
+              panningImageRef.current = 'B';
+              startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
+            } else {
+              panningImageRef.current = 'A';
+              startOffsetRef.current = comp.photoAOffset || { x: 0, y: 0 };
+            }
+            return;
           }
 
           isDraggingSliderRef.current = false;
@@ -303,10 +334,62 @@ const ComposerScreen: React.FC = () => {
 
           if (!panningImageRef.current) return;
 
-          const newOffset: ImageOffset = {
+          const comp = compositionRef.current;
+
+          // Calculate canvas height based on aspect ratio (same logic as CompositionCanvas)
+          let canvasHeight = canvasWidth;
+          if (comp.aspect !== 'free') {
+            switch (comp.aspect) {
+              case '1:1':
+                canvasHeight = canvasWidth;
+                break;
+              case '4:3':
+                canvasHeight = (canvasWidth * 3) / 4;
+                break;
+              case '16:9':
+                canvasHeight = (canvasWidth * 9) / 16;
+                break;
+              case '3:2':
+                canvasHeight = (canvasWidth * 2) / 3;
+                break;
+            }
+          }
+
+          // Calculate container dimensions based on layout
+          let containerWidth = canvasWidth;
+          let containerHeight = canvasHeight;
+
+          if (comp.layout === 'vertical') {
+            // Each image takes half the height
+            containerHeight = (canvasHeight - comp.spacing) / 2;
+          } else if (comp.layout === 'side') {
+            // Each image takes half the width
+            containerWidth = (canvasWidth - comp.spacing) / 2;
+          }
+          // slider uses full canvas dimensions
+
+          let newOffset: ImageOffset = {
             x: startOffsetRef.current.x + gestureState.dx,
             y: startOffsetRef.current.y + gestureState.dy,
           };
+
+          // Clamp offset to image bounds
+          const dims =
+            panningImageRef.current === 'A'
+              ? comp.photoADimensions
+              : comp.photoBDimensions;
+          if (dims?.width && dims?.height) {
+            const { maxX, maxY } = calculateMaxOffset(
+              dims.width,
+              dims.height,
+              containerWidth,
+              containerHeight,
+            );
+            newOffset = {
+              x: Math.max(-maxX, Math.min(maxX, newOffset.x)),
+              y: Math.max(-maxY, Math.min(maxY, newOffset.y)),
+            };
+          }
 
           // Update the appropriate image offset without adding to history (too many updates)
           setComposition(prev => ({
@@ -415,10 +498,18 @@ const ComposerScreen: React.FC = () => {
       response => {
         if (response.didCancel || response.errorMessage) return;
 
-        const uri = response.assets?.[0]?.uri;
-        if (uri) {
+        const asset = response.assets?.[0];
+        if (asset?.uri) {
           FeedbackService.buttonTap();
-          updateComposition(isPhotoA ? { photoAUri: uri } : { photoBUri: uri });
+          const dimensions = {
+            width: asset.width || 0,
+            height: asset.height || 0,
+          };
+          updateComposition(
+            isPhotoA
+              ? { photoAUri: asset.uri, photoADimensions: dimensions, photoAOffset: { x: 0, y: 0 } }
+              : { photoBUri: asset.uri, photoBDimensions: dimensions, photoBOffset: { x: 0, y: 0 } },
+          );
         }
       },
     );

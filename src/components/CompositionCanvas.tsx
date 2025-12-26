@@ -29,11 +29,14 @@ const canvasWidth = screenWidth - 32; // 16px margin on each side
 
 const degToRad = (angle: number) => (angle * Math.PI) / 180;
 
-// Helper to calculate image dimensions for "cover" fit with offset support
-const calculateCoverFit = (
+// Helper to calculate image position for "cover" fit with offset support
+// Returns the position and scale to draw the image, with offset clamped to keep image within bounds
+const calculateCoverFitPosition = (
   image: SkImage | null,
   containerWidth: number,
   containerHeight: number,
+  containerX: number = 0,
+  containerY: number = 0,
   offset: ImageOffset = { x: 0, y: 0 },
 ) => {
   if (!image) return null;
@@ -51,39 +54,25 @@ const calculateCoverFit = (
   const scaledHeight = imgHeight * scale;
 
   // Calculate how much the image can be panned (in scaled coordinates)
+  // This is the maximum distance the image can move from center while still covering the container
   const maxOffsetX = Math.max(0, (scaledWidth - containerWidth) / 2);
   const maxOffsetY = Math.max(0, (scaledHeight - containerHeight) / 2);
 
-  // Clamp offset to valid range
+  // Clamp offset to valid range - image must always cover the container
   const clampedOffsetX = Math.max(-maxOffsetX, Math.min(maxOffsetX, offset.x));
   const clampedOffsetY = Math.max(-maxOffsetY, Math.min(maxOffsetY, offset.y));
 
-  // Calculate the source rectangle (what part of the original image to show)
-  // Convert offset back to original image coordinates
-  const srcOffsetX = -clampedOffsetX / scale;
-  const srcOffsetY = -clampedOffsetY / scale;
-
-  // Source rectangle in original image coordinates
-  const srcX = (imgWidth - containerWidth / scale) / 2 + srcOffsetX;
-  const srcY = (imgHeight - containerHeight / scale) / 2 + srcOffsetY;
-  const srcWidth = containerWidth / scale;
-  const srcHeight = containerHeight / scale;
+  // Calculate centered position (where image would be without offset)
+  const centeredX = containerX + (containerWidth - scaledWidth) / 2;
+  const centeredY = containerY + (containerHeight - scaledHeight) / 2;
 
   return {
-    // Source rect (part of original image)
-    srcX: Math.max(0, srcX),
-    srcY: Math.max(0, srcY),
-    srcWidth: Math.min(srcWidth, imgWidth),
-    srcHeight: Math.min(srcHeight, imgHeight),
-    // Destination rect (where to draw on canvas)
-    dstX: 0,
-    dstY: 0,
-    dstWidth: containerWidth,
-    dstHeight: containerHeight,
-    // For debugging
+    x: centeredX + clampedOffsetX,
+    y: centeredY + clampedOffsetY,
+    width: scaledWidth,
+    height: scaledHeight,
     maxOffsetX,
     maxOffsetY,
-    scale,
   };
 };
 
@@ -252,10 +241,28 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const offsetA = composition.photoAOffset || { x: 0, y: 0 };
         const offsetB = composition.photoBOffset || { x: 0, y: 0 };
 
+        // Calculate cover fit positions with clamped offsets
+        const imageAPos = calculateCoverFitPosition(
+          imageA,
+          imageWidth,
+          imageHeight,
+          0,
+          0,
+          offsetA,
+        );
+        const imageBPos = calculateCoverFitPosition(
+          imageB,
+          imageWidth,
+          imageHeight,
+          imageWidth + composition.spacing,
+          0,
+          offsetB,
+        );
+
         elements.push(
           <Group key="side-images">
             {/* Before image (left) */}
-            {imageA && (
+            {imageA && imageAPos && (
               <Group
                 clip={{
                   x: 0,
@@ -266,25 +273,17 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Group
-                  transform={[
-                    { translateX: offsetA.x },
-                    { translateY: offsetA.y },
-                  ]}
-                >
-                  <Image
-                    image={imageA}
-                    fit="cover"
-                    x={0}
-                    y={0}
-                    width={imageWidth}
-                    height={imageHeight}
-                  />
-                </Group>
+                <Image
+                  image={imageA}
+                  x={imageAPos.x}
+                  y={imageAPos.y}
+                  width={imageAPos.width}
+                  height={imageAPos.height}
+                />
               </Group>
             )}
             {/* After image (right) */}
-            {imageB && (
+            {imageB && imageBPos && (
               <Group
                 clip={{
                   x: imageWidth + composition.spacing,
@@ -295,21 +294,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Group
-                  transform={[
-                    { translateX: offsetB.x },
-                    { translateY: offsetB.y },
-                  ]}
-                >
-                  <Image
-                    image={imageB}
-                    fit="cover"
-                    x={imageWidth + composition.spacing}
-                    y={0}
-                    width={imageWidth}
-                    height={imageHeight}
-                  />
-                </Group>
+                <Image
+                  image={imageB}
+                  x={imageBPos.x}
+                  y={imageBPos.y}
+                  width={imageBPos.width}
+                  height={imageBPos.height}
+                />
               </Group>
             )}
 
@@ -506,10 +497,28 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const offsetA = composition.photoAOffset || { x: 0, y: 0 };
         const offsetB = composition.photoBOffset || { x: 0, y: 0 };
 
+        // Calculate cover fit positions with clamped offsets
+        const imageAPos = calculateCoverFitPosition(
+          imageA,
+          imageWidth,
+          imageHeight,
+          0,
+          0,
+          offsetA,
+        );
+        const imageBPos = calculateCoverFitPosition(
+          imageB,
+          imageWidth,
+          imageHeight,
+          0,
+          imageHeight + composition.spacing,
+          offsetB,
+        );
+
         elements.push(
           <Group key="vertical-images">
             {/* Before image (top) */}
-            {imageA && (
+            {imageA && imageAPos && (
               <Group
                 clip={{
                   x: 0,
@@ -520,25 +529,17 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Group
-                  transform={[
-                    { translateX: offsetA.x },
-                    { translateY: offsetA.y },
-                  ]}
-                >
-                  <Image
-                    image={imageA}
-                    fit="cover"
-                    x={0}
-                    y={0}
-                    width={imageWidth}
-                    height={imageHeight}
-                  />
-                </Group>
+                <Image
+                  image={imageA}
+                  x={imageAPos.x}
+                  y={imageAPos.y}
+                  width={imageAPos.width}
+                  height={imageAPos.height}
+                />
               </Group>
             )}
             {/* After image (bottom) */}
-            {imageB && (
+            {imageB && imageBPos && (
               <Group
                 clip={{
                   x: 0,
@@ -549,21 +550,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   ry: cornerRadius,
                 }}
               >
-                <Group
-                  transform={[
-                    { translateX: offsetB.x },
-                    { translateY: offsetB.y },
-                  ]}
-                >
-                  <Image
-                    image={imageB}
-                    fit="cover"
-                    x={0}
-                    y={imageHeight + composition.spacing}
-                    width={imageWidth}
-                    height={imageHeight}
-                  />
-                </Group>
+                <Image
+                  image={imageB}
+                  x={imageBPos.x}
+                  y={imageBPos.y}
+                  width={imageBPos.width}
+                  height={imageBPos.height}
+                />
               </Group>
             )}
 
@@ -594,11 +587,31 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         // Slider reveal layout - show both images with a mask
         const sliderPos = composition.sliderPosition ?? 0.5;
         const sliderX = canvasWidth * sliderPos;
+        const offsetA = composition.photoAOffset || { x: 0, y: 0 };
+        const offsetB = composition.photoBOffset || { x: 0, y: 0 };
+
+        // Calculate cover fit positions with clamped offsets
+        const imageAPos = calculateCoverFitPosition(
+          imageA,
+          canvasWidth,
+          canvasHeight,
+          0,
+          0,
+          offsetA,
+        );
+        const imageBPos = calculateCoverFitPosition(
+          imageB,
+          canvasWidth,
+          canvasHeight,
+          0,
+          0,
+          offsetB,
+        );
 
         elements.push(
           <Group key="slider-images">
             {/* Base image (Before - right side) */}
-            {imageA && (
+            {imageA && imageAPos && (
               <Group
                 clip={{
                   x: 0,
@@ -611,16 +624,15 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               >
                 <Image
                   image={imageA}
-                  fit="cover"
-                  x={0}
-                  y={0}
-                  width={canvasWidth}
-                  height={canvasHeight}
+                  x={imageAPos.x}
+                  y={imageAPos.y}
+                  width={imageAPos.width}
+                  height={imageAPos.height}
                 />
               </Group>
             )}
             {/* Overlay image (After - left side) with clipping */}
-            {imageB && (
+            {imageB && imageBPos && (
               <Group
                 clip={{
                   x: 0,
@@ -633,11 +645,10 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               >
                 <Image
                   image={imageB}
-                  fit="cover"
-                  x={0}
-                  y={0}
-                  width={canvasWidth}
-                  height={canvasHeight}
+                  x={imageBPos.x}
+                  y={imageBPos.y}
+                  width={imageBPos.width}
+                  height={imageBPos.height}
                 />
               </Group>
             )}
@@ -1556,7 +1567,11 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           position: 'relative',
         }}
       >
-        <Canvas ref={ref} style={{ width: canvasWidth, height: canvasHeight }} pointerEvents="none">
+        <Canvas
+          ref={ref}
+          style={{ width: canvasWidth, height: canvasHeight }}
+          pointerEvents="none"
+        >
           <Group clip={clipRect}>
             {renderBackground()}
             {renderImages()}

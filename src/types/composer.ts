@@ -45,11 +45,18 @@ export interface ImageOffset {
   y: number;
 }
 
+export interface ImageDimensions {
+  width: number;
+  height: number;
+}
+
 export interface CompositionState {
   photoAUri?: string;
   photoBUri?: string;
   photoAOffset?: ImageOffset; // Pan offset for image A
   photoBOffset?: ImageOffset; // Pan offset for image B
+  photoADimensions?: ImageDimensions; // Original dimensions of image A
+  photoBDimensions?: ImageDimensions; // Original dimensions of image B
   layout: LayoutType;
   spacing: number;
   cornerRadius: number;
