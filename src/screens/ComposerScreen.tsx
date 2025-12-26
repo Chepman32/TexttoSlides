@@ -305,6 +305,33 @@ const ComposerScreen: React.FC = () => {
               panningImageRef.current = 'B';
               startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
             }
+          } else if (comp.layout === 'diagonal') {
+            // Diagonal - top-left triangle is A, bottom-right triangle is B
+            // The diagonal line goes from top-right (canvasWidth, 0) to bottom-left (0, canvasHeight)
+            // Point is in top-left triangle if: locationY < canvasHeight - (locationX * canvasHeight / canvasWidth)
+            let canvasHeight = canvasWidth;
+            if (comp.aspect !== 'free') {
+              switch (comp.aspect) {
+                case '1:1':
+                  canvasHeight = canvasWidth;
+                  break;
+                case '4:3':
+                  canvasHeight = (canvasWidth * 3) / 4;
+                  break;
+                case '16:9':
+                  canvasHeight = (canvasWidth * 9) / 16;
+                  break;
+              }
+            }
+            const diagonalY =
+              canvasHeight - (locationX * canvasHeight) / canvasWidth;
+            if (locationY < diagonalY) {
+              panningImageRef.current = 'A';
+              startOffsetRef.current = comp.photoAOffset || { x: 0, y: 0 };
+            } else {
+              panningImageRef.current = 'B';
+              startOffsetRef.current = comp.photoBOffset || { x: 0, y: 0 };
+            }
           } else {
             // For other layouts, default to image A
             panningImageRef.current = 'A';
@@ -507,8 +534,16 @@ const ComposerScreen: React.FC = () => {
           };
           updateComposition(
             isPhotoA
-              ? { photoAUri: asset.uri, photoADimensions: dimensions, photoAOffset: { x: 0, y: 0 } }
-              : { photoBUri: asset.uri, photoBDimensions: dimensions, photoBOffset: { x: 0, y: 0 } },
+              ? {
+                  photoAUri: asset.uri,
+                  photoADimensions: dimensions,
+                  photoAOffset: { x: 0, y: 0 },
+                }
+              : {
+                  photoBUri: asset.uri,
+                  photoBDimensions: dimensions,
+                  photoBOffset: { x: 0, y: 0 },
+                },
           );
         }
       },
@@ -517,9 +552,22 @@ const ComposerScreen: React.FC = () => {
 
   const swapPhotos = () => {
     FeedbackService.buttonTap();
+    // Swap URIs, dimensions, and offsets together
+    // Create new offset objects to avoid reference issues
+    const newPhotoAOffset = composition.photoBOffset
+      ? { x: composition.photoBOffset.x, y: composition.photoBOffset.y }
+      : { x: 0, y: 0 };
+    const newPhotoBOffset = composition.photoAOffset
+      ? { x: composition.photoAOffset.x, y: composition.photoAOffset.y }
+      : { x: 0, y: 0 };
+
     updateComposition({
       photoAUri: composition.photoBUri,
       photoBUri: composition.photoAUri,
+      photoADimensions: composition.photoBDimensions,
+      photoBDimensions: composition.photoADimensions,
+      photoAOffset: newPhotoAOffset,
+      photoBOffset: newPhotoBOffset,
     });
   };
 

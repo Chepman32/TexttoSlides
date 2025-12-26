@@ -952,6 +952,27 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       } else if (layout === 'diagonal') {
         // Diagonal split layout - images split along diagonal line from top-left to bottom-right
         // Using separate clipped groups for each triangle
+        const offsetA = composition.photoAOffset || { x: 0, y: 0 };
+        const offsetB = composition.photoBOffset || { x: 0, y: 0 };
+
+        // Calculate cover fit positions with clamped offsets
+        const imageAPos = calculateCoverFitPosition(
+          imageA,
+          canvasWidth,
+          canvasHeight,
+          0,
+          0,
+          offsetA,
+        );
+        const imageBPos = calculateCoverFitPosition(
+          imageB,
+          canvasWidth,
+          canvasHeight,
+          0,
+          0,
+          offsetB,
+        );
+
         const topLeftTrianglePath = Skia.Path.Make();
         topLeftTrianglePath.moveTo(0, 0);
         topLeftTrianglePath.lineTo(canvasWidth, 0);
@@ -967,29 +988,27 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         elements.push(
           <Group key="diagonal-images">
             {/* Before image (top-left triangle) */}
-            {imageA && (
+            {imageA && imageAPos && (
               <Group clip={topLeftTrianglePath}>
                 <Image
                   image={imageA}
-                  fit="cover"
-                  x={0}
-                  y={0}
-                  width={canvasWidth}
-                  height={canvasHeight}
+                  x={imageAPos.x}
+                  y={imageAPos.y}
+                  width={imageAPos.width}
+                  height={imageAPos.height}
                 />
               </Group>
             )}
 
             {/* After image (bottom-right triangle) */}
-            {imageB && (
+            {imageB && imageBPos && (
               <Group clip={bottomRightTrianglePath}>
                 <Image
                   image={imageB}
-                  fit="cover"
-                  x={0}
-                  y={0}
-                  width={canvasWidth}
-                  height={canvasHeight}
+                  x={imageBPos.x}
+                  y={imageBPos.y}
+                  width={imageBPos.width}
+                  height={imageBPos.height}
                 />
               </Group>
             )}
