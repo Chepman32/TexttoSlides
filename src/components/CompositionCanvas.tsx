@@ -1341,18 +1341,21 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           paddingHorizontal: Math.max(6, notch.width * 0.12),
         };
 
+        const labelOffsetX = -8; // shift labels left
+        const labelOffsetY = 6; // shift labels down
+
         const deviceLabelConfigs = [
           {
             key: 'before',
             text: textBefore,
-            left: leftX,
+            left: leftX + labelOffsetX,
             rotation: -6,
             isLeft: true,
           },
           {
             key: 'after',
             text: textAfter,
-            left: rightX,
+            left: rightX + labelOffsetX,
             rotation: 6,
             isLeft: false,
           },
@@ -1362,8 +1365,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           <>
             {deviceLabelConfigs.map(config => {
               const adjustedLabelY = config.isLeft
-                ? notch.y - deviceHeight * 0.05
-                : notch.y;
+                ? notch.y - deviceHeight * 0.05 + labelOffsetY
+                : notch.y + labelOffsetY;
 
               return (
                 <View
