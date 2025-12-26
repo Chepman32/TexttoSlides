@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -13,8 +13,15 @@ import AppNavigator from './src/navigation/AppNavigator';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import IAPService from './src/services/IAPService';
+import AnimatedSplashScreen from './src/components/AnimatedSplashScreen';
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+  }, []);
+
   useEffect(() => {
     // Initialize IAP service
     IAPService.init();
@@ -37,6 +44,11 @@ function App() {
                 translucent={false}
               />
               <AppNavigator />
+              {showSplash && (
+                <AnimatedSplashScreen
+                  onAnimationComplete={handleSplashComplete}
+                />
+              )}
             </View>
           </LanguageProvider>
         </ThemeProvider>
