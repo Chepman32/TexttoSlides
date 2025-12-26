@@ -92,6 +92,7 @@ const ComposerScreen: React.FC = () => {
       diagonal: 'composer_layoutDiagonal',
       modern: 'modern',
       'photo-restoration': 'old_school',
+      'diagonal-stacked': 'diagonal_stacked',
     };
     return templateNameMap[templateId] || templateId;
   };

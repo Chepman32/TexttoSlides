@@ -1090,6 +1090,150 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             )}
           </Group>,
         );
+      } else if (layout === 'diagonalStacked') {
+        // Diagonal stacked layout - two overlapping photos arranged diagonally
+        const offsetA = composition.photoAOffset || { x: 0, y: 0 };
+        const offsetB = composition.photoBOffset || { x: 0, y: 0 };
+
+        // Photo dimensions - each photo takes about 65% of canvas
+        const photoWidth = canvasWidth * 0.65;
+        const photoHeight = canvasHeight * 0.65;
+
+        // Positions - before photo top-left, after photo bottom-right
+        const beforeX = canvasWidth * 0.02;
+        const beforeY = canvasHeight * 0.02;
+        const afterX = canvasWidth * 0.33;
+        const afterY = canvasHeight * 0.33;
+
+        // Frame settings
+        const frameThickness = composition.frame?.on
+          ? composition.frame.thickness
+          : 0;
+        const frameColor = composition.frame?.color || '#9CA3AF';
+        const shadowOffset = 4;
+        const shadowBlur = 8;
+
+        // Calculate cover fit positions
+        const imageAPos = calculateCoverFitPosition(
+          imageA,
+          photoWidth,
+          photoHeight,
+          beforeX,
+          beforeY,
+          offsetA,
+        );
+        const imageBPos = calculateCoverFitPosition(
+          imageB,
+          photoWidth,
+          photoHeight,
+          afterX,
+          afterY,
+          offsetB,
+        );
+
+        const buildStackedPhoto = (
+          key: string,
+          image: ReturnType<typeof useImage>,
+          imagePos: {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+          } | null,
+          x: number,
+          y: number,
+          rotation: number,
+        ) => {
+          const originX = x + photoWidth / 2;
+          const originY = y + photoHeight / 2;
+
+          return (
+            <Group
+              key={key}
+              transform={[
+                { translateX: originX },
+                { translateY: originY },
+                { rotate: degToRad(rotation) },
+                { translateX: -photoWidth / 2 },
+                { translateY: -photoHeight / 2 },
+              ]}
+            >
+              {/* Shadow */}
+              <RoundedRect
+                x={shadowOffset}
+                y={shadowOffset}
+                width={photoWidth}
+                height={photoHeight}
+                r={cornerRadius}
+                color="rgba(0, 0, 0, 0.3)"
+              />
+              {/* Frame/border */}
+              {frameThickness > 0 && (
+                <RoundedRect
+                  x={-frameThickness}
+                  y={-frameThickness}
+                  width={photoWidth + frameThickness * 2}
+                  height={photoHeight + frameThickness * 2}
+                  r={cornerRadius}
+                  color={frameColor}
+                />
+              )}
+              {/* Photo */}
+              <Group
+                clip={{
+                  x: 0,
+                  y: 0,
+                  width: photoWidth,
+                  height: photoHeight,
+                  rx: cornerRadius,
+                  ry: cornerRadius,
+                }}
+              >
+                {image && imagePos ? (
+                  <Image
+                    image={image}
+                    x={imagePos.x - x}
+                    y={imagePos.y - y}
+                    width={imagePos.width}
+                    height={imagePos.height}
+                  />
+                ) : (
+                  <RoundedRect
+                    x={0}
+                    y={0}
+                    width={photoWidth}
+                    height={photoHeight}
+                    r={cornerRadius}
+                    color={themeDefinition.colors.border}
+                  />
+                )}
+              </Group>
+            </Group>
+          );
+        };
+
+        elements.push(
+          <Group key="diagonal-stacked">
+            {/* Before photo (top-left, slight rotation) */}
+            {buildStackedPhoto(
+              'before-photo',
+              imageA,
+              imageAPos,
+              beforeX,
+              beforeY,
+              -3,
+            )}
+            {/* After photo (bottom-right, slight rotation) */}
+            {buildStackedPhoto(
+              'after-photo',
+              imageB,
+              imageBPos,
+              afterX,
+              afterY,
+              3,
+            )}
+          </Group>,
+        );
       }
 
       return elements;
@@ -1578,6 +1722,101 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 bottom: margin,
                 right: margin,
                 textAlign: 'right' as const,
+              },
+            ])}
+          </>
+        );
+      } else if (layout === 'diagonalStacked') {
+        // Labels for diagonal stacked layout - position relative to each photo
+        const photoWidth = canvasWidth * 0.65;
+        const photoHeight = canvasHeight * 0.65;
+        const beforeX = canvasWidth * 0.02;
+        const beforeY = canvasHeight * 0.02;
+        const afterX = canvasWidth * 0.33;
+        const afterY = canvasHeight * 0.33;
+
+        // Calculate label positions based on position setting
+        const getBeforeLabelPosition = () => {
+          switch (position) {
+            case 'tl':
+              return {
+                top: beforeY + containerPadding,
+                left: beforeX + containerPadding,
+              };
+            case 'tr':
+              return {
+                top: beforeY + containerPadding,
+                left: beforeX + photoWidth - containerPadding,
+              };
+            case 'bl':
+              return {
+                top: beforeY + photoHeight - containerPadding - fontSize,
+                left: beforeX + containerPadding,
+              };
+            case 'br':
+              return {
+                top: beforeY + photoHeight - containerPadding - fontSize,
+                left: beforeX + photoWidth - containerPadding,
+              };
+            default:
+              return {
+                top: beforeY + photoHeight - containerPadding - fontSize,
+                left: beforeX + containerPadding,
+              };
+          }
+        };
+
+        const getAfterLabelPosition = () => {
+          switch (position) {
+            case 'tl':
+              return {
+                top: afterY + containerPadding,
+                left: afterX + containerPadding,
+              };
+            case 'tr':
+              return {
+                top: afterY + containerPadding,
+                left: afterX + photoWidth - containerPadding,
+              };
+            case 'bl':
+              return {
+                top: afterY + photoHeight - containerPadding - fontSize,
+                left: afterX + containerPadding,
+              };
+            case 'br':
+              return {
+                top: afterY + photoHeight - containerPadding - fontSize,
+                left: afterX + photoWidth - containerPadding,
+              };
+            default:
+              return {
+                top: afterY + photoHeight - containerPadding - fontSize,
+                left: afterX + photoWidth - containerPadding,
+              };
+          }
+        };
+
+        const beforePos = getBeforeLabelPosition();
+        const afterPos = getAfterLabelPosition();
+
+        return (
+          <>
+            {renderTextWithEffects(textBefore, [
+              labelStyle,
+              {
+                position: 'absolute' as const,
+                top: beforePos.top,
+                left: beforePos.left,
+                textAlign: isLeft ? 'left' : 'right',
+              },
+            ])}
+            {renderTextWithEffects(textAfter, [
+              labelStyle,
+              {
+                position: 'absolute' as const,
+                top: afterPos.top,
+                left: afterPos.left,
+                textAlign: isLeft ? 'left' : 'right',
               },
             ])}
           </>

@@ -7,7 +7,8 @@ export type LayoutType =
   | 'stacked'
   | 'diagonal'
   | 'polaroid'
-  | 'deviceMockup';
+  | 'deviceMockup'
+  | 'diagonalStacked';
 
 export interface LabelStyle {
   textBefore: string;

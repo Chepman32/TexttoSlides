@@ -14,7 +14,8 @@ export interface Template {
       | 'slider'
       | 'polaroid'
       | 'deviceMockup'
-      | 'diagonal';
+      | 'diagonal'
+      | 'diagonalStacked';
     hasFrame: boolean;
   };
   composition: Partial<CompositionState>;
@@ -453,6 +454,46 @@ export const defaultTemplates: Template[] = [
         thickness: 0,
         color: '#E5E7EB',
         padding: 0,
+      },
+      watermarkOn: false,
+    },
+  },
+  {
+    id: 'diagonal-stacked',
+    name: 'Diagonal Stacked',
+    description: 'Overlapping photos with diagonal layout',
+    preview: {
+      backgroundColor: '#FEF3C7',
+      accentColor: '#F59E0B',
+      layout: 'diagonalStacked',
+      hasFrame: true,
+    },
+    composition: {
+      layout: 'diagonalStacked',
+      spacing: 0,
+      cornerRadius: 4,
+      aspect: '4:3',
+      labels: {
+        textBefore: 'before',
+        textAfter: 'after',
+        fontFamily: 'System',
+        fontSize: 24,
+        fontWeight: 'Regular',
+        color: '#1F2937',
+        position: 'bl',
+        margin: 8,
+        show: true,
+        textEffects: [],
+      },
+      background: {
+        type: 'solid',
+        colors: ['#FEF3C7'],
+      },
+      frame: {
+        on: true,
+        thickness: 6,
+        color: '#9CA3AF',
+        padding: 4,
       },
       watermarkOn: false,
     },

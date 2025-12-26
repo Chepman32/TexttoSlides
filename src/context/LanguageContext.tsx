@@ -201,6 +201,7 @@ const resources = {
       minimal: 'Minimal',
       elegant: 'Elegant',
       old_school: 'Old School',
+      diagonal_stacked: 'Diagonal\nStacked',
 
       // Layout Options
       stacked_with_label_bar: 'Stacked with Label Bar',
@@ -357,6 +358,7 @@ const resources = {
       minimal: 'Минимальный',
       elegant: 'Элегантный',
       old_school: 'Олдскул',
+      diagonal_stacked: 'Диагональная\nСтопка',
 
       // Layout Options
       stacked_with_label_bar: 'С полосой подписей',
@@ -509,6 +511,7 @@ const resources = {
       minimal: 'Minimal',
       elegant: 'Elegant',
       old_school: 'Old School',
+      diagonal_stacked: 'Diagonal\nGestapelt',
 
       // Layout Options
       stacked_with_label_bar: 'Gestapelt mit Beschriftungsleiste',
@@ -661,6 +664,7 @@ const resources = {
       minimal: 'Minimal',
       elegant: 'Élégant',
       old_school: 'Old School',
+      diagonal_stacked: 'Empilé\nDiagonal',
 
       // Layout Options
       stacked_with_label_bar: "Empilé avec barre d'étiquettes",
@@ -811,6 +815,7 @@ const resources = {
       minimal: 'Minimalista',
       elegant: 'Elegante',
       old_school: 'Old School',
+      diagonal_stacked: 'Empilhado\nDiagonal',
 
       // Layout Options
       stacked_with_label_bar: 'Empilhado com barra de rótulo',
@@ -961,6 +966,7 @@ const resources = {
       minimal: 'ミニマル',
       elegant: 'エレガント',
       old_school: 'オールドスクール',
+      diagonal_stacked: '斜め\nスタック',
 
       // Layout Options
       stacked_with_label_bar: 'ラベルバー付きスタック',
@@ -1105,6 +1111,7 @@ const resources = {
       minimal: '简约',
       elegant: '优雅',
       old_school: '老派风格',
+      diagonal_stacked: '斜向\n堆叠',
 
       // Layout Options
       stacked_with_label_bar: '带标签栏的堆叠',
@@ -1253,6 +1260,7 @@ const resources = {
       minimal: '미니멀',
       elegant: '우아한',
       old_school: '올드스쿨',
+      diagonal_stacked: '대각선\n스택',
 
       // Layout Options
       stacked_with_label_bar: '라벨 바와 함께 쌓이기',
@@ -1401,6 +1409,7 @@ const resources = {
       minimal: 'Мінімальний',
       elegant: 'Елегантний',
       old_school: 'Олдскул',
+      diagonal_stacked: 'Діагональний\nСтос',
 
       // Layout Options
       stacked_with_label_bar: 'Складений з панеллю міток',
@@ -1538,6 +1547,7 @@ const resources = {
       minimal: 'Minimalista',
       elegant: 'Elegante',
       old_school: 'Old School',
+      diagonal_stacked: 'Apilado\nDiagonal',
 
       // Layout Options
       stacked_with_label_bar: 'Apilado con barra de etiquetas',
