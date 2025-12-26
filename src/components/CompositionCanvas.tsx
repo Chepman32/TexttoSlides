@@ -1736,89 +1736,61 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const afterY = canvasHeight * 0.33;
 
         // Calculate label positions based on position setting
-        const getBeforeLabelPosition = () => {
-          switch (position) {
-            case 'tl':
-              return {
-                top: beforeY + containerPadding,
-                left: beforeX + containerPadding,
-              };
-            case 'tr':
-              return {
-                top: beforeY + containerPadding,
-                left: beforeX + photoWidth - containerPadding,
-              };
-            case 'bl':
-              return {
-                top: beforeY + photoHeight - containerPadding - fontSize,
-                left: beforeX + containerPadding,
-              };
-            case 'br':
-              return {
-                top: beforeY + photoHeight - containerPadding - fontSize,
-                left: beforeX + photoWidth - containerPadding,
-              };
-            default:
-              return {
-                top: beforeY + photoHeight - containerPadding - fontSize,
-                left: beforeX + containerPadding,
-              };
+        const getBeforeLabelStyle = () => {
+          const baseStyle: any = { position: 'absolute' as const };
+
+          // Vertical position - for Before photo, bottom positions should be above the overlap area
+          if (position === 'tl' || position === 'tr') {
+            baseStyle.top = beforeY + containerPadding;
+          } else {
+            // Position at the top area of the Before photo to avoid overlap with After photo
+            baseStyle.top = beforeY + containerPadding;
           }
+
+          // Horizontal position
+          if (position === 'tl' || position === 'bl') {
+            baseStyle.left = beforeX + containerPadding;
+            baseStyle.textAlign = 'left';
+          } else {
+            // For right positions, place near the right edge of Before photo but before overlap
+            baseStyle.left = beforeX + photoWidth * 0.4;
+            baseStyle.textAlign = 'right';
+          }
+
+          return baseStyle;
         };
 
-        const getAfterLabelPosition = () => {
-          switch (position) {
-            case 'tl':
-              return {
-                top: afterY + containerPadding,
-                left: afterX + containerPadding,
-              };
-            case 'tr':
-              return {
-                top: afterY + containerPadding,
-                left: afterX + photoWidth - containerPadding,
-              };
-            case 'bl':
-              return {
-                top: afterY + photoHeight - containerPadding - fontSize,
-                left: afterX + containerPadding,
-              };
-            case 'br':
-              return {
-                top: afterY + photoHeight - containerPadding - fontSize,
-                left: afterX + photoWidth - containerPadding,
-              };
-            default:
-              return {
-                top: afterY + photoHeight - containerPadding - fontSize,
-                left: afterX + photoWidth - containerPadding,
-              };
+        const getAfterLabelStyle = () => {
+          const baseStyle: any = { position: 'absolute' as const };
+
+          // Vertical position
+          if (position === 'tl' || position === 'tr') {
+            baseStyle.top = afterY + containerPadding;
+          } else {
+            baseStyle.top =
+              afterY + photoHeight - containerPadding - fontSize - 8;
           }
+
+          // Horizontal position
+          if (position === 'tl' || position === 'bl') {
+            baseStyle.left = afterX + containerPadding;
+            baseStyle.textAlign = 'left';
+          } else {
+            baseStyle.right =
+              canvasWidth - (afterX + photoWidth) + containerPadding;
+            baseStyle.textAlign = 'right';
+          }
+
+          return baseStyle;
         };
 
-        const beforePos = getBeforeLabelPosition();
-        const afterPos = getAfterLabelPosition();
+        const beforeLabelStyle = getBeforeLabelStyle();
+        const afterLabelStyle = getAfterLabelStyle();
 
         return (
           <>
-            {renderTextWithEffects(textBefore, [
-              labelStyle,
-              {
-                position: 'absolute' as const,
-                top: beforePos.top,
-                left: beforePos.left,
-                textAlign: isLeft ? 'left' : 'right',
-              },
-            ])}
-            {renderTextWithEffects(textAfter, [
-              labelStyle,
-              {
-                position: 'absolute' as const,
-                top: afterPos.top,
-                left: afterPos.left,
-                textAlign: isLeft ? 'left' : 'right',
-              },
-            ])}
+            {renderTextWithEffects(textBefore, [labelStyle, beforeLabelStyle])}
+            {renderTextWithEffects(textAfter, [labelStyle, afterLabelStyle])}
           </>
         );
       } else if (layout === 'slider') {
