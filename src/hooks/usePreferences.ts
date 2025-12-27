@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStorage } from './useStorage';
 import { Theme } from '../context/ThemeContext';
 import { Language } from '../context/LanguageContext';
+import { getDeviceLanguage } from '../utils/deviceLanguage';
 
 export interface UserPreferences {
   theme: Theme;
@@ -12,14 +13,17 @@ export interface UserPreferences {
   appIcon: string;
 }
 
-export const defaultPreferences: UserPreferences = {
+// Create default preferences with device language
+const createDefaultPreferences = (): UserPreferences => ({
   theme: 'light',
-  language: 'en',
+  language: getDeviceLanguage(),
   soundEnabled: true,
   hapticsEnabled: true,
   isProUser: true, // App is now completely free
   appIcon: 'AppIconCoral',
-};
+});
+
+export const defaultPreferences: UserPreferences = createDefaultPreferences();
 
 export const usePreferences = () => {
   const [preferences, setPreferences, removePreferences] =

@@ -400,10 +400,12 @@ class StorageService {
         return JSON.parse(prefsData);
       }
 
-      // Return defaults
+      // Return defaults with device language
+      const { getDeviceLanguage } = require('../utils/deviceLanguage');
+      const deviceLang = getDeviceLanguage();
       return {
         theme: 'light',
-        language: 'en',
+        language: deviceLang,
         soundEnabled: true,
         hapticsEnabled: true,
       };
