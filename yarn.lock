@@ -3045,6 +3045,7 @@ __metadata:
     react-native-haptic-feedback: "npm:^2.3.3"
     react-native-image-manipulator: "npm:^1.0.6"
     react-native-image-picker: "npm:^8.2.1"
+    react-native-linear-gradient: "npm:^2.8.3"
     react-native-localize: "npm:^3.5.2"
     react-native-permissions: "npm:^5.4.2"
     react-native-reanimated: "npm:^4.1.0"
@@ -8093,6 +8094,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 10c0/87d20b900aded7d44c90afb946a7aa03c23a94ca3dd547bdddc2303b85357e4aab22567a57b19f1558d6c8be7058e3dcf34faa1e15182d1604f90974266d9a1d
+  languageName: node
+  linkType: hard
+
+"react-native-linear-gradient@npm:^2.8.3":
+  version: 2.8.3
+  resolution: "react-native-linear-gradient@npm:2.8.3"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10c0/cd41bf28e9f468173f1e5e768685128ebf8bbf9077710e43b63482c1a76f37bff8ab3d1d6adfd7b4d54e648672356c02bea46c47cdbdb1844ebe5c5caf720114
   languageName: node
   linkType: hard
 
