@@ -12,6 +12,7 @@
 		0C59ABD4305D499E8FD16CB7 /* FiraSans-Black.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 9DFF21E2668B4C9EA29056DE /* FiraSans-Black.ttf */; };
 		0C80B921A6F3F58F76C31292 /* libPods-Snapduo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-Snapduo.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		1F8B3D3F2E254C3DB1C2C3B0 /* AppIconManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 1F8B3D3E2E254C3DB1C2C3B0 /* AppIconManager.m */; };
 		1A909AB18BC84E1E8C2DADC8 /* FiraSans-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 85B6FFF6F2E0407BAE1942AE /* FiraSans-Bold.ttf */; };
 		477C5A286EE44B9086F439BD /* FiraSans-Thin.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E392963E001B46B1A4E726E2 /* FiraSans-Thin.ttf */; };
 		4B3E544E5C014751BBD9B59E /* FiraSans-BlackItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B90497C0798A4EEBB5079577 /* FiraSans-BlackItalic.ttf */; };
@@ -54,6 +55,8 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = Snapduo/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		17E32A7A3EA84E019D59D54D /* FiraSans-ExtraBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "FiraSans-ExtraBoldItalic.ttf"; path = "../src/assets/fonts/Fira_Sans/FiraSans-ExtraBoldItalic.ttf"; sourceTree = "<group>"; };
 		21CC32ECED024DB684FCA17E /* FiraSans-SemiBoldItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "FiraSans-SemiBoldItalic.ttf"; path = "../src/assets/fonts/Fira_Sans/FiraSans-SemiBoldItalic.ttf"; sourceTree = "<group>"; };
+		1F8B3D3D2E254C3DB1C2C3B0 /* AppIconManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppIconManager.h; path = Snapduo/AppIconManager.h; sourceTree = "<group>"; };
+		1F8B3D3E2E254C3DB1C2C3B0 /* AppIconManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppIconManager.m; path = Snapduo/AppIconManager.m; sourceTree = "<group>"; };
 		2336EA6B15354576A64CBD29 /* FiraSans-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "FiraSans-Medium.ttf"; path = "../src/assets/fonts/Fira_Sans/FiraSans-Medium.ttf"; sourceTree = "<group>"; };
 		26E89A5ADCCA43FCAC32D487 /* README.txt */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = README.txt; path = ../src/assets/fonts/Bitcount_Ink/README.txt; sourceTree = "<group>"; };
 		27792B0EFC6246C481C6E5E3 /* FiraSans-MediumItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "FiraSans-MediumItalic.ttf"; path = "../src/assets/fonts/Fira_Sans/FiraSans-MediumItalic.ttf"; sourceTree = "<group>"; };
@@ -104,6 +107,8 @@
 			children = (
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				1F8B3D3D2E254C3DB1C2C3B0 /* AppIconManager.h */,
+				1F8B3D3E2E254C3DB1C2C3B0 /* AppIconManager.m */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -374,6 +379,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1F8B3D3F2E254C3DB1C2C3B0 /* AppIconManager.m in Sources */,
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

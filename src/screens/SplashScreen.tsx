@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import { Text, StyleSheet, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -10,7 +10,10 @@ type RootStackParamList = {
   Onboarding: undefined;
 };
 
-type SplashScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+type SplashScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'Home'
+>;
 
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation<SplashScreenNavigationProp>();
@@ -51,10 +54,10 @@ const SplashScreen: React.FC = () => {
             opacity: fadeAnim,
             transform: [{ scale: scaleAnim }],
           },
-        ]}>
-        <Text style={styles.title}>Text to Slides</Text>
-        <Text style={styles.subtitle}>Creating beautiful slides from your text</Text>
-        </Animated.View>
+        ]}
+      >
+        <Text style={styles.title}>Snapduo</Text>
+      </Animated.View>
     </SafeAreaView>
   );
 };
@@ -72,13 +75,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 10,
     color: '#007AFF',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
   },
 });
 

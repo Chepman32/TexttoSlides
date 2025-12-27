@@ -719,27 +719,15 @@ const ComposerScreen: React.FC = () => {
       const uri = await captureCanvas();
       if (!uri) return;
 
-      // First save to gallery
-      await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
+      // Use Share API to show Instagram's modal with image
+      const result = await Share.share(
+        {
+          url: uri,
+        }
+      );
 
-      // Try to open Instagram
-      const instagramUrl =
-        'instagram://library?AssetPath=' + encodeURIComponent(uri);
-      const canOpen = await Linking.canOpenURL('instagram://');
-
-      if (canOpen) {
-        await Linking.openURL(instagramUrl);
+      if (result.action === Share.sharedAction) {
         FeedbackService.success();
-        Alert.alert(
-          'Photo Saved',
-          'Your photo has been saved. Select it from your gallery in Instagram.',
-        );
-      } else {
-        FeedbackService.success();
-        Alert.alert(
-          'Photo Saved',
-          'Photo saved to gallery. Open Instagram and select it from your gallery.',
-        );
       }
     } catch (error: any) {
       console.error('Instagram share error:', error);
@@ -754,25 +742,19 @@ const ComposerScreen: React.FC = () => {
       const uri = await captureCanvas();
       if (!uri) return;
 
-      // First save to gallery
-      await CameraRoll.saveAsset(uri, { type: 'photo', album: 'Before-After' });
+      // Use Share API to show X's modal with image and text
+      const result = await Share.share(
+        {
+          url: uri,
+          message: 'Made in Snapduo app',
+        },
+        {
+          subject: 'Made in Snapduo app',
+        }
+      );
 
-      // Try to open X/Twitter
-      const canOpen = await Linking.canOpenURL('twitter://');
-
-      if (canOpen) {
-        await Linking.openURL('twitter://post');
+      if (result.action === Share.sharedAction) {
         FeedbackService.success();
-        Alert.alert(
-          'Photo Saved',
-          'Your photo has been saved. Attach it from your gallery in X.',
-        );
-      } else {
-        FeedbackService.success();
-        Alert.alert(
-          'Photo Saved',
-          'Photo saved to gallery. Open X and attach it from your gallery.',
-        );
       }
     } catch (error: any) {
       console.error('X share error:', error);

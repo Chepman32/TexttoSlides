@@ -21,37 +21,192 @@ import StorageService from '../services/StorageService';
 
 const { AppIconManager } = NativeModules;
 
-const languages: { code: Language; name: string; nativeName: string }[] = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'zh', name: 'Chinese', nativeName: '中文' },
-  { code: 'ja', name: 'Japanese', nativeName: '日本語' },
-  { code: 'ko', name: 'Korean', nativeName: '한국어' },
-  { code: 'de', name: 'German', nativeName: 'Deutsch' },
-  { code: 'fr', name: 'French', nativeName: 'Français' },
-  { code: 'es', name: 'Spanish', nativeName: 'Español' },
-  { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
-  { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
-  { code: 'ru', name: 'Russian', nativeName: 'Русский' },
-  { code: 'it', name: 'Italian', nativeName: 'Italiano' },
-  { code: 'nl', name: 'Dutch', nativeName: 'Nederlands' },
-  { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
-  { code: 'th', name: 'Thai', nativeName: 'ไทย' },
-  { code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt' },
-  { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
-  { code: 'pl', name: 'Polish', nativeName: 'Polski' },
-  { code: 'uk', name: 'Ukrainian', nativeName: 'Українська' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
-  { code: 'he', name: 'Hebrew', nativeName: 'עברית' },
-  { code: 'sv', name: 'Swedish', nativeName: 'Svenska' },
-  { code: 'no', name: 'Norwegian', nativeName: 'Norsk' },
-  { code: 'da', name: 'Danish', nativeName: 'Dansk' },
-  { code: 'fi', name: 'Finnish', nativeName: 'Suomi' },
-  { code: 'cs', name: 'Czech', nativeName: 'Čeština' },
-  { code: 'hu', name: 'Hungarian', nativeName: 'Magyar' },
-  { code: 'ro', name: 'Romanian', nativeName: 'Română' },
-  { code: 'el', name: 'Greek', nativeName: 'Ελληνικά' },
-  { code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu' },
-  { code: 'fil', name: 'Filipino', nativeName: 'Filipino' },
+const languages: {
+  code: Language;
+  name: string;
+  nativeName: string;
+  flag: any;
+}[] = [
+  {
+    code: 'en',
+    name: 'English',
+    nativeName: 'English',
+    flag: require('../assets/icons/flags/en.png'),
+  },
+  {
+    code: 'zh',
+    name: 'Chinese',
+    nativeName: '中文',
+    flag: require('../assets/icons/flags/zh.png'),
+  },
+  {
+    code: 'ja',
+    name: 'Japanese',
+    nativeName: '日本語',
+    flag: require('../assets/icons/flags/ja.png'),
+  },
+  {
+    code: 'ko',
+    name: 'Korean',
+    nativeName: '한국어',
+    flag: require('../assets/icons/flags/ko.png'),
+  },
+  {
+    code: 'de',
+    name: 'German',
+    nativeName: 'Deutsch',
+    flag: require('../assets/icons/flags/de.png'),
+  },
+  {
+    code: 'fr',
+    name: 'French',
+    nativeName: 'Français',
+    flag: require('../assets/icons/flags/fr.png'),
+  },
+  {
+    code: 'es',
+    name: 'Spanish',
+    nativeName: 'Español',
+    flag: require('../assets/icons/flags/es.png'),
+  },
+  {
+    code: 'pt',
+    name: 'Portuguese',
+    nativeName: 'Português',
+    flag: require('../assets/icons/flags/pt-BR.png'),
+  },
+  {
+    code: 'ar',
+    name: 'Arabic',
+    nativeName: 'العربية',
+    flag: require('../assets/icons/flags/ar.png'),
+  },
+  {
+    code: 'ru',
+    name: 'Russian',
+    nativeName: 'Русский',
+    flag: require('../assets/icons/flags/ru.png'),
+  },
+  {
+    code: 'it',
+    name: 'Italian',
+    nativeName: 'Italiano',
+    flag: require('../assets/icons/flags/it.png'),
+  },
+  {
+    code: 'nl',
+    name: 'Dutch',
+    nativeName: 'Nederlands',
+    flag: require('../assets/icons/flags/nl.png'),
+  },
+  {
+    code: 'tr',
+    name: 'Turkish',
+    nativeName: 'Türkçe',
+    flag: require('../assets/icons/flags/tr.png'),
+  },
+  {
+    code: 'th',
+    name: 'Thai',
+    nativeName: 'ไทย',
+    flag: require('../assets/icons/flags/th.png'),
+  },
+  {
+    code: 'vi',
+    name: 'Vietnamese',
+    nativeName: 'Tiếng Việt',
+    flag: require('../assets/icons/flags/vi.png'),
+  },
+  {
+    code: 'id',
+    name: 'Indonesian',
+    nativeName: 'Bahasa Indonesia',
+    flag: require('../assets/icons/flags/id.png'),
+  },
+  {
+    code: 'pl',
+    name: 'Polish',
+    nativeName: 'Polski',
+    flag: require('../assets/icons/flags/pl.png'),
+  },
+  {
+    code: 'uk',
+    name: 'Ukrainian',
+    nativeName: 'Українська',
+    flag: require('../assets/icons/flags/uk.png'),
+  },
+  {
+    code: 'hi',
+    name: 'Hindi',
+    nativeName: 'हिन्दी',
+    flag: require('../assets/icons/flags/hi.png'),
+  },
+  {
+    code: 'he',
+    name: 'Hebrew',
+    nativeName: 'עברית',
+    flag: require('../assets/icons/flags/he.png'),
+  },
+  {
+    code: 'sv',
+    name: 'Swedish',
+    nativeName: 'Svenska',
+    flag: require('../assets/icons/flags/sv.png'),
+  },
+  {
+    code: 'no',
+    name: 'Norwegian',
+    nativeName: 'Norsk',
+    flag: require('../assets/icons/flags/no.png'),
+  },
+  {
+    code: 'da',
+    name: 'Danish',
+    nativeName: 'Dansk',
+    flag: require('../assets/icons/flags/da.png'),
+  },
+  {
+    code: 'fi',
+    name: 'Finnish',
+    nativeName: 'Suomi',
+    flag: require('../assets/icons/flags/fi.png'),
+  },
+  {
+    code: 'cs',
+    name: 'Czech',
+    nativeName: 'Čeština',
+    flag: require('../assets/icons/flags/cs.png'),
+  },
+  {
+    code: 'hu',
+    name: 'Hungarian',
+    nativeName: 'Magyar',
+    flag: require('../assets/icons/flags/hu.png'),
+  },
+  {
+    code: 'ro',
+    name: 'Romanian',
+    nativeName: 'Română',
+    flag: require('../assets/icons/flags/ro.png'),
+  },
+  {
+    code: 'el',
+    name: 'Greek',
+    nativeName: 'Ελληνικά',
+    flag: require('../assets/icons/flags/el.png'),
+  },
+  {
+    code: 'ms',
+    name: 'Malay',
+    nativeName: 'Bahasa Melayu',
+    flag: require('../assets/icons/flags/ms.png'),
+  },
+  {
+    code: 'fil',
+    name: 'Filipino',
+    nativeName: 'Filipino',
+    flag: require('../assets/icons/flags/fil.png'),
+  },
 ];
 
 const appIcons: { iconName: string | null; nameKey: string; source: any }[] = [
@@ -140,6 +295,9 @@ const SettingsScreen: React.FC = () => {
   const currentLanguageName =
     languages.find(l => l.code === currentLanguage)?.nativeName ||
     currentLanguage;
+  const currentLanguageFlag = languages.find(
+    l => l.code === currentLanguage,
+  )?.flag;
   const currentAppIcon =
     appIcons.find(icon => icon.iconName === preferences.appIcon) || appIcons[0];
 
@@ -209,14 +367,19 @@ const SettingsScreen: React.FC = () => {
             >
               {t('settings_language')}
             </Text>
-            <Text
-              style={[
-                styles.settingValue,
-                { color: themeDefinition.colors.text },
-              ]}
-            >
-              {currentLanguageName} ›
-            </Text>
+            <View style={styles.iconPreview}>
+              {currentLanguageFlag && (
+                <Image source={currentLanguageFlag} style={styles.flagIcon} />
+              )}
+              <Text
+                style={[
+                  styles.settingValue,
+                  { color: themeDefinition.colors.text },
+                ]}
+              >
+                {currentLanguageName} ›
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -345,23 +508,26 @@ const SettingsScreen: React.FC = () => {
                   ]}
                   onPress={() => handleLanguageChange(item.code)}
                 >
-                  <View>
-                    <Text
-                      style={[
-                        styles.languageName,
-                        { color: themeDefinition.colors.text },
-                      ]}
-                    >
-                      {item.nativeName}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.languageSubtitle,
-                        { color: themeDefinition.colors.text + '99' },
-                      ]}
-                    >
-                      {item.name}
-                    </Text>
+                  <View style={styles.languageRow}>
+                    <Image source={item.flag} style={styles.flagIcon} />
+                    <View>
+                      <Text
+                        style={[
+                          styles.languageName,
+                          { color: themeDefinition.colors.text },
+                        ]}
+                      >
+                        {item.nativeName}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.languageSubtitle,
+                          { color: themeDefinition.colors.text + '99' },
+                        ]}
+                      >
+                        {item.name}
+                      </Text>
+                    </View>
                   </View>
                   {currentLanguage === item.code && (
                     <Text
@@ -586,6 +752,16 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
+  },
+  languageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  flagIcon: {
+    width: 28,
+    height: 20,
+    marginRight: 12,
+    borderRadius: 2,
   },
   selectedLanguage: {
     backgroundColor: 'rgba(0, 122, 255, 0.1)',

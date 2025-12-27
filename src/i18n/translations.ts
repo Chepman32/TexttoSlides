@@ -203,6 +203,51 @@ export const translations = {
       long_shadow: 'Long Shadow',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Skip',
+      get_started: 'Get Started',
+
+      // Project Actions
+      delete: 'Delete',
+      delete_project: 'Delete Project',
+      delete_project_confirm: 'Are you sure you want to delete this project?',
+      open: 'Open',
+      duplicate: 'Duplicate',
+
+      // Image Selection
+      image_selection_title: 'Select Images',
+      image_selection_error_title: 'Error',
+      image_selection_error_select_failed:
+        'Failed to select image. Please try again.',
+      image_selection_error: 'Please select images for your slides',
+      image_selection_select_image: 'Select Image',
+      image_selection_plain_background: 'Plain Background',
+      image_selection_no_image: 'No image selected',
+      image_selection_continue: 'Continue to Editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Use a simple background',
+      tip_simple_background_desc:
+        'Clean backgrounds keep attention on the subject, not the surroundings.',
+      tip_match_framing_title: 'Match your framing',
+      tip_match_framing_desc:
+        'Keep the subject in the same position (center/thirds) for a cleaner comparison.',
+      tip_horizons_straight_title: 'Keep horizons straight',
+      tip_horizons_straight_desc:
+        'A level horizon instantly makes the comparison look more professional.',
+      tip_remove_clutter_title: 'Remove visual clutter',
+      tip_remove_clutter_desc:
+        'Hide distractions (cables, bottles, random objects) before taking "before".',
+      tip_soft_light_title: 'Prefer soft light',
+      tip_soft_light_desc:
+        'Overcast daylight or diffused window light reduces harsh shadows.',
+      tip_crop_equally_title: 'Crop equally on both sides',
+      tip_crop_equally_desc:
+        'Use Slider Reveal to crop equally. If you crop one image, mirror the crop on the other for fairness.',
+      tip_text_minimal_title: 'Keep text minimal',
+      tip_text_minimal_desc:
+        'Short labels work best; avoid tiny captions that get lost on small screens.',
     },
   },
 
@@ -386,6 +431,47 @@ export const translations = {
       long_shadow: '长阴影',
       bloom: '光晕',
       letterpress: '凸版印刷',
+
+      // Onboarding Actions
+      skip: '跳过',
+      get_started: '开始使用',
+
+      // Project Actions
+      delete: '删除',
+      delete_project: '删除项目',
+      delete_project_confirm: '确定要删除此项目吗？',
+      open: '打开',
+      duplicate: '复制',
+
+      // Image Selection
+      image_selection_title: '选择图片',
+      image_selection_error_title: '错误',
+      image_selection_error_select_failed: '选择图片失败，请重试。',
+      image_selection_error: '请为幻灯片选择图片',
+      image_selection_select_image: '选择图片',
+      image_selection_plain_background: '纯色背景',
+      image_selection_no_image: '未选择图片',
+      image_selection_continue: '继续编辑',
+
+      // Pro Tips
+      tip_simple_background_title: '使用简洁背景',
+      tip_simple_background_desc:
+        '干净的背景让注意力集中在主体上，而不是周围环境。',
+      tip_match_framing_title: '保持构图一致',
+      tip_match_framing_desc:
+        '让主体保持在相同位置（居中/三分法），使对比更清晰。',
+      tip_horizons_straight_title: '保持水平线平直',
+      tip_horizons_straight_desc: '水平的地平线能让对比图看起来更专业。',
+      tip_remove_clutter_title: '移除视觉杂乱',
+      tip_remove_clutter_desc:
+        '拍摄"之前"照片前，隐藏干扰物（电线、瓶子、杂物）。',
+      tip_soft_light_title: '使用柔和光线',
+      tip_soft_light_desc: '阴天的自然光或漫射的窗户光能减少刺眼的阴影。',
+      tip_crop_equally_title: '两边裁剪一致',
+      tip_crop_equally_desc:
+        '使用滑动展示时裁剪要一致。如果裁剪一张图片，另一张也要镜像裁剪。',
+      tip_text_minimal_title: '文字保持简洁',
+      tip_text_minimal_desc: '简短的标签效果最好；避免在小屏幕上看不清的小字。',
     },
   },
 
@@ -570,6 +656,51 @@ export const translations = {
       long_shadow: 'ロングシャドウ',
       bloom: 'ブルーム',
       letterpress: 'レタープレス',
+
+      // Onboarding Actions
+      skip: 'スキップ',
+      get_started: '始める',
+
+      // Project Actions
+      delete: '削除',
+      delete_project: 'プロジェクトを削除',
+      delete_project_confirm: 'このプロジェクトを削除してもよろしいですか？',
+      open: '開く',
+      duplicate: '複製',
+
+      // Image Selection
+      image_selection_title: '画像を選択',
+      image_selection_error_title: 'エラー',
+      image_selection_error_select_failed:
+        '画像の選択に失敗しました。もう一度お試しください。',
+      image_selection_error: 'スライド用の画像を選択してください',
+      image_selection_select_image: '画像を選択',
+      image_selection_plain_background: 'プレーン背景',
+      image_selection_no_image: '画像が選択されていません',
+      image_selection_continue: 'エディターに進む',
+
+      // Pro Tips
+      tip_simple_background_title: 'シンプルな背景を使う',
+      tip_simple_background_desc:
+        'きれいな背景は、周囲ではなく被写体に注目を集めます。',
+      tip_match_framing_title: 'フレーミングを合わせる',
+      tip_match_framing_desc:
+        '被写体を同じ位置（中央/三分割）に保つと、比較がきれいになります。',
+      tip_horizons_straight_title: '水平線をまっすぐに',
+      tip_horizons_straight_desc:
+        '水平な地平線は、比較を一瞬でプロフェッショナルに見せます。',
+      tip_remove_clutter_title: '視覚的な雑然さを取り除く',
+      tip_remove_clutter_desc:
+        '「ビフォー」を撮る前に、気が散るもの（ケーブル、ボトル、雑物）を隠しましょう。',
+      tip_soft_light_title: '柔らかい光を好む',
+      tip_soft_light_desc:
+        '曇りの日光や拡散した窓の光は、きつい影を減らします。',
+      tip_crop_equally_title: '両側を均等にトリミング',
+      tip_crop_equally_desc:
+        'スライダーリビールで均等にトリミング。一方をトリミングしたら、もう一方も同様に。',
+      tip_text_minimal_title: 'テキストは最小限に',
+      tip_text_minimal_desc:
+        '短いラベルが最適。小さな画面で見えなくなる小さなキャプションは避けましょう。',
     },
   },
 
@@ -754,6 +885,51 @@ export const translations = {
       long_shadow: '긴 그림자',
       bloom: '블룸',
       letterpress: '레터프레스',
+
+      // Onboarding Actions
+      skip: '건너뛰기',
+      get_started: '시작하기',
+
+      // Project Actions
+      delete: '삭제',
+      delete_project: '프로젝트 삭제',
+      delete_project_confirm: '이 프로젝트를 삭제하시겠습니까?',
+      open: '열기',
+      duplicate: '복제',
+
+      // Image Selection
+      image_selection_title: '이미지 선택',
+      image_selection_error_title: '오류',
+      image_selection_error_select_failed:
+        '이미지 선택에 실패했습니다. 다시 시도해주세요.',
+      image_selection_error: '슬라이드에 사용할 이미지를 선택해주세요',
+      image_selection_select_image: '이미지 선택',
+      image_selection_plain_background: '단색 배경',
+      image_selection_no_image: '선택된 이미지 없음',
+      image_selection_continue: '편집기로 이동',
+
+      // Pro Tips
+      tip_simple_background_title: '심플한 배경 사용',
+      tip_simple_background_desc:
+        '깔끔한 배경은 주변이 아닌 피사체에 집중하게 합니다.',
+      tip_match_framing_title: '프레이밍 맞추기',
+      tip_match_framing_desc:
+        '피사체를 같은 위치(중앙/삼분할)에 유지하면 비교가 깔끔해집니다.',
+      tip_horizons_straight_title: '수평선 유지',
+      tip_horizons_straight_desc:
+        '수평인 지평선은 비교를 즉시 전문적으로 보이게 합니다.',
+      tip_remove_clutter_title: '시각적 잡동사니 제거',
+      tip_remove_clutter_desc:
+        '"이전" 촬영 전에 방해 요소(케이블, 병, 잡동사니)를 숨기세요.',
+      tip_soft_light_title: '부드러운 조명 선호',
+      tip_soft_light_desc:
+        '흐린 날 햇빛이나 확산된 창문 빛은 거친 그림자를 줄입니다.',
+      tip_crop_equally_title: '양쪽 동일하게 자르기',
+      tip_crop_equally_desc:
+        '슬라이더 리빌로 동일하게 자르세요. 한 이미지를 자르면 다른 쪽도 동일하게.',
+      tip_text_minimal_title: '텍스트는 최소한으로',
+      tip_text_minimal_desc:
+        '짧은 라벨이 가장 좋습니다. 작은 화면에서 보이지 않는 작은 캡션은 피하세요.',
     },
   },
 
@@ -941,6 +1117,51 @@ export const translations = {
       long_shadow: 'Langer Schatten',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Überspringen',
+      get_started: "Los geht's",
+
+      // Project Actions
+      delete: 'Löschen',
+      delete_project: 'Projekt löschen',
+      delete_project_confirm: 'Möchten Sie dieses Projekt wirklich löschen?',
+      open: 'Öffnen',
+      duplicate: 'Duplizieren',
+
+      // Image Selection
+      image_selection_title: 'Bilder auswählen',
+      image_selection_error_title: 'Fehler',
+      image_selection_error_select_failed:
+        'Bildauswahl fehlgeschlagen. Bitte erneut versuchen.',
+      image_selection_error: 'Bitte wählen Sie Bilder für Ihre Folien aus',
+      image_selection_select_image: 'Bild auswählen',
+      image_selection_plain_background: 'Einfarbiger Hintergrund',
+      image_selection_no_image: 'Kein Bild ausgewählt',
+      image_selection_continue: 'Weiter zum Editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Einfachen Hintergrund verwenden',
+      tip_simple_background_desc:
+        'Saubere Hintergründe lenken die Aufmerksamkeit auf das Motiv, nicht auf die Umgebung.',
+      tip_match_framing_title: 'Bildausschnitt angleichen',
+      tip_match_framing_desc:
+        'Halte das Motiv an der gleichen Position (Mitte/Drittel) für einen saubereren Vergleich.',
+      tip_horizons_straight_title: 'Horizont gerade halten',
+      tip_horizons_straight_desc:
+        'Ein gerader Horizont lässt den Vergleich sofort professioneller wirken.',
+      tip_remove_clutter_title: 'Visuelles Durcheinander entfernen',
+      tip_remove_clutter_desc:
+        'Verstecke Ablenkungen (Kabel, Flaschen, Gegenstände) vor dem "Vorher"-Foto.',
+      tip_soft_light_title: 'Weiches Licht bevorzugen',
+      tip_soft_light_desc:
+        'Bewölktes Tageslicht oder diffuses Fensterlicht reduziert harte Schatten.',
+      tip_crop_equally_title: 'Beide Seiten gleich zuschneiden',
+      tip_crop_equally_desc:
+        'Verwende Slider Reveal zum gleichmäßigen Zuschneiden. Schneide ein Bild zu, spiegele den Schnitt am anderen.',
+      tip_text_minimal_title: 'Text minimal halten',
+      tip_text_minimal_desc:
+        'Kurze Beschriftungen funktionieren am besten; vermeide winzige Bildunterschriften.',
     },
   },
 
@@ -1130,6 +1351,52 @@ export const translations = {
       long_shadow: 'Ombre longue',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Passer',
+      get_started: 'Commencer',
+
+      // Project Actions
+      delete: 'Supprimer',
+      delete_project: 'Supprimer le projet',
+      delete_project_confirm: 'Êtes-vous sûr de vouloir supprimer ce projet ?',
+      open: 'Ouvrir',
+      duplicate: 'Dupliquer',
+
+      // Image Selection
+      image_selection_title: 'Sélectionner des images',
+      image_selection_error_title: 'Erreur',
+      image_selection_error_select_failed:
+        'Échec de la sélection. Veuillez réessayer.',
+      image_selection_error:
+        'Veuillez sélectionner des images pour vos diapositives',
+      image_selection_select_image: 'Sélectionner une image',
+      image_selection_plain_background: 'Arrière-plan uni',
+      image_selection_no_image: 'Aucune image sélectionnée',
+      image_selection_continue: "Continuer vers l'éditeur",
+
+      // Pro Tips
+      tip_simple_background_title: 'Utilisez un arrière-plan simple',
+      tip_simple_background_desc:
+        "Les arrière-plans épurés gardent l'attention sur le sujet, pas sur l'environnement.",
+      tip_match_framing_title: 'Alignez votre cadrage',
+      tip_match_framing_desc:
+        'Gardez le sujet à la même position (centre/tiers) pour une comparaison plus nette.',
+      tip_horizons_straight_title: "Gardez l'horizon droit",
+      tip_horizons_straight_desc:
+        'Un horizon de niveau rend instantanément la comparaison plus professionnelle.',
+      tip_remove_clutter_title: 'Supprimez le désordre visuel',
+      tip_remove_clutter_desc:
+        'Cachez les distractions (câbles, bouteilles, objets) avant de prendre l\'"avant".',
+      tip_soft_light_title: 'Préférez la lumière douce',
+      tip_soft_light_desc:
+        'La lumière du jour nuageuse ou la lumière diffuse des fenêtres réduit les ombres dures.',
+      tip_crop_equally_title: 'Recadrez également des deux côtés',
+      tip_crop_equally_desc:
+        "Utilisez Slider Reveal pour recadrer également. Si vous recadrez une image, faites de même pour l'autre.",
+      tip_text_minimal_title: 'Gardez le texte minimal',
+      tip_text_minimal_desc:
+        'Les étiquettes courtes fonctionnent mieux ; évitez les petites légendes illisibles sur petit écran.',
     },
   },
 
@@ -1317,6 +1584,53 @@ export const translations = {
       long_shadow: 'Sombra larga',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Omitir',
+      get_started: 'Empezar',
+
+      // Project Actions
+      delete: 'Eliminar',
+      delete_project: 'Eliminar proyecto',
+      delete_project_confirm:
+        '¿Estás seguro de que quieres eliminar este proyecto?',
+      open: 'Abrir',
+      duplicate: 'Duplicar',
+
+      // Image Selection
+      image_selection_title: 'Seleccionar imágenes',
+      image_selection_error_title: 'Error',
+      image_selection_error_select_failed:
+        'Error al seleccionar imagen. Inténtalo de nuevo.',
+      image_selection_error:
+        'Por favor selecciona imágenes para tus diapositivas',
+      image_selection_select_image: 'Seleccionar imagen',
+      image_selection_plain_background: 'Fondo liso',
+      image_selection_no_image: 'Ninguna imagen seleccionada',
+      image_selection_continue: 'Continuar al editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Usa un fondo simple',
+      tip_simple_background_desc:
+        'Los fondos limpios mantienen la atención en el sujeto, no en el entorno.',
+      tip_match_framing_title: 'Iguala tu encuadre',
+      tip_match_framing_desc:
+        'Mantén el sujeto en la misma posición (centro/tercios) para una comparación más limpia.',
+      tip_horizons_straight_title: 'Mantén el horizonte recto',
+      tip_horizons_straight_desc:
+        'Un horizonte nivelado hace que la comparación se vea más profesional al instante.',
+      tip_remove_clutter_title: 'Elimina el desorden visual',
+      tip_remove_clutter_desc:
+        'Oculta distracciones (cables, botellas, objetos) antes de tomar el "antes".',
+      tip_soft_light_title: 'Prefiere luz suave',
+      tip_soft_light_desc:
+        'La luz del día nublado o la luz difusa de ventana reduce las sombras duras.',
+      tip_crop_equally_title: 'Recorta igual en ambos lados',
+      tip_crop_equally_desc:
+        'Usa Slider Reveal para recortar igual. Si recortas una imagen, refleja el recorte en la otra.',
+      tip_text_minimal_title: 'Mantén el texto mínimo',
+      tip_text_minimal_desc:
+        'Las etiquetas cortas funcionan mejor; evita subtítulos pequeños que se pierden en pantallas pequeñas.',
     },
   },
 
@@ -1503,6 +1817,51 @@ export const translations = {
       long_shadow: 'Sombra longa',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Pular',
+      get_started: 'Começar',
+
+      // Project Actions
+      delete: 'Excluir',
+      delete_project: 'Excluir projeto',
+      delete_project_confirm: 'Tem certeza de que deseja excluir este projeto?',
+      open: 'Abrir',
+      duplicate: 'Duplicar',
+
+      // Image Selection
+      image_selection_title: 'Selecionar imagens',
+      image_selection_error_title: 'Erro',
+      image_selection_error_select_failed:
+        'Falha ao selecionar imagem. Tente novamente.',
+      image_selection_error: 'Por favor, selecione imagens para seus slides',
+      image_selection_select_image: 'Selecionar imagem',
+      image_selection_plain_background: 'Fundo liso',
+      image_selection_no_image: 'Nenhuma imagem selecionada',
+      image_selection_continue: 'Continuar para o editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Use um fundo simples',
+      tip_simple_background_desc:
+        'Fundos limpos mantêm a atenção no assunto, não no ambiente.',
+      tip_match_framing_title: 'Combine seu enquadramento',
+      tip_match_framing_desc:
+        'Mantenha o assunto na mesma posição (centro/terços) para uma comparação mais limpa.',
+      tip_horizons_straight_title: 'Mantenha o horizonte reto',
+      tip_horizons_straight_desc:
+        'Um horizonte nivelado faz a comparação parecer mais profissional instantaneamente.',
+      tip_remove_clutter_title: 'Remova a desordem visual',
+      tip_remove_clutter_desc:
+        'Esconda distrações (cabos, garrafas, objetos) antes de tirar o "antes".',
+      tip_soft_light_title: 'Prefira luz suave',
+      tip_soft_light_desc:
+        'Luz do dia nublado ou luz difusa de janela reduz sombras duras.',
+      tip_crop_equally_title: 'Corte igualmente dos dois lados',
+      tip_crop_equally_desc:
+        'Use Slider Reveal para cortar igualmente. Se cortar uma imagem, espelhe o corte na outra.',
+      tip_text_minimal_title: 'Mantenha o texto mínimo',
+      tip_text_minimal_desc:
+        'Rótulos curtos funcionam melhor; evite legendas pequenas que se perdem em telas pequenas.',
     },
   },
 
@@ -1686,6 +2045,51 @@ export const translations = {
       long_shadow: 'ظل طويل',
       bloom: 'توهج',
       letterpress: 'طباعة بارزة',
+
+      // Onboarding Actions
+      skip: 'تخطي',
+      get_started: 'ابدأ',
+
+      // Project Actions
+      delete: 'حذف',
+      delete_project: 'حذف المشروع',
+      delete_project_confirm: 'هل أنت متأكد من حذف هذا المشروع؟',
+      open: 'فتح',
+      duplicate: 'نسخ',
+
+      // Image Selection
+      image_selection_title: 'اختر الصور',
+      image_selection_error_title: 'خطأ',
+      image_selection_error_select_failed:
+        'فشل اختيار الصورة. يرجى المحاولة مرة أخرى.',
+      image_selection_error: 'يرجى اختيار صور للشرائح',
+      image_selection_select_image: 'اختر صورة',
+      image_selection_plain_background: 'خلفية بسيطة',
+      image_selection_no_image: 'لم يتم اختيار صورة',
+      image_selection_continue: 'المتابعة إلى المحرر',
+
+      // Pro Tips
+      tip_simple_background_title: 'استخدم خلفية بسيطة',
+      tip_simple_background_desc:
+        'الخلفيات النظيفة تحافظ على التركيز على الموضوع، وليس المحيط.',
+      tip_match_framing_title: 'طابق إطارك',
+      tip_match_framing_desc:
+        'حافظ على الموضوع في نفس الموقع (المركز/الأثلاث) لمقارنة أنظف.',
+      tip_horizons_straight_title: 'حافظ على الأفق مستقيماً',
+      tip_horizons_straight_desc:
+        'الأفق المستوي يجعل المقارنة تبدو احترافية فوراً.',
+      tip_remove_clutter_title: 'أزل الفوضى البصرية',
+      tip_remove_clutter_desc:
+        'أخفِ المشتتات (الكابلات، الزجاجات، الأشياء) قبل التقاط "قبل".',
+      tip_soft_light_title: 'فضّل الإضاءة الناعمة',
+      tip_soft_light_desc:
+        'ضوء النهار الغائم أو ضوء النافذة المنتشر يقلل الظلال القاسية.',
+      tip_crop_equally_title: 'اقتص بالتساوي من الجانبين',
+      tip_crop_equally_desc:
+        'استخدم Slider Reveal للقص بالتساوي. إذا قصصت صورة، اعكس القص على الأخرى.',
+      tip_text_minimal_title: 'حافظ على النص في حده الأدنى',
+      tip_text_minimal_desc:
+        'التسميات القصيرة تعمل بشكل أفضل؛ تجنب التعليقات الصغيرة التي تضيع على الشاشات الصغيرة.',
     },
   },
 
@@ -1872,6 +2276,51 @@ export const translations = {
       long_shadow: 'Длинная тень',
       bloom: 'Свечение',
       letterpress: 'Леттерпресс',
+
+      // Onboarding Actions
+      skip: 'Пропустить',
+      get_started: 'Начать',
+
+      // Project Actions
+      delete: 'Удалить',
+      delete_project: 'Удалить проект',
+      delete_project_confirm: 'Вы уверены, что хотите удалить этот проект?',
+      open: 'Открыть',
+      duplicate: 'Дублировать',
+
+      // Image Selection
+      image_selection_title: 'Выбрать изображения',
+      image_selection_error_title: 'Ошибка',
+      image_selection_error_select_failed:
+        'Не удалось выбрать изображение. Попробуйте снова.',
+      image_selection_error: 'Пожалуйста, выберите изображения для слайдов',
+      image_selection_select_image: 'Выбрать изображение',
+      image_selection_plain_background: 'Однотонный фон',
+      image_selection_no_image: 'Изображение не выбрано',
+      image_selection_continue: 'Перейти в редактор',
+
+      // Pro Tips
+      tip_simple_background_title: 'Используйте простой фон',
+      tip_simple_background_desc:
+        'Чистый фон удерживает внимание на объекте, а не на окружении.',
+      tip_match_framing_title: 'Совместите кадрирование',
+      tip_match_framing_desc:
+        'Держите объект в одном положении (центр/трети) для более чистого сравнения.',
+      tip_horizons_straight_title: 'Держите горизонт ровным',
+      tip_horizons_straight_desc:
+        'Ровный горизонт мгновенно делает сравнение более профессиональным.',
+      tip_remove_clutter_title: 'Уберите визуальный беспорядок',
+      tip_remove_clutter_desc:
+        'Спрячьте отвлекающие предметы (кабели, бутылки, вещи) перед съёмкой "до".',
+      tip_soft_light_title: 'Предпочитайте мягкий свет',
+      tip_soft_light_desc:
+        'Пасмурный дневной свет или рассеянный свет из окна уменьшает резкие тени.',
+      tip_crop_equally_title: 'Обрезайте одинаково с обеих сторон',
+      tip_crop_equally_desc:
+        'Используйте Slider Reveal для равномерной обрезки. Обрезали одно изображение — отзеркальте на другом.',
+      tip_text_minimal_title: 'Минимум текста',
+      tip_text_minimal_desc:
+        'Короткие подписи работают лучше; избегайте мелких надписей, которые теряются на маленьких экранах.',
     },
   },
 
@@ -2057,6 +2506,51 @@ export const translations = {
       long_shadow: 'Ombra lunga',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Salta',
+      get_started: 'Inizia',
+
+      // Project Actions
+      delete: 'Elimina',
+      delete_project: 'Elimina progetto',
+      delete_project_confirm: 'Sei sicuro di voler eliminare questo progetto?',
+      open: 'Apri',
+      duplicate: 'Duplica',
+
+      // Image Selection
+      image_selection_title: 'Seleziona immagini',
+      image_selection_error_title: 'Errore',
+      image_selection_error_select_failed:
+        'Selezione immagine fallita. Riprova.',
+      image_selection_error: 'Seleziona le immagini per le tue diapositive',
+      image_selection_select_image: 'Seleziona immagine',
+      image_selection_plain_background: 'Sfondo semplice',
+      image_selection_no_image: 'Nessuna immagine selezionata',
+      image_selection_continue: "Continua all'editor",
+
+      // Pro Tips
+      tip_simple_background_title: 'Usa uno sfondo semplice',
+      tip_simple_background_desc:
+        "Gli sfondi puliti mantengono l'attenzione sul soggetto, non sull'ambiente.",
+      tip_match_framing_title: "Allinea l'inquadratura",
+      tip_match_framing_desc:
+        'Mantieni il soggetto nella stessa posizione (centro/terzi) per un confronto più pulito.',
+      tip_horizons_straight_title: "Mantieni l'orizzonte dritto",
+      tip_horizons_straight_desc:
+        'Un orizzonte livellato rende istantaneamente il confronto più professionale.',
+      tip_remove_clutter_title: 'Rimuovi il disordine visivo',
+      tip_remove_clutter_desc:
+        'Nascondi le distrazioni (cavi, bottiglie, oggetti) prima di scattare il "prima".',
+      tip_soft_light_title: 'Preferisci la luce morbida',
+      tip_soft_light_desc:
+        'La luce del giorno nuvoloso o la luce diffusa dalla finestra riduce le ombre dure.',
+      tip_crop_equally_title: 'Ritaglia ugualmente su entrambi i lati',
+      tip_crop_equally_desc:
+        "Usa Slider Reveal per ritagliare ugualmente. Se ritagli un'immagine, specchia il ritaglio sull'altra.",
+      tip_text_minimal_title: 'Mantieni il testo minimo',
+      tip_text_minimal_desc:
+        'Le etichette corte funzionano meglio; evita didascalie minuscole che si perdono su schermi piccoli.',
     },
   },
 
@@ -2242,6 +2736,52 @@ export const translations = {
       long_shadow: 'Lange schaduw',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Overslaan',
+      get_started: 'Aan de slag',
+
+      // Project Actions
+      delete: 'Verwijderen',
+      delete_project: 'Project verwijderen',
+      delete_project_confirm:
+        'Weet je zeker dat je dit project wilt verwijderen?',
+      open: 'Openen',
+      duplicate: 'Dupliceren',
+
+      // Image Selection
+      image_selection_title: 'Afbeeldingen selecteren',
+      image_selection_error_title: 'Fout',
+      image_selection_error_select_failed:
+        'Afbeelding selecteren mislukt. Probeer opnieuw.',
+      image_selection_error: "Selecteer afbeeldingen voor je dia's",
+      image_selection_select_image: 'Afbeelding selecteren',
+      image_selection_plain_background: 'Effen achtergrond',
+      image_selection_no_image: 'Geen afbeelding geselecteerd',
+      image_selection_continue: 'Doorgaan naar editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Gebruik een eenvoudige achtergrond',
+      tip_simple_background_desc:
+        'Schone achtergronden houden de aandacht op het onderwerp, niet op de omgeving.',
+      tip_match_framing_title: 'Stem je kadrering af',
+      tip_match_framing_desc:
+        'Houd het onderwerp op dezelfde positie (midden/derden) voor een schonere vergelijking.',
+      tip_horizons_straight_title: 'Houd de horizon recht',
+      tip_horizons_straight_desc:
+        'Een waterpas horizon maakt de vergelijking direct professioneler.',
+      tip_remove_clutter_title: 'Verwijder visuele rommel',
+      tip_remove_clutter_desc:
+        'Verberg afleidingen (kabels, flessen, objecten) voordat je de "voor" maakt.',
+      tip_soft_light_title: 'Geef de voorkeur aan zacht licht',
+      tip_soft_light_desc:
+        'Bewolkt daglicht of diffuus raamlicht vermindert harde schaduwen.',
+      tip_crop_equally_title: 'Snijd beide kanten gelijk bij',
+      tip_crop_equally_desc:
+        'Gebruik Slider Reveal om gelijk bij te snijden. Snijd je één afbeelding bij, spiegel het op de andere.',
+      tip_text_minimal_title: 'Houd tekst minimaal',
+      tip_text_minimal_desc:
+        'Korte labels werken het beste; vermijd kleine bijschriften die verloren gaan op kleine schermen.',
     },
   },
 
@@ -2429,6 +2969,51 @@ export const translations = {
       long_shadow: 'Uzun gölge',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Atla',
+      get_started: 'Başla',
+
+      // Project Actions
+      delete: 'Sil',
+      delete_project: 'Projeyi sil',
+      delete_project_confirm: 'Bu projeyi silmek istediğinizden emin misiniz?',
+      open: 'Aç',
+      duplicate: 'Çoğalt',
+
+      // Image Selection
+      image_selection_title: 'Görsel seç',
+      image_selection_error_title: 'Hata',
+      image_selection_error_select_failed:
+        'Görsel seçilemedi. Lütfen tekrar deneyin.',
+      image_selection_error: 'Lütfen slaytlarınız için görsel seçin',
+      image_selection_select_image: 'Görsel seç',
+      image_selection_plain_background: 'Düz arka plan',
+      image_selection_no_image: 'Görsel seçilmedi',
+      image_selection_continue: 'Editöre devam et',
+
+      // Pro Tips
+      tip_simple_background_title: 'Basit bir arka plan kullanın',
+      tip_simple_background_desc:
+        'Temiz arka planlar dikkati çevreye değil, konuya odaklar.',
+      tip_match_framing_title: 'Kadrajınızı eşleştirin',
+      tip_match_framing_desc:
+        'Daha temiz bir karşılaştırma için konuyu aynı konumda (merkez/üçte bir) tutun.',
+      tip_horizons_straight_title: 'Ufku düz tutun',
+      tip_horizons_straight_desc:
+        'Düz bir ufuk çizgisi karşılaştırmayı anında daha profesyonel gösterir.',
+      tip_remove_clutter_title: 'Görsel karmaşayı kaldırın',
+      tip_remove_clutter_desc:
+        '"Önce" çekmeden önce dikkat dağıtıcıları (kablolar, şişeler, nesneler) gizleyin.',
+      tip_soft_light_title: 'Yumuşak ışığı tercih edin',
+      tip_soft_light_desc:
+        'Bulutlu gün ışığı veya dağınık pencere ışığı sert gölgeleri azaltır.',
+      tip_crop_equally_title: 'Her iki tarafı eşit kırpın',
+      tip_crop_equally_desc:
+        'Eşit kırpmak için Slider Reveal kullanın. Bir görüntüyü kırparsanız, diğerinde de aynısını yapın.',
+      tip_text_minimal_title: 'Metni minimum tutun',
+      tip_text_minimal_desc:
+        'Kısa etiketler en iyi sonucu verir; küçük ekranlarda kaybolan küçük altyazılardan kaçının.',
     },
   },
 
@@ -2614,6 +3199,51 @@ export const translations = {
       long_shadow: 'เงายาว',
       bloom: 'บลูม',
       letterpress: 'เลตเตอร์เพรส',
+
+      // Onboarding Actions
+      skip: 'ข้าม',
+      get_started: 'เริ่มต้น',
+
+      // Project Actions
+      delete: 'ลบ',
+      delete_project: 'ลบโปรเจกต์',
+      delete_project_confirm: 'คุณแน่ใจหรือไม่ว่าต้องการลบโปรเจกต์นี้?',
+      open: 'เปิด',
+      duplicate: 'ทำซ้ำ',
+
+      // Image Selection
+      image_selection_title: 'เลือกรูปภาพ',
+      image_selection_error_title: 'ข้อผิดพลาด',
+      image_selection_error_select_failed:
+        'เลือกรูปภาพไม่สำเร็จ กรุณาลองอีกครั้ง',
+      image_selection_error: 'กรุณาเลือกรูปภาพสำหรับสไลด์ของคุณ',
+      image_selection_select_image: 'เลือกรูปภาพ',
+      image_selection_plain_background: 'พื้นหลังสีเดียว',
+      image_selection_no_image: 'ยังไม่ได้เลือกรูปภาพ',
+      image_selection_continue: 'ไปยังตัวแก้ไข',
+
+      // Pro Tips
+      tip_simple_background_title: 'ใช้พื้นหลังเรียบง่าย',
+      tip_simple_background_desc:
+        'พื้นหลังที่สะอาดช่วยให้ความสนใจอยู่ที่ตัวแบบ ไม่ใช่สิ่งรอบข้าง',
+      tip_match_framing_title: 'จัดเฟรมให้ตรงกัน',
+      tip_match_framing_desc:
+        'วางตัวแบบในตำแหน่งเดียวกัน (กลาง/สามส่วน) เพื่อการเปรียบเทียบที่ชัดเจน',
+      tip_horizons_straight_title: 'รักษาเส้นขอบฟ้าให้ตรง',
+      tip_horizons_straight_desc:
+        'เส้นขอบฟ้าที่ระดับทำให้การเปรียบเทียบดูเป็นมืออาชีพทันที',
+      tip_remove_clutter_title: 'ลบความรกตา',
+      tip_remove_clutter_desc:
+        'ซ่อนสิ่งรบกวน (สายไฟ, ขวด, สิ่งของ) ก่อนถ่าย "ก่อน"',
+      tip_soft_light_title: 'เลือกแสงนุ่ม',
+      tip_soft_light_desc:
+        'แสงธรรมชาติวันครึ้มหรือแสงหน้าต่างกระจายช่วยลดเงาแข็ง',
+      tip_crop_equally_title: 'ครอปทั้งสองด้านเท่ากัน',
+      tip_crop_equally_desc:
+        'ใช้ Slider Reveal เพื่อครอปเท่ากัน ถ้าครอปภาพหนึ่ง ให้ทำเหมือนกันกับอีกภาพ',
+      tip_text_minimal_title: 'ใช้ข้อความน้อยที่สุด',
+      tip_text_minimal_desc:
+        'ป้ายสั้นๆ ดีที่สุด หลีกเลี่ยงคำบรรยายเล็กที่หายไปบนหน้าจอเล็ก',
     },
   },
 
@@ -2798,6 +3428,51 @@ export const translations = {
       long_shadow: 'Bóng dài',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Bỏ qua',
+      get_started: 'Bắt đầu',
+
+      // Project Actions
+      delete: 'Xóa',
+      delete_project: 'Xóa dự án',
+      delete_project_confirm: 'Bạn có chắc muốn xóa dự án này không?',
+      open: 'Mở',
+      duplicate: 'Nhân bản',
+
+      // Image Selection
+      image_selection_title: 'Chọn hình ảnh',
+      image_selection_error_title: 'Lỗi',
+      image_selection_error_select_failed:
+        'Không thể chọn hình ảnh. Vui lòng thử lại.',
+      image_selection_error: 'Vui lòng chọn hình ảnh cho các slide của bạn',
+      image_selection_select_image: 'Chọn hình ảnh',
+      image_selection_plain_background: 'Nền đơn sắc',
+      image_selection_no_image: 'Chưa chọn hình ảnh',
+      image_selection_continue: 'Tiếp tục đến trình chỉnh sửa',
+
+      // Pro Tips
+      tip_simple_background_title: 'Sử dụng nền đơn giản',
+      tip_simple_background_desc:
+        'Nền sạch giữ sự chú ý vào chủ thể, không phải môi trường xung quanh.',
+      tip_match_framing_title: 'Khớp khung hình',
+      tip_match_framing_desc:
+        'Giữ chủ thể ở cùng vị trí (giữa/phần ba) để so sánh rõ ràng hơn.',
+      tip_horizons_straight_title: 'Giữ đường chân trời thẳng',
+      tip_horizons_straight_desc:
+        'Đường chân trời cân bằng làm cho so sánh trông chuyên nghiệp ngay lập tức.',
+      tip_remove_clutter_title: 'Loại bỏ sự lộn xộn',
+      tip_remove_clutter_desc:
+        'Ẩn các yếu tố gây xao nhãng (dây cáp, chai lọ, đồ vật) trước khi chụp "trước".',
+      tip_soft_light_title: 'Ưu tiên ánh sáng mềm',
+      tip_soft_light_desc:
+        'Ánh sáng ban ngày u ám hoặc ánh sáng cửa sổ khuếch tán giảm bóng đổ cứng.',
+      tip_crop_equally_title: 'Cắt đều cả hai bên',
+      tip_crop_equally_desc:
+        'Sử dụng Slider Reveal để cắt đều. Nếu cắt một ảnh, hãy phản chiếu việc cắt trên ảnh kia.',
+      tip_text_minimal_title: 'Giữ văn bản tối thiểu',
+      tip_text_minimal_desc:
+        'Nhãn ngắn hoạt động tốt nhất; tránh chú thích nhỏ bị mất trên màn hình nhỏ.',
     },
   },
 
@@ -2986,6 +3661,51 @@ export const translations = {
       long_shadow: 'Bayangan panjang',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Lewati',
+      get_started: 'Mulai',
+
+      // Project Actions
+      delete: 'Hapus',
+      delete_project: 'Hapus proyek',
+      delete_project_confirm: 'Apakah Anda yakin ingin menghapus proyek ini?',
+      open: 'Buka',
+      duplicate: 'Duplikat',
+
+      // Image Selection
+      image_selection_title: 'Pilih gambar',
+      image_selection_error_title: 'Kesalahan',
+      image_selection_error_select_failed:
+        'Gagal memilih gambar. Silakan coba lagi.',
+      image_selection_error: 'Silakan pilih gambar untuk slide Anda',
+      image_selection_select_image: 'Pilih gambar',
+      image_selection_plain_background: 'Latar belakang polos',
+      image_selection_no_image: 'Tidak ada gambar dipilih',
+      image_selection_continue: 'Lanjutkan ke editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Gunakan latar belakang sederhana',
+      tip_simple_background_desc:
+        'Latar belakang bersih menjaga perhatian pada subjek, bukan lingkungan sekitar.',
+      tip_match_framing_title: 'Sesuaikan pembingkaian',
+      tip_match_framing_desc:
+        'Jaga subjek di posisi yang sama (tengah/sepertiga) untuk perbandingan yang lebih bersih.',
+      tip_horizons_straight_title: 'Jaga horizon tetap lurus',
+      tip_horizons_straight_desc:
+        'Horizon yang rata membuat perbandingan terlihat lebih profesional secara instan.',
+      tip_remove_clutter_title: 'Hapus kekacauan visual',
+      tip_remove_clutter_desc:
+        'Sembunyikan gangguan (kabel, botol, benda) sebelum mengambil "sebelum".',
+      tip_soft_light_title: 'Pilih cahaya lembut',
+      tip_soft_light_desc:
+        'Cahaya siang mendung atau cahaya jendela yang tersebar mengurangi bayangan keras.',
+      tip_crop_equally_title: 'Potong sama rata di kedua sisi',
+      tip_crop_equally_desc:
+        'Gunakan Slider Reveal untuk memotong sama rata. Jika memotong satu gambar, cerminkan pada yang lain.',
+      tip_text_minimal_title: 'Jaga teks minimal',
+      tip_text_minimal_desc:
+        'Label pendek paling efektif; hindari keterangan kecil yang hilang di layar kecil.',
     },
   },
 
@@ -3172,6 +3892,51 @@ export const translations = {
       long_shadow: 'Długi cień',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Pomiń',
+      get_started: 'Rozpocznij',
+
+      // Project Actions
+      delete: 'Usuń',
+      delete_project: 'Usuń projekt',
+      delete_project_confirm: 'Czy na pewno chcesz usunąć ten projekt?',
+      open: 'Otwórz',
+      duplicate: 'Duplikuj',
+
+      // Image Selection
+      image_selection_title: 'Wybierz obrazy',
+      image_selection_error_title: 'Błąd',
+      image_selection_error_select_failed:
+        'Nie udało się wybrać obrazu. Spróbuj ponownie.',
+      image_selection_error: 'Proszę wybrać obrazy do slajdów',
+      image_selection_select_image: 'Wybierz obraz',
+      image_selection_plain_background: 'Jednolite tło',
+      image_selection_no_image: 'Nie wybrano obrazu',
+      image_selection_continue: 'Przejdź do edytora',
+
+      // Pro Tips
+      tip_simple_background_title: 'Użyj prostego tła',
+      tip_simple_background_desc:
+        'Czyste tła utrzymują uwagę na temacie, nie na otoczeniu.',
+      tip_match_framing_title: 'Dopasuj kadrowanie',
+      tip_match_framing_desc:
+        'Utrzymuj temat w tej samej pozycji (środek/trzecie) dla czystszego porównania.',
+      tip_horizons_straight_title: 'Utrzymuj horyzont prosto',
+      tip_horizons_straight_desc:
+        'Poziomy horyzont natychmiast sprawia, że porównanie wygląda bardziej profesjonalnie.',
+      tip_remove_clutter_title: 'Usuń wizualny bałagan',
+      tip_remove_clutter_desc:
+        'Ukryj rozpraszacze (kable, butelki, przedmioty) przed zrobieniem "przed".',
+      tip_soft_light_title: 'Preferuj miękkie światło',
+      tip_soft_light_desc:
+        'Pochmurne światło dzienne lub rozproszone światło okienne redukuje ostre cienie.',
+      tip_crop_equally_title: 'Przycinaj równo po obu stronach',
+      tip_crop_equally_desc:
+        'Użyj Slider Reveal do równego przycinania. Jeśli przytniesz jeden obraz, odbij przycięcie na drugim.',
+      tip_text_minimal_title: 'Utrzymuj tekst minimalny',
+      tip_text_minimal_desc:
+        'Krótkie etykiety działają najlepiej; unikaj małych podpisów, które giną na małych ekranach.',
     },
   },
 
@@ -3357,6 +4122,51 @@ export const translations = {
       long_shadow: 'Довга тінь',
       bloom: 'Світіння',
       letterpress: 'Леттерпрес',
+
+      // Onboarding Actions
+      skip: 'Пропустити',
+      get_started: 'Почати',
+
+      // Project Actions
+      delete: 'Видалити',
+      delete_project: 'Видалити проект',
+      delete_project_confirm: 'Ви впевнені, що хочете видалити цей проект?',
+      open: 'Відкрити',
+      duplicate: 'Дублювати',
+
+      // Image Selection
+      image_selection_title: 'Вибрати зображення',
+      image_selection_error_title: 'Помилка',
+      image_selection_error_select_failed:
+        'Не вдалося вибрати зображення. Спробуйте ще раз.',
+      image_selection_error: 'Будь ласка, виберіть зображення для слайдів',
+      image_selection_select_image: 'Вибрати зображення',
+      image_selection_plain_background: 'Однотонний фон',
+      image_selection_no_image: 'Зображення не вибрано',
+      image_selection_continue: 'Перейти до редактора',
+
+      // Pro Tips
+      tip_simple_background_title: 'Використовуйте простий фон',
+      tip_simple_background_desc:
+        "Чистий фон утримує увагу на об'єкті, а не на оточенні.",
+      tip_match_framing_title: 'Узгодьте кадрування',
+      tip_match_framing_desc:
+        "Тримайте об'єкт у тій самій позиції (центр/третини) для чистішого порівняння.",
+      tip_horizons_straight_title: 'Тримайте горизонт рівним',
+      tip_horizons_straight_desc:
+        'Рівний горизонт миттєво робить порівняння більш професійним.',
+      tip_remove_clutter_title: 'Приберіть візуальний безлад',
+      tip_remove_clutter_desc:
+        'Сховайте відволікаючі предмети (кабелі, пляшки, речі) перед зйомкою "до".',
+      tip_soft_light_title: "Віддавайте перевагу м'якому світлу",
+      tip_soft_light_desc:
+        'Хмарне денне світло або розсіяне світло з вікна зменшує різкі тіні.',
+      tip_crop_equally_title: 'Обрізайте однаково з обох сторін',
+      tip_crop_equally_desc:
+        'Використовуйте Slider Reveal для рівномірного обрізання. Обрізали одне зображення — відзеркальте на іншому.',
+      tip_text_minimal_title: 'Мінімум тексту',
+      tip_text_minimal_desc:
+        'Короткі підписи працюють найкраще; уникайте дрібних написів, які губляться на малих екранах.',
     },
   },
 
@@ -3541,6 +4351,51 @@ export const translations = {
       long_shadow: 'लंबी छाया',
       bloom: 'ब्लूम',
       letterpress: 'लेटरप्रेस',
+
+      // Onboarding Actions
+      skip: 'छोड़ें',
+      get_started: 'शुरू करें',
+
+      // Project Actions
+      delete: 'हटाएं',
+      delete_project: 'प्रोजेक्ट हटाएं',
+      delete_project_confirm: 'क्या आप वाकई इस प्रोजेक्ट को हटाना चाहते हैं?',
+      open: 'खोलें',
+      duplicate: 'डुप्लिकेट',
+
+      // Image Selection
+      image_selection_title: 'छवियां चुनें',
+      image_selection_error_title: 'त्रुटि',
+      image_selection_error_select_failed:
+        'छवि चुनने में विफल। कृपया पुनः प्रयास करें।',
+      image_selection_error: 'कृपया अपनी स्लाइड के लिए छवियां चुनें',
+      image_selection_select_image: 'छवि चुनें',
+      image_selection_plain_background: 'सादा पृष्ठभूमि',
+      image_selection_no_image: 'कोई छवि नहीं चुनी गई',
+      image_selection_continue: 'संपादक पर जाएं',
+
+      // Pro Tips
+      tip_simple_background_title: 'सरल पृष्ठभूमि का उपयोग करें',
+      tip_simple_background_desc:
+        'साफ पृष्ठभूमि ध्यान को विषय पर रखती है, आसपास पर नहीं।',
+      tip_match_framing_title: 'फ्रेमिंग मिलाएं',
+      tip_match_framing_desc:
+        'स्वच्छ तुलना के लिए विषय को समान स्थिति (केंद्र/तिहाई) में रखें।',
+      tip_horizons_straight_title: 'क्षितिज सीधा रखें',
+      tip_horizons_straight_desc:
+        'समतल क्षितिज तुलना को तुरंत अधिक पेशेवर बनाता है।',
+      tip_remove_clutter_title: 'दृश्य अव्यवस्था हटाएं',
+      tip_remove_clutter_desc:
+        '"पहले" लेने से पहले विकर्षण (केबल, बोतलें, वस्तुएं) छुपाएं।',
+      tip_soft_light_title: 'मुलायम रोशनी पसंद करें',
+      tip_soft_light_desc:
+        'बादल वाली दिन की रोशनी या फैली हुई खिड़की की रोशनी कठोर छाया कम करती है।',
+      tip_crop_equally_title: 'दोनों तरफ समान रूप से क्रॉप करें',
+      tip_crop_equally_desc:
+        'समान रूप से क्रॉप करने के लिए Slider Reveal का उपयोग करें। एक छवि क्रॉप करें तो दूसरी पर भी करें।',
+      tip_text_minimal_title: 'टेक्स्ट न्यूनतम रखें',
+      tip_text_minimal_desc:
+        'छोटे लेबल सबसे अच्छे काम करते हैं; छोटी स्क्रीन पर खो जाने वाले छोटे कैप्शन से बचें।',
     },
   },
 
@@ -3724,6 +4579,49 @@ export const translations = {
       long_shadow: 'צל ארוך',
       bloom: 'בלום',
       letterpress: 'לטרפרס',
+
+      // Onboarding Actions
+      skip: 'דלג',
+      get_started: 'התחל',
+
+      // Project Actions
+      delete: 'מחק',
+      delete_project: 'מחק פרויקט',
+      delete_project_confirm: 'האם אתה בטוח שברצונך למחוק פרויקט זה?',
+      open: 'פתח',
+      duplicate: 'שכפל',
+
+      // Image Selection
+      image_selection_title: 'בחר תמונות',
+      image_selection_error_title: 'שגיאה',
+      image_selection_error_select_failed: 'בחירת התמונה נכשלה. אנא נסה שוב.',
+      image_selection_error: 'אנא בחר תמונות לשקופיות שלך',
+      image_selection_select_image: 'בחר תמונה',
+      image_selection_plain_background: 'רקע חלק',
+      image_selection_no_image: 'לא נבחרה תמונה',
+      image_selection_continue: 'המשך לעורך',
+
+      // Pro Tips
+      tip_simple_background_title: 'השתמש ברקע פשוט',
+      tip_simple_background_desc:
+        'רקעים נקיים שומרים את תשומת הלב על הנושא, לא על הסביבה.',
+      tip_match_framing_title: 'התאם את המסגור',
+      tip_match_framing_desc:
+        'שמור על הנושא באותו מיקום (מרכז/שלישים) להשוואה נקייה יותר.',
+      tip_horizons_straight_title: 'שמור על האופק ישר',
+      tip_horizons_straight_desc:
+        'אופק מאוזן הופך את ההשוואה למקצועית יותר מיד.',
+      tip_remove_clutter_title: 'הסר עומס ויזואלי',
+      tip_remove_clutter_desc:
+        'הסתר הסחות דעת (כבלים, בקבוקים, חפצים) לפני צילום ה"לפני".',
+      tip_soft_light_title: 'העדף אור רך',
+      tip_soft_light_desc: 'אור יום מעונן או אור חלון מפוזר מפחית צללים קשים.',
+      tip_crop_equally_title: 'חתוך באופן שווה משני הצדדים',
+      tip_crop_equally_desc:
+        'השתמש ב-Slider Reveal לחיתוך שווה. אם חתכת תמונה אחת, שקף את החיתוך על השנייה.',
+      tip_text_minimal_title: 'שמור על טקסט מינימלי',
+      tip_text_minimal_desc:
+        'תוויות קצרות עובדות הכי טוב; הימנע מכיתובים זעירים שנעלמים במסכים קטנים.',
     },
   },
 
@@ -3911,10 +4809,54 @@ export const translations = {
       long_shadow: 'Lång skugga',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Hoppa över',
+      get_started: 'Kom igång',
+
+      // Project Actions
+      delete: 'Radera',
+      delete_project: 'Radera projekt',
+      delete_project_confirm:
+        'Är du säker på att du vill radera detta projekt?',
+      open: 'Öppna',
+      duplicate: 'Duplicera',
+
+      // Image Selection
+      image_selection_title: 'Välj bilder',
+      image_selection_error_title: 'Fel',
+      image_selection_error_select_failed:
+        'Kunde inte välja bild. Försök igen.',
+      image_selection_error: 'Vänligen välj bilder för dina bilder',
+      image_selection_select_image: 'Välj bild',
+      image_selection_plain_background: 'Enfärgad bakgrund',
+      image_selection_no_image: 'Ingen bild vald',
+      image_selection_continue: 'Fortsätt till redigeraren',
+
+      // Pro Tips
+      tip_simple_background_title: 'Använd en enkel bakgrund',
+      tip_simple_background_desc:
+        'Rena bakgrunder håller uppmärksamheten på motivet, inte omgivningen.',
+      tip_match_framing_title: 'Matcha din inramning',
+      tip_match_framing_desc:
+        'Håll motivet i samma position (mitten/tredjedelar) för en renare jämförelse.',
+      tip_horizons_straight_title: 'Håll horisonten rak',
+      tip_horizons_straight_desc:
+        'En vågrät horisont gör jämförelsen mer professionell direkt.',
+      tip_remove_clutter_title: 'Ta bort visuellt stök',
+      tip_remove_clutter_desc:
+        'Dölj distraktioner (kablar, flaskor, föremål) innan du tar "före".',
+      tip_soft_light_title: 'Föredra mjukt ljus',
+      tip_soft_light_desc:
+        'Molnigt dagsljus eller diffust fönsterljus minskar hårda skuggor.',
+      tip_crop_equally_title: 'Beskär lika på båda sidor',
+      tip_crop_equally_desc:
+        'Använd Slider Reveal för att beskära lika. Beskär du en bild, spegla beskärningen på den andra.',
+      tip_text_minimal_title: 'Håll texten minimal',
+      tip_text_minimal_desc:
+        'Korta etiketter fungerar bäst; undvik små bildtexter som försvinner på små skärmar.',
     },
   },
-
-  // Norwegian (no)
   no: {
     translation: {
       appName: 'Før/Etter',
@@ -4097,6 +5039,52 @@ export const translations = {
       long_shadow: 'Lang skygge',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Hopp over',
+      get_started: 'Kom i gang',
+
+      // Project Actions
+      delete: 'Slett',
+      delete_project: 'Slett prosjekt',
+      delete_project_confirm:
+        'Er du sikker på at du vil slette dette prosjektet?',
+      open: 'Åpne',
+      duplicate: 'Dupliser',
+
+      // Image Selection
+      image_selection_title: 'Velg bilder',
+      image_selection_error_title: 'Feil',
+      image_selection_error_select_failed:
+        'Kunne ikke velge bilde. Prøv igjen.',
+      image_selection_error: 'Vennligst velg bilder for lysbildene dine',
+      image_selection_select_image: 'Velg bilde',
+      image_selection_plain_background: 'Ensfarget bakgrunn',
+      image_selection_no_image: 'Ingen bilde valgt',
+      image_selection_continue: 'Fortsett til redigereren',
+
+      // Pro Tips
+      tip_simple_background_title: 'Bruk en enkel bakgrunn',
+      tip_simple_background_desc:
+        'Rene bakgrunner holder oppmerksomheten på motivet, ikke omgivelsene.',
+      tip_match_framing_title: 'Match innrammingen din',
+      tip_match_framing_desc:
+        'Hold motivet i samme posisjon (senter/tredjedeler) for en renere sammenligning.',
+      tip_horizons_straight_title: 'Hold horisonten rett',
+      tip_horizons_straight_desc:
+        'En vannrett horisont gjør sammenligningen mer profesjonell umiddelbart.',
+      tip_remove_clutter_title: 'Fjern visuelt rot',
+      tip_remove_clutter_desc:
+        'Skjul distraksjoner (kabler, flasker, gjenstander) før du tar "før".',
+      tip_soft_light_title: 'Foretrekk mykt lys',
+      tip_soft_light_desc:
+        'Overskyet dagslys eller diffust vinduslys reduserer harde skygger.',
+      tip_crop_equally_title: 'Beskjær likt på begge sider',
+      tip_crop_equally_desc:
+        'Bruk Slider Reveal for å beskjære likt. Beskjærer du ett bilde, speilvend beskjæringen på det andre.',
+      tip_text_minimal_title: 'Hold teksten minimal',
+      tip_text_minimal_desc:
+        'Korte etiketter fungerer best; unngå små bildetekster som forsvinner på små skjermer.',
     },
   },
 
@@ -4283,6 +5271,52 @@ export const translations = {
       long_shadow: 'Lang skygge',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Spring over',
+      get_started: 'Kom i gang',
+
+      // Project Actions
+      delete: 'Slet',
+      delete_project: 'Slet projekt',
+      delete_project_confirm:
+        'Er du sikker på, at du vil slette dette projekt?',
+      open: 'Åbn',
+      duplicate: 'Dupliker',
+
+      // Image Selection
+      image_selection_title: 'Vælg billeder',
+      image_selection_error_title: 'Fejl',
+      image_selection_error_select_failed:
+        'Kunne ikke vælge billede. Prøv igen.',
+      image_selection_error: 'Vælg venligst billeder til dine dias',
+      image_selection_select_image: 'Vælg billede',
+      image_selection_plain_background: 'Ensfarvet baggrund',
+      image_selection_no_image: 'Intet billede valgt',
+      image_selection_continue: 'Fortsæt til editoren',
+
+      // Pro Tips
+      tip_simple_background_title: 'Brug en simpel baggrund',
+      tip_simple_background_desc:
+        'Rene baggrunde holder opmærksomheden på motivet, ikke omgivelserne.',
+      tip_match_framing_title: 'Match din indramning',
+      tip_match_framing_desc:
+        'Hold motivet i samme position (center/tredjedele) for en renere sammenligning.',
+      tip_horizons_straight_title: 'Hold horisonten lige',
+      tip_horizons_straight_desc:
+        'En vandret horisont gør sammenligningen mere professionel med det samme.',
+      tip_remove_clutter_title: 'Fjern visuelt rod',
+      tip_remove_clutter_desc:
+        'Skjul distraktioner (kabler, flasker, genstande) før du tager "før".',
+      tip_soft_light_title: 'Foretruk blødt lys',
+      tip_soft_light_desc:
+        'Overskyet dagslys eller diffust vindueslys reducerer hårde skygger.',
+      tip_crop_equally_title: 'Beskær lige på begge sider',
+      tip_crop_equally_desc:
+        'Brug Slider Reveal til at beskære lige. Beskærer du ét billede, spejlvend beskæringen på det andet.',
+      tip_text_minimal_title: 'Hold teksten minimal',
+      tip_text_minimal_desc:
+        'Korte etiketter fungerer bedst; undgå små billedtekster der forsvinder på små skærme.',
     },
   },
 
@@ -4469,6 +5503,51 @@ export const translations = {
       long_shadow: 'Pitkä varjo',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Ohita',
+      get_started: 'Aloita',
+
+      // Project Actions
+      delete: 'Poista',
+      delete_project: 'Poista projekti',
+      delete_project_confirm: 'Haluatko varmasti poistaa tämän projektin?',
+      open: 'Avaa',
+      duplicate: 'Kopioi',
+
+      // Image Selection
+      image_selection_title: 'Valitse kuvat',
+      image_selection_error_title: 'Virhe',
+      image_selection_error_select_failed:
+        'Kuvan valinta epäonnistui. Yritä uudelleen.',
+      image_selection_error: 'Valitse kuvat dioillesi',
+      image_selection_select_image: 'Valitse kuva',
+      image_selection_plain_background: 'Yksivärinen tausta',
+      image_selection_no_image: 'Ei kuvaa valittuna',
+      image_selection_continue: 'Jatka editoriin',
+
+      // Pro Tips
+      tip_simple_background_title: 'Käytä yksinkertaista taustaa',
+      tip_simple_background_desc:
+        'Puhtaat taustat pitävät huomion kohteessa, ei ympäristössä.',
+      tip_match_framing_title: 'Sovita rajaus',
+      tip_match_framing_desc:
+        'Pidä kohde samassa paikassa (keskellä/kolmanneksissa) puhtaampaa vertailua varten.',
+      tip_horizons_straight_title: 'Pidä horisontti suorana',
+      tip_horizons_straight_desc:
+        'Vaakasuora horisontti tekee vertailusta heti ammattimaisemman.',
+      tip_remove_clutter_title: 'Poista visuaalinen sotku',
+      tip_remove_clutter_desc:
+        'Piilota häiriötekijät (kaapelit, pullot, esineet) ennen "ennen"-kuvan ottamista.',
+      tip_soft_light_title: 'Suosi pehmeää valoa',
+      tip_soft_light_desc:
+        'Pilvinen päivänvalo tai hajautettu ikkunavalo vähentää kovia varjoja.',
+      tip_crop_equally_title: 'Rajaa tasaisesti molemmilta puolilta',
+      tip_crop_equally_desc:
+        'Käytä Slider Revealia tasaiseen rajaukseen. Jos rajaat yhden kuvan, peilaa rajaus toiseen.',
+      tip_text_minimal_title: 'Pidä teksti minimissä',
+      tip_text_minimal_desc:
+        'Lyhyet merkinnät toimivat parhaiten; vältä pieniä kuvatekstejä, jotka katoavat pienillä näytöillä.',
     },
   },
 
@@ -4654,6 +5733,51 @@ export const translations = {
       long_shadow: 'Dlouhý stín',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Přeskočit',
+      get_started: 'Začít',
+
+      // Project Actions
+      delete: 'Smazat',
+      delete_project: 'Smazat projekt',
+      delete_project_confirm: 'Opravdu chcete smazat tento projekt?',
+      open: 'Otevřít',
+      duplicate: 'Duplikovat',
+
+      // Image Selection
+      image_selection_title: 'Vybrat obrázky',
+      image_selection_error_title: 'Chyba',
+      image_selection_error_select_failed:
+        'Nepodařilo se vybrat obrázek. Zkuste to znovu.',
+      image_selection_error: 'Vyberte prosím obrázky pro vaše snímky',
+      image_selection_select_image: 'Vybrat obrázek',
+      image_selection_plain_background: 'Jednobarevné pozadí',
+      image_selection_no_image: 'Není vybrán žádný obrázek',
+      image_selection_continue: 'Pokračovat do editoru',
+
+      // Pro Tips
+      tip_simple_background_title: 'Použijte jednoduché pozadí',
+      tip_simple_background_desc:
+        'Čisté pozadí udržuje pozornost na předmětu, ne na okolí.',
+      tip_match_framing_title: 'Slaďte zarámování',
+      tip_match_framing_desc:
+        'Udržujte předmět ve stejné pozici (střed/třetiny) pro čistší srovnání.',
+      tip_horizons_straight_title: 'Udržujte horizont rovný',
+      tip_horizons_straight_desc:
+        'Vodorovný horizont okamžitě činí srovnání profesionálnějším.',
+      tip_remove_clutter_title: 'Odstraňte vizuální nepořádek',
+      tip_remove_clutter_desc:
+        'Skryjte rušivé prvky (kabely, lahve, předměty) před pořízením "před".',
+      tip_soft_light_title: 'Preferujte měkké světlo',
+      tip_soft_light_desc:
+        'Zatažené denní světlo nebo rozptýlené světlo z okna snižuje tvrdé stíny.',
+      tip_crop_equally_title: 'Ořízněte stejně na obou stranách',
+      tip_crop_equally_desc:
+        'Použijte Slider Reveal pro rovnoměrné oříznutí. Oříznete-li jeden obrázek, zrcadlete ořez na druhém.',
+      tip_text_minimal_title: 'Udržujte text minimální',
+      tip_text_minimal_desc:
+        'Krátké popisky fungují nejlépe; vyhněte se malým titulkům, které se ztrácejí na malých obrazovkách.',
     },
   },
 
@@ -4841,6 +5965,51 @@ export const translations = {
       long_shadow: 'Hosszú árnyék',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Kihagyás',
+      get_started: 'Kezdés',
+
+      // Project Actions
+      delete: 'Törlés',
+      delete_project: 'Projekt törlése',
+      delete_project_confirm: 'Biztosan törölni szeretné ezt a projektet?',
+      open: 'Megnyitás',
+      duplicate: 'Másolás',
+
+      // Image Selection
+      image_selection_title: 'Képek kiválasztása',
+      image_selection_error_title: 'Hiba',
+      image_selection_error_select_failed:
+        'Nem sikerült kiválasztani a képet. Próbálja újra.',
+      image_selection_error: 'Kérjük, válasszon képeket a diákhoz',
+      image_selection_select_image: 'Kép kiválasztása',
+      image_selection_plain_background: 'Egyszínű háttér',
+      image_selection_no_image: 'Nincs kép kiválasztva',
+      image_selection_continue: 'Tovább a szerkesztőbe',
+
+      // Pro Tips
+      tip_simple_background_title: 'Használjon egyszerű hátteret',
+      tip_simple_background_desc:
+        'A tiszta hátterek a témára irányítják a figyelmet, nem a környezetre.',
+      tip_match_framing_title: 'Igazítsa a keretezést',
+      tip_match_framing_desc:
+        'Tartsa a témát ugyanabban a pozícióban (közép/harmadok) a tisztább összehasonlításhoz.',
+      tip_horizons_straight_title: 'Tartsa a horizontot egyenesen',
+      tip_horizons_straight_desc:
+        'A vízszintes horizont azonnal professzionálisabbá teszi az összehasonlítást.',
+      tip_remove_clutter_title: 'Távolítsa el a vizuális rendetlenséget',
+      tip_remove_clutter_desc:
+        'Rejtse el a zavaró tényezőket (kábelek, üvegek, tárgyak) az "előtte" kép készítése előtt.',
+      tip_soft_light_title: 'Részesítse előnyben a lágy fényt',
+      tip_soft_light_desc:
+        'A felhős nappali fény vagy a szórt ablakfény csökkenti a kemény árnyékokat.',
+      tip_crop_equally_title: 'Vágjon egyformán mindkét oldalon',
+      tip_crop_equally_desc:
+        'Használja a Slider Revealt az egyenletes vágáshoz. Ha levág egy képet, tükrözze a vágást a másikon.',
+      tip_text_minimal_title: 'Tartsa a szöveget minimálisan',
+      tip_text_minimal_desc:
+        'A rövid címkék működnek a legjobban; kerülje az apró feliratokat, amelyek elvesznek kis képernyőkön.',
     },
   },
 
@@ -5028,6 +6197,51 @@ export const translations = {
       long_shadow: 'Umbră lungă',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Omite',
+      get_started: 'Începe',
+
+      // Project Actions
+      delete: 'Șterge',
+      delete_project: 'Șterge proiectul',
+      delete_project_confirm: 'Sigur doriți să ștergeți acest proiect?',
+      open: 'Deschide',
+      duplicate: 'Duplică',
+
+      // Image Selection
+      image_selection_title: 'Selectează imagini',
+      image_selection_error_title: 'Eroare',
+      image_selection_error_select_failed:
+        'Nu s-a putut selecta imaginea. Încercați din nou.',
+      image_selection_error: 'Vă rugăm să selectați imagini pentru slide-uri',
+      image_selection_select_image: 'Selectează imagine',
+      image_selection_plain_background: 'Fundal simplu',
+      image_selection_no_image: 'Nicio imagine selectată',
+      image_selection_continue: 'Continuă la editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Folosește un fundal simplu',
+      tip_simple_background_desc:
+        'Fundalurile curate mențin atenția pe subiect, nu pe împrejurimi.',
+      tip_match_framing_title: 'Potrivește încadrarea',
+      tip_match_framing_desc:
+        'Păstrează subiectul în aceeași poziție (centru/treimi) pentru o comparație mai curată.',
+      tip_horizons_straight_title: 'Menține orizontul drept',
+      tip_horizons_straight_desc:
+        'Un orizont nivelat face comparația să pară mai profesională instantaneu.',
+      tip_remove_clutter_title: 'Elimină dezordinea vizuală',
+      tip_remove_clutter_desc:
+        'Ascunde distracțiile (cabluri, sticle, obiecte) înainte de a face "înainte".',
+      tip_soft_light_title: 'Preferă lumina moale',
+      tip_soft_light_desc:
+        'Lumina zilei înnorat sau lumina difuză de la fereastră reduce umbrele dure.',
+      tip_crop_equally_title: 'Decupează egal pe ambele părți',
+      tip_crop_equally_desc:
+        'Folosește Slider Reveal pentru a decupa egal. Dacă decupezi o imagine, oglindește decuparea pe cealaltă.',
+      tip_text_minimal_title: 'Păstrează textul minimal',
+      tip_text_minimal_desc:
+        'Etichetele scurte funcționează cel mai bine; evită legendele mici care se pierd pe ecrane mici.',
     },
   },
 
@@ -5215,6 +6429,52 @@ export const translations = {
       long_shadow: 'Μακριά σκιά',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Παράλειψη',
+      get_started: 'Ξεκινήστε',
+
+      // Project Actions
+      delete: 'Διαγραφή',
+      delete_project: 'Διαγραφή έργου',
+      delete_project_confirm:
+        'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το έργο;',
+      open: 'Άνοιγμα',
+      duplicate: 'Αντιγραφή',
+
+      // Image Selection
+      image_selection_title: 'Επιλογή εικόνων',
+      image_selection_error_title: 'Σφάλμα',
+      image_selection_error_select_failed:
+        'Αποτυχία επιλογής εικόνας. Δοκιμάστε ξανά.',
+      image_selection_error: 'Παρακαλώ επιλέξτε εικόνες για τις διαφάνειές σας',
+      image_selection_select_image: 'Επιλογή εικόνας',
+      image_selection_plain_background: 'Απλό φόντο',
+      image_selection_no_image: 'Δεν επιλέχθηκε εικόνα',
+      image_selection_continue: 'Συνέχεια στον επεξεργαστή',
+
+      // Pro Tips
+      tip_simple_background_title: 'Χρησιμοποιήστε απλό φόντο',
+      tip_simple_background_desc:
+        'Τα καθαρά φόντα κρατούν την προσοχή στο θέμα, όχι στο περιβάλλον.',
+      tip_match_framing_title: 'Ταιριάξτε το κάδρο',
+      tip_match_framing_desc:
+        'Κρατήστε το θέμα στην ίδια θέση (κέντρο/τρίτα) για καθαρότερη σύγκριση.',
+      tip_horizons_straight_title: 'Κρατήστε τον ορίζοντα ίσιο',
+      tip_horizons_straight_desc:
+        'Ένας οριζόντιος ορίζοντας κάνει τη σύγκριση να φαίνεται πιο επαγγελματική αμέσως.',
+      tip_remove_clutter_title: 'Αφαιρέστε την οπτική ακαταστασία',
+      tip_remove_clutter_desc:
+        'Κρύψτε τους περισπασμούς (καλώδια, μπουκάλια, αντικείμενα) πριν τραβήξετε το "πριν".',
+      tip_soft_light_title: 'Προτιμήστε απαλό φως',
+      tip_soft_light_desc:
+        'Το συννεφιασμένο φως της ημέρας ή το διάχυτο φως παραθύρου μειώνει τις σκληρές σκιές.',
+      tip_crop_equally_title: 'Περικόψτε εξίσου και στις δύο πλευρές',
+      tip_crop_equally_desc:
+        'Χρησιμοποιήστε το Slider Reveal για ίση περικοπή. Αν περικόψετε μια εικόνα, αντικατοπτρίστε την περικοπή στην άλλη.',
+      tip_text_minimal_title: 'Κρατήστε το κείμενο ελάχιστο',
+      tip_text_minimal_desc:
+        'Οι σύντομες ετικέτες λειτουργούν καλύτερα· αποφύγετε μικρές λεζάντες που χάνονται σε μικρές οθόνες.',
     },
   },
 
@@ -5402,6 +6662,51 @@ export const translations = {
       long_shadow: 'Bayang panjang',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Langkau',
+      get_started: 'Mula',
+
+      // Project Actions
+      delete: 'Padam',
+      delete_project: 'Padam projek',
+      delete_project_confirm: 'Adakah anda pasti mahu memadam projek ini?',
+      open: 'Buka',
+      duplicate: 'Salin',
+
+      // Image Selection
+      image_selection_title: 'Pilih imej',
+      image_selection_error_title: 'Ralat',
+      image_selection_error_select_failed:
+        'Gagal memilih imej. Sila cuba lagi.',
+      image_selection_error: 'Sila pilih imej untuk slaid anda',
+      image_selection_select_image: 'Pilih imej',
+      image_selection_plain_background: 'Latar belakang kosong',
+      image_selection_no_image: 'Tiada imej dipilih',
+      image_selection_continue: 'Teruskan ke editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Gunakan latar belakang ringkas',
+      tip_simple_background_desc:
+        'Latar belakang bersih mengekalkan perhatian pada subjek, bukan persekitaran.',
+      tip_match_framing_title: 'Padankan pembingkaian anda',
+      tip_match_framing_desc:
+        'Kekalkan subjek di kedudukan yang sama (tengah/satu pertiga) untuk perbandingan yang lebih bersih.',
+      tip_horizons_straight_title: 'Pastikan ufuk lurus',
+      tip_horizons_straight_desc:
+        'Ufuk yang rata menjadikan perbandingan kelihatan lebih profesional serta-merta.',
+      tip_remove_clutter_title: 'Buang kekacauan visual',
+      tip_remove_clutter_desc:
+        'Sembunyikan gangguan (kabel, botol, objek) sebelum mengambil "sebelum".',
+      tip_soft_light_title: 'Pilih cahaya lembut',
+      tip_soft_light_desc:
+        'Cahaya siang mendung atau cahaya tingkap tersebar mengurangkan bayang keras.',
+      tip_crop_equally_title: 'Pangkas sama rata di kedua-dua belah',
+      tip_crop_equally_desc:
+        'Gunakan Slider Reveal untuk memangkas sama rata. Jika memangkas satu imej, cerminkan pada yang lain.',
+      tip_text_minimal_title: 'Kekalkan teks minimum',
+      tip_text_minimal_desc:
+        'Label pendek berfungsi paling baik; elakkan kapsyen kecil yang hilang pada skrin kecil.',
     },
   },
 
@@ -5590,6 +6895,53 @@ export const translations = {
       long_shadow: 'Mahabang anino',
       bloom: 'Bloom',
       letterpress: 'Letterpress',
+
+      // Onboarding Actions
+      skip: 'Laktawan',
+      get_started: 'Magsimula',
+
+      // Project Actions
+      delete: 'Tanggalin',
+      delete_project: 'Tanggalin ang proyekto',
+      delete_project_confirm:
+        'Sigurado ka bang gusto mong tanggalin ang proyektong ito?',
+      open: 'Buksan',
+      duplicate: 'Kopyahin',
+
+      // Image Selection
+      image_selection_title: 'Pumili ng mga larawan',
+      image_selection_error_title: 'Error',
+      image_selection_error_select_failed:
+        'Hindi napili ang larawan. Pakisubukang muli.',
+      image_selection_error:
+        'Mangyaring pumili ng mga larawan para sa iyong mga slide',
+      image_selection_select_image: 'Pumili ng larawan',
+      image_selection_plain_background: 'Simpleng background',
+      image_selection_no_image: 'Walang napiling larawan',
+      image_selection_continue: 'Magpatuloy sa editor',
+
+      // Pro Tips
+      tip_simple_background_title: 'Gumamit ng simpleng background',
+      tip_simple_background_desc:
+        'Ang malinis na background ay nagpapanatili ng atensyon sa paksa, hindi sa paligid.',
+      tip_match_framing_title: 'Itugma ang iyong framing',
+      tip_match_framing_desc:
+        'Panatilihin ang paksa sa parehong posisyon (gitna/ikatlo) para sa mas malinis na paghahambing.',
+      tip_horizons_straight_title: 'Panatilihing tuwid ang horizon',
+      tip_horizons_straight_desc:
+        'Ang patag na horizon ay agad na nagpapakita ng mas propesyonal na paghahambing.',
+      tip_remove_clutter_title: 'Alisin ang visual clutter',
+      tip_remove_clutter_desc:
+        'Itago ang mga distraction (cable, bote, bagay) bago kumuha ng "bago".',
+      tip_soft_light_title: 'Mas gusto ang malambot na ilaw',
+      tip_soft_light_desc:
+        'Ang maulap na liwanag ng araw o diffused na liwanag ng bintana ay nagpapababa ng matigas na anino.',
+      tip_crop_equally_title: 'I-crop nang pantay sa magkabilang panig',
+      tip_crop_equally_desc:
+        'Gamitin ang Slider Reveal para mag-crop nang pantay. Kung mag-crop ng isang larawan, i-mirror ang crop sa isa pa.',
+      tip_text_minimal_title: 'Panatilihing minimal ang text',
+      tip_text_minimal_desc:
+        'Ang maikling label ay pinakamabisa; iwasan ang maliliit na caption na nawawala sa maliliit na screen.',
     },
   },
 };

@@ -16,6 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import FeedbackService from '../services/FeedbackService';
 import LiquidGlassButton from '../components/LiquidGlassButton';
+import { useLanguage } from '../context/LanguageContext';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -50,6 +51,7 @@ const OnboardingScreen: React.FC = () => {
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const { t } = useLanguage();
 
   const isLastSlide = currentIndex === ONBOARDING_SLIDES.length - 1;
 
@@ -92,7 +94,7 @@ const OnboardingScreen: React.FC = () => {
           style={[styles.skipButton, { top: insets.top + 16 }]}
           onPress={handleComplete}
         >
-          <Text style={styles.skipText}>Skip</Text>
+          <Text style={styles.skipText}>{t('skip')}</Text>
         </TouchableOpacity>
       )}
 
@@ -117,7 +119,7 @@ const OnboardingScreen: React.FC = () => {
           ]}
         >
           <LiquidGlassButton
-            title="Get Started"
+            title={t('get_started')}
             onPress={handleComplete}
             animated={true}
           />

@@ -33,46 +33,39 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const PRO_TIPS = [
   {
-    title: 'Use a simple background',
-    description:
-      'Clean backgrounds keep attention on the subject, not the surroundings.',
+    titleKey: 'tip_simple_background_title',
+    descriptionKey: 'tip_simple_background_desc',
   },
   {
-    title: 'Match your framing',
-    description:
-      'Keep the subject in the same position (center/thirds) for a cleaner comparison.',
+    titleKey: 'tip_match_framing_title',
+    descriptionKey: 'tip_match_framing_desc',
   },
   {
-    title: 'Keep horizons straight',
-    description:
-      'A level horizon instantly makes the comparison look more professional.',
+    titleKey: 'tip_horizons_straight_title',
+    descriptionKey: 'tip_horizons_straight_desc',
   },
   {
-    title: 'Remove visual clutter',
-    description:
-      'Hide distractions (cables, bottles, random objects) before taking "before".',
+    titleKey: 'tip_remove_clutter_title',
+    descriptionKey: 'tip_remove_clutter_desc',
   },
   {
-    title: 'Prefer soft light',
-    description:
-      'Overcast daylight or diffused window light reduces harsh shadows.',
+    titleKey: 'tip_soft_light_title',
+    descriptionKey: 'tip_soft_light_desc',
   },
   {
-    title: 'Crop equally on both sides',
-    description:
-      'Use Slider Reveal to crop equally. If you crop one image, mirror the crop on the other for fairness.',
+    titleKey: 'tip_crop_equally_title',
+    descriptionKey: 'tip_crop_equally_desc',
   },
   {
-    title: 'Keep text minimal',
-    description:
-      'Short labels work best; avoid tiny captions that get lost on small screens.',
+    titleKey: 'tip_text_minimal_title',
+    descriptionKey: 'tip_text_minimal_desc',
   },
 ];
 
 // Helper function to calculate preview dimensions based on aspect ratio
 const getPreviewDimensions = (
   aspect: '1:1' | '9:16' | '16:9' | undefined,
-  baseWidth: number = 110
+  baseWidth: number = 110,
 ) => {
   if (!aspect) return { width: baseWidth, height: baseWidth };
 
@@ -93,9 +86,10 @@ const HomeScreen: React.FC = () => {
   const { themeDefinition } = useTheme();
   const { t } = useLanguage();
   const [recentProjects, setRecentProjects] = useState<ProjectState[]>([]);
-  const [currentTip] = useState(
-    () => PRO_TIPS[Math.floor(Math.random() * PRO_TIPS.length)],
+  const [tipIndex] = useState(() =>
+    Math.floor(Math.random() * PRO_TIPS.length),
   );
+  const currentTip = PRO_TIPS[tipIndex];
 
   const loadRecentProjects = useCallback(async () => {
     try {
@@ -471,7 +465,7 @@ const HomeScreen: React.FC = () => {
                     >
                       {(() => {
                         const previewDims = getPreviewDimensions(
-                          project.composition?.aspect
+                          project.composition?.aspect,
                         );
                         // Only use thumbnail for 1:1 aspect ratio (old thumbnails are distorted for other ratios)
                         const shouldUseThumbnail =
@@ -561,9 +555,9 @@ const HomeScreen: React.FC = () => {
             <View style={styles.proTipContent}>
               <Text style={styles.proTipIcon}>💡</Text>
               <View style={styles.proTipText}>
-                <Text style={styles.proTipTitle}>{currentTip.title}</Text>
+                <Text style={styles.proTipTitle}>{t(currentTip.titleKey)}</Text>
                 <Text style={styles.proTipDescription}>
-                  {currentTip.description}
+                  {t(currentTip.descriptionKey)}
                 </Text>
               </View>
             </View>
