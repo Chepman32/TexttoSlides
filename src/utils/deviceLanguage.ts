@@ -1,19 +1,5 @@
 import * as RNLocalize from 'react-native-localize';
-import { Language } from '../context/LanguageContext';
-
-// Supported languages in the app
-const SUPPORTED_LANGUAGES: Language[] = [
-  'en',
-  'ru',
-  'es',
-  'de',
-  'fr',
-  'pt',
-  'ja',
-  'zh',
-  'ko',
-  'uk',
-];
+import { Language, SUPPORTED_LANGUAGES } from '../i18n/translations';
 
 /**
  * Gets the device's preferred language and maps it to a supported app language.
@@ -32,6 +18,27 @@ export const getDeviceLanguage = (): Language => {
     const languageCode = locale.languageCode.toLowerCase() as Language;
     if (SUPPORTED_LANGUAGES.includes(languageCode)) {
       return languageCode;
+    }
+
+    // Handle special cases for language variants
+    // Norwegian: 'nb' (Bokmål) or 'nn' (Nynorsk) -> 'no'
+    if (languageCode === 'nb' || languageCode === 'nn') {
+      return 'no';
+    }
+
+    // Filipino: 'tl' (Tagalog) -> 'fil'
+    if (languageCode === 'tl') {
+      return 'fil';
+    }
+
+    // Hebrew: 'iw' (old code) -> 'he'
+    if (languageCode === 'iw') {
+      return 'he';
+    }
+
+    // Indonesian: 'in' (old code) -> 'id'
+    if (languageCode === 'in') {
+      return 'id';
     }
   }
 

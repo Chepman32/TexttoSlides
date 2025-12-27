@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStorage } from './useStorage';
 import { Theme } from '../context/ThemeContext';
-import { Language } from '../context/LanguageContext';
+import { Language } from '../i18n/translations';
 import { getDeviceLanguage } from '../utils/deviceLanguage';
 
 export interface UserPreferences {
