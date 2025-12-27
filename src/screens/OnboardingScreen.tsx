@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,14 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import FeedbackService from '../services/FeedbackService';
-import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
+import LiquidGlassButton from '../components/LiquidGlassButton';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -50,9 +43,6 @@ const ONBOARDING_SLIDES = [
   {
     image: require('../assets/images/onboarding/08_pick-up-where-you-left-off_1536x2304.png'),
   },
-  {
-    image: require('../assets/images/onboarding/09_export-in-4k-flex-in-style_1536x2304.png'),
-  },
 ];
 
 const OnboardingScreen: React.FC = () => {
@@ -62,25 +52,6 @@ const OnboardingScreen: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const isLastSlide = currentIndex === ONBOARDING_SLIDES.length - 1;
-
-  // Animated gradient opacity for crossfade effect
-  const gradientOpacity = useSharedValue(0);
-
-  useEffect(() => {
-    gradientOpacity.value = withRepeat(
-      withTiming(1, { duration: 3000, easing: Easing.inOut(Easing.ease) }),
-      -1,
-      true,
-    );
-  }, []);
-
-  const gradient1Style = useAnimatedStyle(() => ({
-    opacity: 1 - gradientOpacity.value,
-  }));
-
-  const gradient2Style = useAnimatedStyle(() => ({
-    opacity: gradientOpacity.value,
-  }));
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -139,36 +110,18 @@ const OnboardingScreen: React.FC = () => {
 
       {/* Get Started Button */}
       {isLastSlide && (
-        <TouchableOpacity
+        <View
           style={[
             styles.getStartedButtonContainer,
-            { bottom: insets.bottom },
+            { bottom: insets.bottom + 50 },
           ]}
-          onPress={handleComplete}
-          activeOpacity={0.8}
         >
-          <View style={styles.getStartedButton}>
-            {/* Gradient Layer 1 - Purple to Blue */}
-            <Animated.View style={[StyleSheet.absoluteFill, gradient1Style]}>
-              <LinearGradient
-                colors={['#A855F7', '#3B82F6']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFill}
-              />
-            </Animated.View>
-            {/* Gradient Layer 2 - Pink to Cyan */}
-            <Animated.View style={[StyleSheet.absoluteFill, gradient2Style]}>
-              <LinearGradient
-                colors={['#EC4899', '#06B6D4']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFill}
-              />
-            </Animated.View>
-            <Text style={styles.getStartedText}>Get Started</Text>
-          </View>
-        </TouchableOpacity>
+          <LiquidGlassButton
+            title="Get Started"
+            onPress={handleComplete}
+            animated={true}
+          />
+        </View>
       )}
     </View>
   );
@@ -218,21 +171,6 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: SCREEN_WIDTH * 0.9,
     maxWidth: 400,
-  },
-  getStartedButton: {
-    height: 56,
-    borderRadius: 28,
-    overflow: 'hidden',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  getStartedText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
   },
 });
 
