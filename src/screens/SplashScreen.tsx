@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import StorageService from '../services/StorageService';
 
 type RootStackParamList = {
   Home: undefined;
+  Onboarding: undefined;
 };
 
 type SplashScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -31,9 +33,10 @@ const SplashScreen: React.FC = () => {
       }),
     ]).start();
 
-    // Navigate to home screen after delay
-    const timer = setTimeout(() => {
-      navigation.replace('Home');
+    // Navigate to onboarding or home screen after delay
+    const timer = setTimeout(async () => {
+      const isFirstLaunch = await StorageService.isFirstLaunch();
+      navigation.replace(isFirstLaunch ? 'Onboarding' : 'Home');
     }, 2000);
 
     return () => clearTimeout(timer);

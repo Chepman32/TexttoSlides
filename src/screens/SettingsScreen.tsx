@@ -17,6 +17,7 @@ import { useLanguage, Language } from '../context/LanguageContext';
 import { themes, Theme } from '../context/ThemeContext';
 import { usePreferences } from '../hooks/usePreferences';
 import FeedbackService from '../services/FeedbackService';
+import StorageService from '../services/StorageService';
 
 const { AppIconManager } = NativeModules;
 
@@ -239,6 +240,46 @@ const SettingsScreen: React.FC = () => {
         </View>
 
         {/* App is now completely free - no premium section needed */}
+
+        {/* Reset Onboarding (Development) */}
+        <View style={styles.section}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { color: themeDefinition.colors.text },
+            ]}
+          >
+            Developer
+          </Text>
+          <TouchableOpacity
+            style={[
+              styles.settingRow,
+              { borderBottomColor: themeDefinition.colors.border },
+            ]}
+            onPress={async () => {
+              FeedbackService.buttonTap();
+              await StorageService.resetFirstLaunch();
+              Alert.alert('Onboarding Reset', 'Restart the app to see onboarding again.');
+            }}
+          >
+            <Text
+              style={[
+                styles.settingLabel,
+                { color: themeDefinition.colors.text },
+              ]}
+            >
+              Reset Onboarding
+            </Text>
+            <Text
+              style={[
+                styles.settingValue,
+                { color: themeDefinition.colors.text },
+              ]}
+            >
+              ›
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Language Selection Modal */}

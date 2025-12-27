@@ -8,6 +8,7 @@ import ComposerScreen from '../screens/ComposerScreen';
 import PreviewScreen from '../screens/PreviewScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UpgradeScreen from '../screens/UpgradeScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 
 import { CompositionState } from '../types/composer';
 import { Template } from '../constants/templates';
@@ -38,7 +39,6 @@ const AppNavigator: React.FC = () => {
   useEffect(() => {
     // Initialize storage on app start
     StorageService.loadCurrentProject();
-    StorageService.isFirstLaunch();
   }, []);
 
   return (
@@ -107,7 +107,7 @@ const AppNavigator: React.FC = () => {
         />
         <Stack.Screen
           name="Onboarding"
-          component={HomeScreen}
+          component={OnboardingScreen}
           options={{
             headerShown: false,
             gestureEnabled: false,
