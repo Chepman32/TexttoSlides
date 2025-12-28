@@ -210,16 +210,6 @@ const HomeScreen: React.FC = () => {
     }
   };
 
-  const handleUseLastPhoto = () => {
-    FeedbackService.buttonTap();
-    // TODO: Implement logic to get last used photo from storage
-    Alert.alert(
-      'Use Last Photo',
-      'This feature will remember your last used photo. For now, please select photos from Gallery or Camera.',
-      [{ text: 'OK' }],
-    );
-  };
-
   const handleTemplate = () => {
     FeedbackService.buttonTap();
     // Navigate to composer without photos to show template selection
@@ -398,16 +388,6 @@ const HomeScreen: React.FC = () => {
                 <Text style={styles.actionIconText}>📄</Text>
               </View>
               <Text style={styles.actionLabel}>{t('from_files')}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={handleUseLastPhoto}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: '#4169E1' }]}>
-                <Text style={styles.actionIconText}>↻</Text>
-              </View>
-              <Text style={styles.actionLabel}>{t('use_last')}</Text>
             </TouchableOpacity>
           </View>
 

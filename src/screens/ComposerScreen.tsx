@@ -20,9 +20,10 @@ import {
   GestureResponderEvent,
   PanResponderGestureState,
   Image,
-  Share,
+  Share as NativeShare,
   Linking,
 } from 'react-native';
+import Share, { ShareSingleOptions, Social } from 'react-native-share';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -713,6 +714,8 @@ const ComposerScreen: React.FC = () => {
     }
   };
 
+  const shareMessage = 'Made in Snapduo app';
+
   const shareToInstagram = async () => {
     try {
       FeedbackService.buttonTap();
@@ -720,13 +723,11 @@ const ComposerScreen: React.FC = () => {
       if (!uri) return;
 
       // Use Share API to show Instagram's modal with image
-      const result = await Share.share(
-        {
-          url: uri,
-        }
-      );
+      const result = await NativeShare.share({
+        url: uri,
+      });
 
-      if (result.action === Share.sharedAction) {
+      if (result.action === NativeShare.sharedAction) {
         FeedbackService.success();
       }
     } catch (error: any) {
@@ -742,21 +743,50 @@ const ComposerScreen: React.FC = () => {
       const uri = await captureCanvas();
       if (!uri) return;
 
-      // Use Share API to show X's modal with image and text
-      const result = await Share.share(
+      const shareOptions: ShareSingleOptions = {
+        url: uri,
+        type: 'image/png',
+        message: shareMessage,
+        social: Social.Twitter,
+        subject: shareMessage,
+        filename: 'snapduo.png',
+      };
+
+      const canOpenX =
+        Platform.OS === 'android'
+          ? (await Share.isPackageInstalled('com.twitter.android')).isInstalled
+          : await Linking.canOpenURL('twitter://');
+
+      if (canOpenX) {
+        try {
+          await Share.shareSingle(shareOptions);
+          FeedbackService.success();
+          return;
+        } catch (shareError: any) {
+          if (shareError?.message === 'User did not share') {
+            return;
+          }
+          console.warn(
+            'X shareSingle failed, falling back to native share sheet',
+            shareError,
+          );
+        }
+      }
+
+      await NativeShare.share(
         {
           url: uri,
-          message: 'Made in Snapduo app',
+          message: shareMessage,
         },
         {
-          subject: 'Made in Snapduo app',
-        }
+          subject: shareMessage,
+        },
       );
-
-      if (result.action === Share.sharedAction) {
-        FeedbackService.success();
-      }
+      FeedbackService.success();
     } catch (error: any) {
+      if (error?.message === 'User did not share') {
+        return;
+      }
       console.error('X share error:', error);
       FeedbackService.error();
       Alert.alert('Error', 'Failed to share to X.');
@@ -799,7 +829,7 @@ const ComposerScreen: React.FC = () => {
       if (!uri) return;
 
       // Use native share sheet
-      await Share.share({
+      await NativeShare.share({
         url: uri,
       });
       FeedbackService.success();
