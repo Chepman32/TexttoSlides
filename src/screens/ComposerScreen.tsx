@@ -722,14 +722,49 @@ const ComposerScreen: React.FC = () => {
       const uri = await captureCanvas();
       if (!uri) return;
 
-      // Use Share API to show Instagram's modal with image
-      const result = await NativeShare.share({
-        url: uri,
+      // Save to Camera Roll first - Instagram requires the image to be in the photo library
+      const savedAsset = await CameraRoll.saveAsset(uri, {
+        type: 'photo',
+        album: 'Before-After',
       });
+      const savedUri = savedAsset.node?.image?.uri || uri;
 
-      if (result.action === NativeShare.sharedAction) {
+      const filename = 'snapduo.png';
+      const baseOptions = {
+        url: savedUri,
+        type: 'image/png',
+        filename,
+        message: shareMessage,
+        subject: shareMessage,
+      };
+
+      // Use shareSingle with Instagram social type to show Instagram's native modal
+      // This shows the Instagram-specific sharing options (Reels, Post, Story, Message)
+      try {
+        const singleOptions: ShareSingleOptions = {
+          ...baseOptions,
+          social: Social.Instagram,
+          forceDialog: true,
+        };
+        await Share.shareSingle(singleOptions);
         FeedbackService.success();
+        return;
+      } catch (shareError: any) {
+        if (shareError?.message === 'User did not share') {
+          return;
+        }
+        console.warn(
+          'Instagram shareSingle failed, falling back to native share sheet',
+          shareError,
+        );
       }
+
+      // Fallback: native share sheet
+      await NativeShare.share(
+        { url: savedUri, message: shareMessage },
+        { subject: shareMessage },
+      );
+      FeedbackService.success();
     } catch (error: any) {
       console.error('Instagram share error:', error);
       FeedbackService.error();
