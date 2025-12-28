@@ -38,6 +38,9 @@ const ONBOARDING_SLIDES = [
   {
     image: require('../assets/images/onboarding/06_templates-for-the-impatient_1536x2304.png'),
   },
+  {
+    image: require('../assets/images/onboarding/09.png'),
+  },
 ];
 
 const OnboardingScreen: React.FC = () => {
