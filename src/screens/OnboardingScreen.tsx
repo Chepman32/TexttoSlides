@@ -33,16 +33,10 @@ const ONBOARDING_SLIDES = [
     image: require('../assets/images/onboarding/02_slide-to-reveal-the-magic_1536x2304.png'),
   },
   {
-    image: require('../assets/images/onboarding/03_your-transformation-your-style_1536x2304.png'),
-  },
-  {
     image: require('../assets/images/onboarding/05_drag-drop-perfect_1536x2304.png'),
   },
   {
     image: require('../assets/images/onboarding/06_templates-for-the-impatient_1536x2304.png'),
-  },
-  {
-    image: require('../assets/images/onboarding/08_pick-up-where-you-left-off_1536x2304.png'),
   },
 ];
 
