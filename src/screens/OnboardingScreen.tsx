@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import FeedbackService from '../services/FeedbackService';
 import LiquidGlassButton from '../components/LiquidGlassButton';
 import { useLanguage } from '../context/LanguageContext';
+import { getOnboardingImage } from '../utils/onboardingImages';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -25,32 +26,23 @@ type OnboardingNavigationProp = StackNavigationProp<
   'Onboarding'
 >;
 
-const ONBOARDING_SLIDES = [
-  {
-    image: require('../assets/images/onboarding/01_show-your-glow-up_1536x2304.png'),
-  },
-  {
-    image: require('../assets/images/onboarding/02_slide-to-reveal-the-magic_1536x2304.png'),
-  },
-  {
-    image: require('../assets/images/onboarding/05_drag-drop-perfect_1536x2304.png'),
-  },
-  {
-    image: require('../assets/images/onboarding/06_templates-for-the-impatient_1536x2304.png'),
-  },
-  {
-    image: require('../assets/images/onboarding/09.png'),
-  },
-];
-
 const OnboardingScreen: React.FC = () => {
   const navigation = useNavigation<OnboardingNavigationProp>();
   const insets = useSafeAreaInsets();
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
 
-  const isLastSlide = currentIndex === ONBOARDING_SLIDES.length - 1;
+  // Generate slides with language-specific images
+  const onboardingSlides = useMemo(() => [
+    { image: getOnboardingImage(1, currentLanguage) },
+    { image: getOnboardingImage(2, currentLanguage) },
+    { image: getOnboardingImage(3, currentLanguage) },
+    { image: getOnboardingImage(4, currentLanguage) },
+    { image: getOnboardingImage(5, currentLanguage) },
+  ], [currentLanguage]);
+
+  const isLastSlide = currentIndex === onboardingSlides.length - 1;
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x;
@@ -74,7 +66,7 @@ const OnboardingScreen: React.FC = () => {
         scrollEventThrottle={16}
         decelerationRate="fast"
       >
-        {ONBOARDING_SLIDES.map((slide, index) => (
+        {onboardingSlides.map((slide, index) => (
           <View key={index} style={styles.slideContainer}>
             <Image
               source={slide.image}
@@ -99,7 +91,7 @@ const OnboardingScreen: React.FC = () => {
       <View
         style={[styles.indicatorContainer, { bottom: isLastSlide ? 120 : 50 }]}
       >
-        {ONBOARDING_SLIDES.map((_, index) => (
+        {onboardingSlides.map((_, index) => (
           <View
             key={index}
             style={[styles.dot, currentIndex === index && styles.activeDot]}

@@ -467,15 +467,6 @@ class StorageService {
     );
   }
 
-  // Reset first launch flag (for testing onboarding)
-  async resetFirstLaunch(): Promise<void> {
-    try {
-      await AsyncStorage.removeItem(this.STORAGE_KEYS.FIRST_LAUNCH);
-    } catch (error) {
-      console.error('Error resetting first launch:', error);
-    }
-  }
-
   // Clear all storage
   async clearAllStorage(): Promise<void> {
     try {
