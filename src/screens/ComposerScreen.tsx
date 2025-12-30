@@ -70,6 +70,9 @@ type ComposerNavigationProp = StackNavigationProp<
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+// Detect if device is a tablet (iPad) based on screen size
+const isTablet = Math.min(screenWidth, screenHeight) >= 600;
+
 const ComposerScreen: React.FC = () => {
   const route = useRoute<ComposerRouteProp>();
   const navigation = useNavigation<ComposerNavigationProp>();
@@ -212,6 +215,28 @@ const ComposerScreen: React.FC = () => {
     [addToHistory],
   );
 
+  // Undo/Redo actions
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
+
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      FeedbackService.buttonTap();
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setComposition(history[newIndex]);
+    }
+  }, [historyIndex, history]);
+
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      FeedbackService.buttonTap();
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setComposition(history[newIndex]);
+    }
+  }, [historyIndex, history]);
+
   // Track which image is being panned and the starting offset
   const panningImageRef = useRef<'A' | 'B' | null>(null);
   const startOffsetRef = useRef<ImageOffset>({ x: 0, y: 0 });
@@ -243,6 +268,11 @@ const ComposerScreen: React.FC = () => {
     };
   };
 
+  // Calculate canvas width for pan responder (same logic as main canvas)
+  const panCanvasWidth = isTablet
+    ? Math.min(screenWidth * 0.75, screenHeight * 0.65)
+    : screenWidth - 32;
+
   // Pan responder for image panning and slider dragging
   const panResponder = useMemo(
     () =>
@@ -255,7 +285,7 @@ const ComposerScreen: React.FC = () => {
         onPanResponderGrant: (evt: GestureResponderEvent) => {
           const comp = compositionRef.current;
           const { locationX, locationY } = evt.nativeEvent;
-          const canvasWidth = screenWidth - 32;
+          const canvasWidth = panCanvasWidth;
 
           // Check if this is a slider layout
           if (comp.layout === 'slider') {
@@ -363,7 +393,7 @@ const ComposerScreen: React.FC = () => {
           _evt: GestureResponderEvent,
           gestureState: PanResponderGestureState,
         ) => {
-          const canvasWidth = screenWidth - 32;
+          const canvasWidth = panCanvasWidth;
 
           // Handle slider dragging
           if (isDraggingSliderRef.current) {
@@ -919,8 +949,13 @@ const ComposerScreen: React.FC = () => {
   // Modal-based text editing functions removed - now using inline TextInput
 
   // Calculate canvas dimensions based on aspect ratio (same logic as CompositionCanvas)
-  const canvasWidth = screenWidth - 32;
-  const maxCanvasHeight = screenHeight * 0.55; // Max 55% of screen height to leave room for tools
+  // On tablets, use more screen width for a larger canvas
+  const canvasWidth = isTablet
+    ? Math.min(screenWidth * 0.75, screenHeight * 0.65) // Tablet: use 75% width or 65% height, whichever is smaller
+    : screenWidth - 32; // Phone: standard padding
+  const maxCanvasHeight = isTablet
+    ? screenHeight * 0.65 // Tablet: allow more height
+    : screenHeight * 0.55; // Phone: Max 55% of screen height to leave room for tools
 
   const { canvasHeight, scale } = useMemo(() => {
     let height = canvasWidth; // Default 1:1
@@ -2131,6 +2166,68 @@ const ComposerScreen: React.FC = () => {
             ← {t('back')}
           </Text>
         </TouchableOpacity>
+
+        {/* Undo/Redo Buttons */}
+        <View style={styles.undoRedoContainer}>
+          <TouchableOpacity
+            onPress={undo}
+            disabled={!canUndo}
+            style={[
+              styles.undoRedoButton,
+              { borderColor: themeDefinition.colors.border },
+              !canUndo && styles.undoRedoButtonDisabled,
+            ]}
+          >
+            <Text
+              style={[
+                styles.undoRedoButtonText,
+                { color: themeDefinition.colors.textPrimary },
+                !canUndo && { opacity: 0.4 },
+              ]}
+            >
+              ↩
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={redo}
+            disabled={!canRedo}
+            style={[
+              styles.undoRedoButton,
+              { borderColor: themeDefinition.colors.border },
+              !canRedo && styles.undoRedoButtonDisabled,
+            ]}
+          >
+            <Text
+              style={[
+                styles.undoRedoButtonText,
+                { color: themeDefinition.colors.textPrimary },
+                !canRedo && { opacity: 0.4 },
+              ]}
+            >
+              ↪
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Swap Photos Button */}
+        {composition.photoAUri && composition.photoBUri && (
+          <TouchableOpacity
+            onPress={swapPhotos}
+            style={[
+              styles.swapButton,
+              { borderColor: themeDefinition.colors.border },
+            ]}
+          >
+            <Text
+              style={[
+                styles.swapButtonText,
+                { color: themeDefinition.colors.textPrimary },
+              ]}
+            >
+              ⇄ Swap
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Canvas area */}
@@ -2311,6 +2408,23 @@ const styles = StyleSheet.create({
   topActions: {
     flexDirection: 'row',
     gap: 12,
+  },
+  undoRedoContainer: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  undoRedoButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  undoRedoButtonDisabled: {
+    opacity: 0.5,
+  },
+  undoRedoButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
   swapButton: {
     paddingHorizontal: 12,
