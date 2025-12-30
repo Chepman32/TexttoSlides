@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Dimensions,
   Image,
   Alert,
   Share,
@@ -21,15 +20,13 @@ import {
 } from 'react-native-image-picker';
 import DocumentPicker from 'react-native-document-picker';
 import ContextMenu from 'react-native-context-menu-view';
-import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import FeedbackService from '../services/FeedbackService';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import StorageService, { ProjectState } from '../services/StorageService';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 
 type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList>;
-
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const PRO_TIPS = [
   {
@@ -83,8 +80,16 @@ const getPreviewDimensions = (
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const { themeDefinition } = useTheme();
   const { t } = useLanguage();
+  const {
+    width: screenWidth,
+    height: screenHeight,
+    isTablet,
+    horizontalPadding,
+    maxContentWidth,
+    cardBorderRadius,
+    fontSize,
+  } = useResponsiveLayout();
   const [recentProjects, setRecentProjects] = useState<ProjectState[]>([]);
   const [tipIndex] = useState(() =>
     Math.floor(Math.random() * PRO_TIPS.length),
@@ -121,29 +126,6 @@ const HomeScreen: React.FC = () => {
   const handleSettings = () => {
     FeedbackService.buttonTap();
     navigation.navigate('Settings');
-  };
-
-  const pickTwoPhotos = () => {
-    FeedbackService.buttonTap();
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        quality: 0.9,
-        maxWidth: 2048,
-        maxHeight: 2048,
-        selectionLimit: 2,
-      },
-      response => {
-        if (response.didCancel || response.errorMessage) return;
-
-        const assets = response.assets;
-        if (assets && assets.length >= 1) {
-          const photoA = assets[0]?.uri;
-          const photoB = assets[1]?.uri;
-          navigation.navigate('Composer', { photoA, photoB });
-        }
-      },
-    );
   };
 
   const handleFromCamera = () => {
@@ -208,12 +190,6 @@ const HomeScreen: React.FC = () => {
         Alert.alert('Error', 'Failed to pick files. Please try again.');
       }
     }
-  };
-
-  const handleTemplate = () => {
-    FeedbackService.buttonTap();
-    // Navigate to composer without photos to show template selection
-    navigation.navigate('Composer', { showTemplates: true });
   };
 
   const handleRecentProject = async (projectId: string) => {
@@ -332,69 +308,169 @@ const HomeScreen: React.FC = () => {
         <ScrollView
           style={styles.scrollContainer}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={
+            isTablet ? styles.tabletContentContainer : undefined
+          }
         >
           {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Before/After</Text>
+          <View
+            style={[
+              styles.header,
+              {
+                paddingHorizontal: horizontalPadding,
+                maxWidth: maxContentWidth + horizontalPadding * 2,
+                alignSelf: 'center',
+                width: '100%',
+              },
+            ]}
+          >
+            <Text style={[styles.title, { fontSize: fontSize.title }]}>
+              Before/After
+            </Text>
             <TouchableOpacity
               onPress={handleSettings}
               style={styles.settingsButton}
             >
               <Image
                 source={require('../assets/icons/settings-gear.png')}
-                style={styles.settingsIcon}
+                style={[
+                  styles.settingsIcon,
+                  isTablet && { width: 32, height: 32 },
+                ]}
               />
             </TouchableOpacity>
           </View>
 
           {/* Main Card */}
-          <View style={styles.mainCard}>
-            <View style={styles.cameraIconContainer}>
-              <Text style={styles.cameraIcon}>📷</Text>
+          <View
+            style={[
+              styles.mainCard,
+              {
+                marginHorizontal: horizontalPadding,
+                borderRadius: cardBorderRadius,
+                maxWidth: maxContentWidth,
+                alignSelf: 'center',
+                width: '100%',
+              },
+            ]}
+          >
+            <View
+              style={[
+                styles.cameraIconContainer,
+                isTablet && { width: 100, height: 100, borderRadius: 24 },
+              ]}
+            >
+              <Text style={[styles.cameraIcon, isTablet && { fontSize: 50 }]}>
+                📷
+              </Text>
             </View>
 
-            <Text style={styles.mainTitle}>{t('pick_two_photos')}</Text>
+            <Text style={[styles.mainTitle, { fontSize: fontSize.xlarge }]}>
+              {t('pick_two_photos')}
+            </Text>
 
-            <Text style={styles.subtitle}>{t('home_subtitle')}</Text>
+            <Text style={[styles.subtitle, { fontSize: fontSize.large }]}>
+              {t('home_subtitle')}
+            </Text>
           </View>
 
           {/* Action Buttons */}
-          <View style={styles.actionButtons}>
+          <View
+            style={[
+              styles.actionButtons,
+              {
+                marginHorizontal: horizontalPadding,
+                borderRadius: cardBorderRadius,
+                maxWidth: maxContentWidth,
+                alignSelf: 'center',
+                width: '100%',
+              },
+            ]}
+          >
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleFromCamera}
             >
-              <View style={[styles.actionIcon, { backgroundColor: '#696969' }]}>
-                <Text style={styles.actionIconText}>📷</Text>
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: '#696969' },
+                  isTablet && { width: 60, height: 60, borderRadius: 30 },
+                ]}
+              >
+                <Text
+                  style={[styles.actionIconText, isTablet && { fontSize: 22 }]}
+                >
+                  📷
+                </Text>
               </View>
-              <Text style={styles.actionLabel}>{t('from_camera')}</Text>
+              <Text style={[styles.actionLabel, { fontSize: fontSize.small }]}>
+                {t('from_camera')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleFromGallery}
             >
-              <View style={[styles.actionIcon, { backgroundColor: '#666666' }]}>
-                <Text style={styles.actionIconText}>📁</Text>
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: '#666666' },
+                  isTablet && { width: 60, height: 60, borderRadius: 30 },
+                ]}
+              >
+                <Text
+                  style={[styles.actionIconText, isTablet && { fontSize: 22 }]}
+                >
+                  📁
+                </Text>
               </View>
-              <Text style={styles.actionLabel}>{t('gallery')}</Text>
+              <Text style={[styles.actionLabel, { fontSize: fontSize.small }]}>
+                {t('gallery')}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleFromFiles}
             >
-              <View style={[styles.actionIcon, { backgroundColor: '#20B2AA' }]}>
-                <Text style={styles.actionIconText}>📄</Text>
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: '#20B2AA' },
+                  isTablet && { width: 60, height: 60, borderRadius: 30 },
+                ]}
+              >
+                <Text
+                  style={[styles.actionIconText, isTablet && { fontSize: 22 }]}
+                >
+                  📄
+                </Text>
               </View>
-              <Text style={styles.actionLabel}>{t('from_files')}</Text>
+              <Text style={[styles.actionLabel, { fontSize: fontSize.small }]}>
+                {t('from_files')}
+              </Text>
             </TouchableOpacity>
           </View>
 
           {/* Recent Projects */}
           {recentProjects.length > 0 && (
-            <View style={styles.recentSection}>
-              <Text style={styles.sectionTitle}>{t('recent_projects')}</Text>
+            <View
+              style={[
+                styles.recentSection,
+                {
+                  marginHorizontal: horizontalPadding,
+                  borderRadius: cardBorderRadius,
+                  maxWidth: maxContentWidth,
+                  alignSelf: 'center',
+                  width: '100%',
+                },
+              ]}
+            >
+              <Text style={[styles.sectionTitle, { fontSize: fontSize.large }]}>
+                {t('recent_projects')}
+              </Text>
 
               <ScrollView
                 horizontal
@@ -531,12 +607,34 @@ const HomeScreen: React.FC = () => {
           )}
 
           {/* Pro Tip */}
-          <View style={styles.proTipSection}>
+          <View
+            style={[
+              styles.proTipSection,
+              {
+                marginHorizontal: horizontalPadding,
+                borderRadius: cardBorderRadius,
+                maxWidth: maxContentWidth,
+                alignSelf: 'center',
+                width: '100%',
+              },
+            ]}
+          >
             <View style={styles.proTipContent}>
-              <Text style={styles.proTipIcon}>💡</Text>
+              <Text style={[styles.proTipIcon, isTablet && { fontSize: 28 }]}>
+                💡
+              </Text>
               <View style={styles.proTipText}>
-                <Text style={styles.proTipTitle}>{t(currentTip.titleKey)}</Text>
-                <Text style={styles.proTipDescription}>
+                <Text
+                  style={[styles.proTipTitle, { fontSize: fontSize.medium }]}
+                >
+                  {t(currentTip.titleKey)}
+                </Text>
+                <Text
+                  style={[
+                    styles.proTipDescription,
+                    { fontSize: fontSize.small },
+                  ]}
+                >
                   {t(currentTip.descriptionKey)}
                 </Text>
               </View>
@@ -557,6 +655,9 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
+  },
+  tabletContentContainer: {
+    alignItems: 'center',
   },
   header: {
     flexDirection: 'row',
