@@ -1238,7 +1238,7 @@ const ComposerScreen: React.FC = () => {
         >
           {t('composer_aspectRatio')}
         </Text>
-        <View style={styles.aspectButtons}>
+        <View style={styles.aspectChipContainer}>
           {(
             [
               { key: '1:1', label: t('composer_crop1to1') },
@@ -1250,23 +1250,25 @@ const ComposerScreen: React.FC = () => {
               ({ key }) =>
                 composition.layout !== 'deviceMockup' || key === '1:1',
             )
-            .map(({ key, label }) => (
+            .map(({ key, label }, index, arr) => (
               <TouchableOpacity
                 key={key}
                 style={[
-                  styles.aspectButton,
-                  composition.aspect === key && styles.activeAspectButton,
-                  { borderColor: themeDefinition.colors.border },
+                  styles.aspectChip,
+                  { backgroundColor: composition.aspect === key ? '#007AFF' : 'transparent' },
+                  composition.aspect === key && styles.activeAspectChip,
+                  index === 0 && styles.aspectChipFirst,
+                  index === arr.length - 1 && styles.aspectChipLast,
                 ]}
                 onPress={() => setAspectRatio(key)}
               >
                 <Text
                   style={[
-                    styles.aspectButtonText,
+                    styles.aspectChipText,
                     {
                       color:
                         composition.aspect === key
-                          ? themeDefinition.colors.accent
+                          ? '#FFFFFF'
                           : themeDefinition.colors.textSecondary,
                     },
                   ]}
@@ -2553,6 +2555,42 @@ const styles = StyleSheet.create({
   activeToggleThumb: {
     alignSelf: 'flex-end',
   },
+  aspectChipContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#E8E8ED',
+    borderRadius: 22,
+    padding: 4,
+    alignSelf: 'flex-start',
+  },
+  aspectChip: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 18,
+    minWidth: 55,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+  },
+  activeAspectChip: {
+    backgroundColor: '#007AFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  aspectChipFirst: {
+    // First chip styling if needed
+  },
+  aspectChipLast: {
+    // Last chip styling if needed
+  },
+  aspectChipText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  // Keep old styles for backward compatibility
   aspectButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
