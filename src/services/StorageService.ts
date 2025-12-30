@@ -78,7 +78,7 @@ class StorageService {
       StorageService.instance = new StorageService();
       // Initialize storage on first getInstance
       StorageInitializer.initialize().catch(error => {
-        console.log('Storage initialization in background:', error);
+        // Silent initialization
       });
     }
     return StorageService.instance;
@@ -233,14 +233,6 @@ class StorageService {
           // Must have at least one valid image source (not just thumbnail)
           const isValid = hasValidImages || hasCompositionImages;
 
-          if (!isValid) {
-            console.log('Filtering out invalid project:', project.id, {
-              images: project.images,
-              photoA: project.composition?.photoAUri,
-              photoB: project.composition?.photoBUri,
-            });
-          }
-
           return isValid;
         });
 
@@ -364,9 +356,12 @@ class StorageService {
 
   // Clear all recent projects (for debugging/reset)
   async clearAllRecentProjects(): Promise<void> {
+    if (!__DEV__) {
+      console.warn('clearAllRecentProjects called in production - ignoring');
+      return;
+    }
     try {
       await AsyncStorage.removeItem(this.STORAGE_KEYS.RECENT_PROJECTS);
-      console.log('All recent projects cleared');
     } catch (error) {
       console.error('Error clearing recent projects:', error);
     }
@@ -480,6 +475,10 @@ class StorageService {
 
   // Get storage info
   async getStorageInfo(): Promise<{ totalSize: number; keys: string[] }> {
+    if (!__DEV__) {
+      console.warn('getStorageInfo called in production - ignoring');
+      return { totalSize: 0, keys: [] };
+    }
     try {
       const keys = await AsyncStorage.getAllKeys();
       let totalSize = 0;
@@ -508,7 +507,6 @@ class StorageService {
     this.autoSaveTimer = setInterval(async () => {
       try {
         await this.saveCurrentProject(project);
-        console.log('Auto-save completed');
       } catch (error) {
         console.error('Auto-save failed:', error);
       }
@@ -562,8 +560,6 @@ class StorageService {
       if (data.preferences) {
         await this.savePreferences(data.preferences);
       }
-
-      console.log('Data imported successfully');
     } catch (error) {
       console.error('Error importing data:', error);
       throw error;

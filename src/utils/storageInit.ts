@@ -53,15 +53,10 @@ class StorageInitializer {
           // Clean up the test value
           await AsyncStorage.removeItem(testKey);
           this.isInitialized = true;
-          console.log('AsyncStorage initialized successfully');
           return;
         }
       } catch (error) {
         retryCount++;
-        console.log(
-          `AsyncStorage initialization attempt ${retryCount} failed:`,
-          error,
-        );
 
         if (retryCount < maxRetries) {
           // Wait a bit before retrying
@@ -109,12 +104,15 @@ class StorageInitializer {
    * Clear all storage (for debugging)
    */
   async clearAll(): Promise<void> {
+    if (!__DEV__) {
+      console.warn('clearAll called in production - ignoring');
+      return;
+    }
     try {
       const keys = await AsyncStorage.getAllKeys();
       if (keys.length > 0) {
         await AsyncStorage.multiRemove(keys);
       }
-      console.log('Storage cleared successfully');
     } catch (error) {
       console.error('Error clearing storage:', error);
     }
@@ -128,6 +126,14 @@ class StorageInitializer {
     keyCount: number;
     keys: string[];
   }> {
+    if (!__DEV__) {
+      console.warn('getStorageInfo called in production - ignoring');
+      return {
+        isInitialized: this.isInitialized,
+        keyCount: 0,
+        keys: [],
+      };
+    }
     try {
       const keys = await AsyncStorage.getAllKeys();
       return {

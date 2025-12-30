@@ -1,13 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert, Platform } from 'react-native';
 
-// Product IDs for App Store and Google Play (for future use)
-// const PRODUCT_IDS = Platform.select({
-//   ios: ['com.snapduo.pro', 'com.snapduo.pro.monthly'],
-//   android: ['com.snapduo.pro', 'com.snapduo.pro.monthly'],
-//   default: []
-// });
-
 interface Product {
   productId: string;
   title: string;
@@ -46,7 +39,6 @@ class IAPService {
     try {
       // In production, initialize the IAP library here
       // For now, we'll simulate with mock data
-      console.log('IAP Service initializing...');
 
       // Load cached purchase status
       const cachedPurchases = await AsyncStorage.getItem('purchases');
@@ -79,7 +71,6 @@ class IAPService {
       ];
 
       this.isInitialized = true;
-      console.log('IAP Service initialized successfully');
     } catch (error) {
       console.error('Failed to initialize IAP:', error);
       this.isInitialized = false;
@@ -227,7 +218,6 @@ class IAPService {
   // Clean up connections
   async endConnection(): Promise<void> {
     // In production, would close IAP connections
-    console.log('IAP connection ended');
     this.isInitialized = false;
   }
 
@@ -240,7 +230,6 @@ class IAPService {
   // Validate receipt (mock)
   async validateReceipt(receipt: string): Promise<boolean> {
     // In production, would validate with App Store/Play Store
-    console.log('Validating receipt:', receipt);
     return true;
   }
 }

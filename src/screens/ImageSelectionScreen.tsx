@@ -126,7 +126,6 @@ const ImageSelectionScreen: React.FC = () => {
       const imageUri = await ImageService.pickFromGallery();
 
       if (imageUri) {
-        console.log('Selected image URI:', imageUri);
         setSelectedImages(prevImages => {
           const normalized = ensureCapacity(prevImages);
           const next = [...normalized];
@@ -150,7 +149,6 @@ const ImageSelectionScreen: React.FC = () => {
             if (!processedUri) {
               return;
             }
-            console.log('Processed image URI:', processedUri);
             setSelectedImages(prevImages => {
               const normalized = ensureCapacity(prevImages);
               if (normalized[index] !== imageUri) {
@@ -162,7 +160,7 @@ const ImageSelectionScreen: React.FC = () => {
             });
           })
           .catch(err => {
-            console.log('Image processing failed, using original:', err);
+            // Image processing failed, using original
           });
       }
     } catch (error) {

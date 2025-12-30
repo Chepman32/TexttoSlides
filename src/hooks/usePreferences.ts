@@ -32,13 +32,11 @@ export const usePreferences = () => {
   // Apply theme when preferences change
   useEffect(() => {
     // In a complete implementation, this would update the theme context
-    console.log('Theme updated to:', preferences.theme);
   }, [preferences.theme]);
 
   // Apply language when preferences change
   useEffect(() => {
     // In a complete implementation, this would update the language context
-    console.log('Language updated to:', preferences.language);
   }, [preferences.language]);
 
   const updatePreferences = (newPreferences: Partial<UserPreferences>) => {

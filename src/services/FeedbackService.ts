@@ -32,13 +32,12 @@ class FeedbackService {
     // Initialize sound objects for different feedback types
     // Note: In a real app, you would include actual sound files
     // For now, we'll use system sounds or create simple beeps
-    
+
     try {
       // Use system sounds instead of custom files
       // This prevents the OSStatus errors we were seeing
-      console.log('Sound system initialized (using system sounds)');
     } catch (error) {
-      console.log('Error initializing sounds:', error);
+      // Silent initialization
     }
   }
 
@@ -54,11 +53,10 @@ class FeedbackService {
       // 1. Include actual sound files in the bundle
       // 2. Use system sounds
       // 3. Use a different sound library
-      console.log(`Playing sound: ${soundType}`);
-      
+
       // TODO: Implement actual sound playback when sound files are available
     } catch (error) {
-      console.log('Error playing sound:', error);
+      // Silent error handling
     }
   }
 
@@ -71,7 +69,7 @@ class FeedbackService {
     try {
       ReactNativeHapticFeedback.trigger(type, hapticOptions);
     } catch (error) {
-      console.log('Error triggering haptic feedback:', error);
+      // Silent error handling
     }
   }
 

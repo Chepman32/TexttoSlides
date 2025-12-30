@@ -99,24 +99,19 @@ class ImageService {
 
     try {
       const result = await check(permission);
-      console.log('Permission check result:', result);
 
       if (result === RESULTS.GRANTED) {
         return true;
       }
 
       if (result === RESULTS.DENIED || result === RESULTS.BLOCKED) {
-        console.log('Requesting permission...');
         const requestResult = await request(permission);
-        console.log('Permission request result:', requestResult);
         return requestResult === RESULTS.GRANTED;
       }
 
       // If permission is unavailable or restricted, try to request anyway
       if (result === RESULTS.UNAVAILABLE || result === RESULTS.RESTRICTED) {
-        console.log('Permission unavailable/restricted, trying to request...');
         const requestResult = await request(permission);
-        console.log('Permission request result:', requestResult);
         return requestResult === RESULTS.GRANTED;
       }
 
@@ -204,7 +199,6 @@ class ImageService {
               onPress: () => {
                 // On iOS, this will open the app settings
                 // On Android, this will open the system settings
-                console.log('Opening settings...');
               },
             },
           ],
@@ -220,19 +214,13 @@ class ImageService {
 
         launchImageLibrary(options, (response: ImagePickerResponse) => {
           if (response.didCancel || response.errorMessage) {
-            console.log(
-              'Image picker cancelled or error:',
-              response.errorMessage,
-            );
             resolve(null);
             return;
           }
 
           if (response.assets && response.assets[0]) {
-            console.log('Image selected:', response.assets[0].uri);
             resolve(response.assets[0].uri || null);
           } else {
-            console.log('No image selected');
             resolve(null);
           }
         });

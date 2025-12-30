@@ -394,7 +394,6 @@ const EditorScreen: React.FC = () => {
 
     try {
       await StorageService.saveCurrentProject(projectState);
-      console.log('Project auto-saved');
       setHasUnsavedChanges(false);
     } catch (error) {
       console.error('Failed to auto-save project:', error);
@@ -440,7 +439,6 @@ const EditorScreen: React.FC = () => {
 
             if (imagesChanged) {
               // Images have changed, update slides with new images but keep other properties
-              console.log('Images changed, updating slides with new images');
               const updatedSlides = savedProject.slides.map((slide, index) => ({
                 ...slide,
                 image: images[index] || '',
@@ -520,12 +518,6 @@ const EditorScreen: React.FC = () => {
       sliderTranslateY.value = withSpring(
         (1 - clampedProgress) * SLIDER_HEIGHT,
       );
-
-      console.log('Slider initialized:', {
-        fontSize: currentSlide.fontSize,
-        progress: clampedProgress,
-        newPosition: (1 - clampedProgress) * SLIDER_HEIGHT,
-      });
     }
   }, [currentSlideIndex, currentSlide, sliderTranslateY]);
 
@@ -554,21 +546,11 @@ const EditorScreen: React.FC = () => {
   // Add to history function
   const addToHistory = useCallback(
     (newSlides: Slide[]) => {
-      console.log(
-        'addToHistory called, isRestoring:',
-        isRestoringFromHistory.current,
-      );
       if (!isRestoringFromHistory.current) {
         setHistory(prevHistory => {
           const currentIndex = historyIndex;
           const newHistory = prevHistory.slice(0, currentIndex + 1);
           newHistory.push(newSlides);
-          console.log(
-            'History updated, new length:',
-            newHistory.length,
-            'current index:',
-            currentIndex,
-          );
 
           // Keep history limited to 20 items
           if (newHistory.length > 20) {
@@ -625,7 +607,6 @@ const EditorScreen: React.FC = () => {
 
   const updateFontSize = useCallback(
     (newFontSize: number) => {
-      console.log('updateFontSize called with:', newFontSize);
       FeedbackService.textResize();
       setSlides(prevSlides => {
         const newSlides = [...prevSlides];
@@ -646,7 +627,6 @@ const EditorScreen: React.FC = () => {
         newSlides[currentSlideIndex] = slide;
         addToHistory(newSlides);
         setHasUnsavedChanges(true);
-        console.log('Font size updated to:', slide.fontSize);
         return newSlides;
       });
     },

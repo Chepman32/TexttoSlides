@@ -221,11 +221,9 @@ const applyTextEffectsToCanvas = (
 
 class ExportService {
   private static instance: ExportService;
-  private isProUser: boolean = true; // App is now completely free
+  private isProUser: boolean = true;
 
-  private constructor() {
-    // No need to check pro status - app is free
-  }
+  private constructor() {}
 
   static getInstance(): ExportService {
     if (!ExportService.instance) {
@@ -234,13 +232,12 @@ class ExportService {
     return ExportService.instance;
   }
 
-  // App is now completely free - these methods are kept for compatibility
   private async checkProStatus() {
     this.isProUser = true;
   }
 
   public setProStatus(_isPro: boolean) {
-    this.isProUser = true; // Always true - app is free
+    this.isProUser = true;
   }
 
   private async requestStoragePermission(): Promise<boolean> {
@@ -353,7 +350,7 @@ class ExportService {
     options: ExportOptions = {},
   ): Promise<{ success: boolean; savedPaths: string[]; error?: string }> {
     const {
-      addWatermark = false, // App is completely free - no watermark
+      addWatermark = false,
       watermarkText = 'Made with Text to Slides',
       watermarkPosition = 'bottomRight',
       quality = 0.9,
@@ -478,7 +475,7 @@ class ExportService {
     },
   ): Promise<{ success: boolean; savedPaths: string[]; error?: string }> {
     const savedPaths: string[] = [];
-    const addWatermark = false; // App is completely free - no watermark
+    const addWatermark = false;
     const textEffectsEngine = TextEffectsEngine.getInstance();
 
     try {
@@ -731,7 +728,7 @@ class ExportService {
   }
 
   public showUpgradePrompt() {
-    console.log('Upgrade prompt');
+    // Upgrade prompt (app is now free)
   }
 }
 

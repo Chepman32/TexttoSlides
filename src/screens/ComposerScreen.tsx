@@ -515,7 +515,7 @@ const ComposerScreen: React.FC = () => {
                 height: thumbnailHeight,
               });
             } catch (thumbError) {
-              console.log('Could not capture thumbnail:', thumbError);
+              // Silent thumbnail capture error
             }
           }
 
