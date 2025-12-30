@@ -2178,15 +2178,14 @@ const ComposerScreen: React.FC = () => {
               !canUndo && styles.undoRedoButtonDisabled,
             ]}
           >
-            <Text
+            <Image
+              source={require('../assets/icons/undo.png')}
               style={[
-                styles.undoRedoButtonText,
-                { color: themeDefinition.colors.textPrimary },
+                styles.undoRedoIcon,
+                { tintColor: themeDefinition.colors.textPrimary },
                 !canUndo && { opacity: 0.4 },
               ]}
-            >
-              ↩
-            </Text>
+            />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={redo}
@@ -2197,15 +2196,14 @@ const ComposerScreen: React.FC = () => {
               !canRedo && styles.undoRedoButtonDisabled,
             ]}
           >
-            <Text
+            <Image
+              source={require('../assets/icons/redo.png')}
               style={[
-                styles.undoRedoButtonText,
-                { color: themeDefinition.colors.textPrimary },
+                styles.undoRedoIcon,
+                { tintColor: themeDefinition.colors.textPrimary },
                 !canRedo && { opacity: 0.4 },
               ]}
-            >
-              ↪
-            </Text>
+            />
           </TouchableOpacity>
         </View>
 
@@ -2425,6 +2423,10 @@ const styles = StyleSheet.create({
   undoRedoButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  undoRedoIcon: {
+    width: 18,
+    height: 18,
   },
   swapButton: {
     paddingHorizontal: 12,

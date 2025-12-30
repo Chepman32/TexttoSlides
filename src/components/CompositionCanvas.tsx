@@ -1,5 +1,5 @@
 import React, { useMemo, forwardRef, ReactNode } from 'react';
-import { Dimensions, View, Text as RNText } from 'react-native';
+import { View, Text as RNText, useWindowDimensions } from 'react-native';
 import {
   renderTextEffects,
   needsMultipleLayers,
@@ -34,8 +34,8 @@ interface CompositionCanvasProps {
   onPanImage?: (imageKey: 'A' | 'B', offset: ImageOffset) => void;
 }
 
-const { width: screenWidth } = Dimensions.get('window');
-const canvasWidth = screenWidth - 32; // 16px margin on each side
+// Base phone width for scaling calculations
+const BASE_PHONE_WIDTH = 375;
 
 const degToRad = (angle: number) => (angle * Math.PI) / 180;
 
@@ -89,6 +89,7 @@ const calculateCoverFitPosition = (
 const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
   ({ composition }, ref) => {
     const { themeDefinition } = useTheme();
+    const { width: windowWidth } = useWindowDimensions();
 
     const imageA = useImage(composition.photoAUri || '');
     const imageB = useImage(composition.photoBUri || '');
@@ -97,24 +98,31 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
     const LINE_HEIGHT_MULTIPLIER = 1.3;
 
+    // Calculate actual canvas width based on window dimensions
+    const actualCanvasWidth = windowWidth - 32;
+
+    // Scale factor for labels on larger screens (iPad)
+    // Calculate based on actual canvas width vs base phone width
+    const labelScaleFactor = Math.max(1, actualCanvasWidth / BASE_PHONE_WIDTH);
+
     const { canvasHeight, imageWidth, imageHeight, layout } = useMemo(() => {
       let calculatedCanvasHeight = 400;
-      let calculatedImageWidth = canvasWidth;
+      let calculatedImageWidth = actualCanvasWidth;
       let calculatedImageHeight = 300;
 
       // Calculate dimensions based on aspect ratio and layout
       switch (composition.aspect) {
         case '1:1':
-          calculatedCanvasHeight = canvasWidth;
-          calculatedImageWidth = canvasWidth;
-          calculatedImageHeight = canvasWidth;
+          calculatedCanvasHeight = actualCanvasWidth;
+          calculatedImageWidth = actualCanvasWidth;
+          calculatedImageHeight = actualCanvasWidth;
           break;
         case '9:16':
-          calculatedCanvasHeight = (canvasWidth * 16) / 9;
+          calculatedCanvasHeight = (actualCanvasWidth * 16) / 9;
           calculatedImageHeight = calculatedCanvasHeight;
           break;
         case '16:9':
-          calculatedCanvasHeight = (canvasWidth * 9) / 16;
+          calculatedCanvasHeight = (actualCanvasWidth * 9) / 16;
           calculatedImageHeight = calculatedCanvasHeight;
           break;
       }
@@ -127,15 +135,15 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           (calculatedCanvasHeight - composition.spacing) / 2;
       } else if (calculatedLayout === 'side') {
         // For side-by-side, each image takes half the width
-        calculatedImageWidth = (canvasWidth - composition.spacing) / 2;
+        calculatedImageWidth = (actualCanvasWidth - composition.spacing) / 2;
         // Match canvas height to image height for side layout
         calculatedCanvasHeight = calculatedImageHeight;
       }
 
       if (calculatedLayout === 'deviceMockup') {
         // Device mockup layout uses its own sizing for screens
-        calculatedImageWidth = canvasWidth * 0.42;
-        calculatedImageHeight = canvasHeight * 0.88;
+        calculatedImageWidth = actualCanvasWidth * 0.42;
+        calculatedImageHeight = calculatedCanvasHeight * 0.88;
       }
 
       // Add extra space for below-image labels
@@ -158,6 +166,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         labelAreaHeight,
       };
     }, [
+      actualCanvasWidth,
       composition.aspect,
       composition.layout,
       composition.spacing,
@@ -176,23 +185,23 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       return {
         x: 0,
         y: 0,
-        width: canvasWidth,
+        width: actualCanvasWidth,
         height: canvasHeight,
         rx: canvasCornerRadius,
         ry: canvasCornerRadius,
       };
-    }, [canvasHeight, canvasCornerRadius]);
+    }, [actualCanvasWidth, canvasHeight, canvasCornerRadius]);
 
     const deviceMetrics = useMemo(() => {
       if (composition.layout !== 'deviceMockup') {
         return null;
       }
 
-      const deviceWidth = canvasWidth * 0.42;
+      const deviceWidth = actualCanvasWidth * 0.42;
       const deviceHeight = canvasHeight * 0.9;
       const spacing = composition.spacing;
       const totalWidth = deviceWidth * 2 + spacing;
-      const startX = (canvasWidth - totalWidth) / 2;
+      const startX = (actualCanvasWidth - totalWidth) / 2;
       const deviceY = (canvasHeight - deviceHeight) / 2;
 
       const bezelX = deviceWidth * 0.068;
@@ -222,7 +231,12 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           radius: notchRadius,
         },
       };
-    }, [canvasHeight, canvasWidth, composition.layout, composition.spacing]);
+    }, [
+      actualCanvasWidth,
+      canvasHeight,
+      composition.layout,
+      composition.spacing,
+    ]);
 
     /**
      * Renders an Image with optional ColorMatrix filter
@@ -270,7 +284,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             <RoundedRect
               x={0}
               y={0}
-              width={layout === 'side' ? imageWidth : canvasWidth}
+              width={layout === 'side' ? imageWidth : actualCanvasWidth}
               height={
                 layout === 'side' || layout === 'vertical'
                   ? imageHeight
@@ -680,14 +694,14 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       } else if (layout === 'slider') {
         // Slider reveal layout - show both images with a mask
         const sliderPos = composition.sliderPosition ?? 0.5;
-        const sliderX = canvasWidth * sliderPos;
+        const sliderX = actualCanvasWidth * sliderPos;
         const offsetA = composition.photoAOffset || { x: 0, y: 0 };
         const offsetB = composition.photoBOffset || { x: 0, y: 0 };
 
         // Calculate cover fit positions with clamped offsets
         const imageAPos = calculateCoverFitPosition(
           imageA,
-          canvasWidth,
+          actualCanvasWidth,
           canvasHeight,
           0,
           0,
@@ -695,7 +709,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         );
         const imageBPos = calculateCoverFitPosition(
           imageB,
-          canvasWidth,
+          actualCanvasWidth,
           canvasHeight,
           0,
           0,
@@ -710,7 +724,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 clip={{
                   x: 0,
                   y: 0,
-                  width: canvasWidth,
+                  width: actualCanvasWidth,
                   height: canvasHeight,
                   rx: cornerRadius,
                   ry: cornerRadius,
@@ -789,7 +803,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               <RoundedRect
                 x={0}
                 y={0}
-                width={canvasWidth}
+                width={actualCanvasWidth}
                 height={canvasHeight}
                 r={cornerRadius}
                 color={themeDefinition.colors.border}
@@ -810,7 +824,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 clip={{
                   x: 0,
                   y: 0,
-                  width: canvasWidth,
+                  width: actualCanvasWidth,
                   height: adjustedImageHeight,
                   rx: cornerRadius,
                   ry: cornerRadius,
@@ -821,7 +835,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                   fit="cover"
                   x={0}
                   y={0}
-                  width={canvasWidth}
+                  width={actualCanvasWidth}
                   height={adjustedImageHeight}
                 />
               </Group>
@@ -829,7 +843,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               <RoundedRect
                 x={0}
                 y={0}
-                width={canvasWidth}
+                width={actualCanvasWidth}
                 height={adjustedImageHeight}
                 r={cornerRadius}
                 color={themeDefinition.colors.border}
@@ -839,7 +853,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             <RoundedRect
               x={0}
               y={adjustedImageHeight}
-              width={canvasWidth}
+              width={actualCanvasWidth}
               height={barHeight}
               r={0}
               color={
@@ -881,7 +895,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           </Group>,
         );
       } else if (layout === 'polaroid') {
-        const baseSize = Math.min(canvasWidth, canvasHeight);
+        const baseSize = Math.min(actualCanvasWidth, canvasHeight);
         const polaroidWidth = baseSize * 0.55;
         const polaroidHeight = baseSize * 0.58;
         const sidePadding = polaroidWidth * 0.06;
@@ -1038,7 +1052,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             'before-polaroid',
             imageA,
             offsetA,
-            canvasWidth / 2 - offsetX,
+            actualCanvasWidth / 2 - offsetX,
             canvasHeight / 2 - offsetY,
             -8,
             {
@@ -1051,7 +1065,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             'after-polaroid',
             imageB,
             offsetB,
-            canvasWidth / 2 + offsetX,
+            actualCanvasWidth / 2 + offsetX,
             canvasHeight / 2 + offsetY,
             5,
             {
@@ -1070,7 +1084,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         // Calculate cover fit positions with clamped offsets
         const imageAPos = calculateCoverFitPosition(
           imageA,
-          canvasWidth,
+          actualCanvasWidth,
           canvasHeight,
           0,
           0,
@@ -1078,7 +1092,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         );
         const imageBPos = calculateCoverFitPosition(
           imageB,
-          canvasWidth,
+          actualCanvasWidth,
           canvasHeight,
           0,
           0,
@@ -1087,13 +1101,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
         const topLeftTrianglePath = Skia.Path.Make();
         topLeftTrianglePath.moveTo(0, 0);
-        topLeftTrianglePath.lineTo(canvasWidth, 0);
+        topLeftTrianglePath.lineTo(actualCanvasWidth, 0);
         topLeftTrianglePath.lineTo(0, canvasHeight);
         topLeftTrianglePath.close();
 
         const bottomRightTrianglePath = Skia.Path.Make();
-        bottomRightTrianglePath.moveTo(canvasWidth, 0);
-        bottomRightTrianglePath.lineTo(canvasWidth, canvasHeight);
+        bottomRightTrianglePath.moveTo(actualCanvasWidth, 0);
+        bottomRightTrianglePath.lineTo(actualCanvasWidth, canvasHeight);
         bottomRightTrianglePath.lineTo(0, canvasHeight);
         bottomRightTrianglePath.close();
 
@@ -1127,7 +1141,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
             {/* Diagonal divider line */}
             <Path
-              path={`M ${canvasWidth} 0 L 0 ${canvasHeight}`}
+              path={`M ${actualCanvasWidth} 0 L 0 ${canvasHeight}`}
               color="#FFFFFF"
               style="stroke"
               strokeWidth={3}
@@ -1155,19 +1169,19 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
         // Photo dimensions - adjust based on aspect ratio
         // For tall canvases (9:16), use smaller percentage to fit both photos
-        const aspectRatio = canvasHeight / canvasWidth;
+        const aspectRatio = canvasHeight / actualCanvasWidth;
         const isTallCanvas = aspectRatio > 1.2;
 
         // For tall canvases, reduce photo size to ensure both fit
         const photoSizePercent = isTallCanvas ? 0.55 : 0.65;
-        const photoWidth = canvasWidth * photoSizePercent;
+        const photoWidth = actualCanvasWidth * photoSizePercent;
         const photoHeight = canvasHeight * photoSizePercent;
 
         // Positions - before photo top-left, after photo bottom-right
         // Adjust positions for tall canvases to ensure overlap and visibility
-        const beforeX = canvasWidth * 0.02;
+        const beforeX = actualCanvasWidth * 0.02;
         const beforeY = canvasHeight * 0.02;
-        const afterX = canvasWidth * (isTallCanvas ? 0.43 : 0.33);
+        const afterX = actualCanvasWidth * (isTallCanvas ? 0.43 : 0.33);
         const afterY = canvasHeight * (isTallCanvas ? 0.43 : 0.33);
 
         // Frame settings
@@ -1308,12 +1322,12 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       // Special case: Always show labels for polaroid layout regardless of show setting
       if (layout === 'polaroid') {
         const { textBefore, textAfter } = composition.labels;
-        const baseSize = Math.min(canvasWidth, canvasHeight);
+        const baseSize = Math.min(actualCanvasWidth, canvasHeight);
         const offsetX = baseSize * 0.18;
         const offsetY = baseSize * 0.02;
         const polaroidHeight = baseSize * 0.58;
-        const beforePolaroidCenterX = canvasWidth / 2 - offsetX;
-        const afterPolaroidCenterX = canvasWidth / 2 + offsetX;
+        const beforePolaroidCenterX = actualCanvasWidth / 2 - offsetX;
+        const afterPolaroidCenterX = actualCanvasWidth / 2 + offsetX;
         const beforePolaroidCenterY = canvasHeight / 2 - offsetY;
         const afterPolaroidCenterY = canvasHeight / 2 + offsetY;
 
@@ -1332,18 +1346,23 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const beforeTapeX = beforePolaroidCenterX - baseSize * 0.55 * 0.08; // polaroidWidth * 0.08
         const afterTapeX = afterPolaroidCenterX + baseSize * 0.55 * 0.05; // polaroidWidth * 0.05
 
+        // Scale font size and positions for larger screens
+        const scaledPolaroidFontSize = Math.round(
+          (composition.labels.fontSize || 22) * labelScaleFactor,
+        );
+
         return (
           <>
             <RNText
               style={{
                 position: 'absolute' as const,
-                left: beforeTapeX - 55,
-                top: beforeTapeY - 10,
+                left: beforeTapeX - 55 * labelScaleFactor,
+                top: beforeTapeY - 10 * labelScaleFactor,
                 color: composition.labels.color || '#FFFFFF',
-                fontSize: composition.labels.fontSize || 22,
+                fontSize: scaledPolaroidFontSize,
                 fontWeight: 'bold',
                 textAlign: 'center',
-                minWidth: 50,
+                minWidth: 50 * labelScaleFactor,
                 zIndex: 999,
                 transform: [{ rotate: '-15deg' }],
               }}
@@ -1353,13 +1372,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             <RNText
               style={{
                 position: 'absolute' as const,
-                left: afterTapeX - 25,
-                top: afterTapeY - 15,
+                left: afterTapeX - 25 * labelScaleFactor,
+                top: afterTapeY - 15 * labelScaleFactor,
                 color: composition.labels.color || '#FFFFFF',
-                fontSize: composition.labels.fontSize || 22,
+                fontSize: scaledPolaroidFontSize,
                 fontWeight: 'bold',
                 textAlign: 'center',
-                minWidth: 50,
+                minWidth: 50 * labelScaleFactor,
                 zIndex: 999,
                 transform: [{ rotate: '10deg' }],
               }}
@@ -1399,24 +1418,27 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         }
       };
 
-      const labelPaddingHorizontal = 8;
-      const labelPaddingVertical = 4;
+      const labelPaddingHorizontal = 8 * labelScaleFactor;
+      const labelPaddingVertical = 4 * labelScaleFactor;
 
       // Default colors: black text on white background for most templates
       // Device mockup and polaroid have their own special styling
       const defaultTextColor = '#000000';
       const defaultBackgroundColor = '#FFFFFF';
 
+      // Scale font size for larger screens (iPad)
+      const scaledFontSize = Math.round(fontSize * labelScaleFactor);
+
       const labelStyle = {
-        fontSize: fontSize,
-        lineHeight: Math.ceil(fontSize * LINE_HEIGHT_MULTIPLIER),
+        fontSize: scaledFontSize,
+        lineHeight: Math.ceil(scaledFontSize * LINE_HEIGHT_MULTIPLIER),
         fontWeight: getFontWeight(composition.labels.fontWeight) as any,
         color: composition.labels.color || defaultTextColor,
         backgroundColor:
           composition.labels.backgroundColor || defaultBackgroundColor,
         paddingHorizontal: labelPaddingHorizontal,
         paddingVertical: labelPaddingVertical,
-        borderRadius: 4,
+        borderRadius: 4 * labelScaleFactor,
         ...effectStyles.textStyle, // Apply text effects
       };
 
@@ -1471,11 +1493,11 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
 
       const isTop = position === 'tl' || position === 'tr';
       const isLeft = position === 'tl' || position === 'bl';
-      const containerPadding = Math.max(0, margin);
+      const containerPadding = Math.max(0, margin * labelScaleFactor);
       const anchorHorizontalStyle = isLeft
         ? { left: containerPadding }
         : { right: containerPadding };
-      const textAlignment = isLeft ? 'left' : 'right';
+      const textAlignment: 'left' | 'right' = isLeft ? 'left' : 'right';
 
       if (layout === 'side') {
         // Check for belowCenter position - labels outside/below images
@@ -1494,7 +1516,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 pointerEvents="none"
                 style={{
                   position: 'absolute',
-                  top: imageHeight + margin,
+                  top: imageHeight + margin * labelScaleFactor,
                   left: 0,
                   width: imageWidth,
                   alignItems: 'center',
@@ -1511,7 +1533,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 pointerEvents="none"
                 style={{
                   position: 'absolute',
-                  top: imageHeight + margin,
+                  top: imageHeight + margin * labelScaleFactor,
                   left: imageWidth + composition.spacing,
                   width: imageWidth,
                   alignItems: 'center',
@@ -1550,7 +1572,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               >
                 {renderTextWithEffects(textBefore, [
                   labelStyle,
-                  { textAlign: textAlignment as const },
+                  { textAlign: textAlignment },
                 ])}
               </View>
             </View>
@@ -1571,7 +1593,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               >
                 {renderTextWithEffects(textAfter, [
                   labelStyle,
-                  { textAlign: textAlignment as const },
+                  { textAlign: textAlignment },
                 ])}
               </View>
             </View>
@@ -1596,8 +1618,10 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           alignItems: 'center' as const,
         };
 
-        // Use template's font size configuration
-        const deviceMockupFontSize = composition.labels.fontSize || 19;
+        // Use template's font size configuration, scaled for larger screens
+        const deviceMockupFontSize = Math.round(
+          (composition.labels.fontSize || 19) * labelScaleFactor,
+        );
 
         const deviceLabelStyle = {
           ...labelStyle,
@@ -1616,11 +1640,11 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           backgroundColor: 'rgba(12, 15, 21, 0.94)',
           justifyContent: 'center' as const,
           alignItems: 'center' as const,
-          paddingHorizontal: Math.max(6, notch.width * 0.12),
+          paddingHorizontal: Math.max(6 * labelScaleFactor, notch.width * 0.12),
         };
 
-        const labelOffsetX = -8; // shift labels left
-        const labelOffsetY = 6; // shift labels down
+        const labelOffsetX = -8 * labelScaleFactor; // shift labels left
+        const labelOffsetY = 6 * labelScaleFactor; // shift labels down
 
         const deviceLabelConfigs = [
           {
@@ -1692,7 +1716,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const baseContainerStyle = {
           position: 'absolute' as const,
           left: 0,
-          width: canvasWidth,
+          width: actualCanvasWidth,
           height: imageHeight,
         };
 
@@ -1709,7 +1733,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               >
                 {renderTextWithEffects(textBefore, [
                   labelStyle,
-                  { textAlign: textAlignment as const },
+                  { textAlign: textAlignment },
                 ])}
               </View>
             </View>
@@ -1730,7 +1754,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               >
                 {renderTextWithEffects(textAfter, [
                   labelStyle,
-                  { textAlign: textAlignment as const },
+                  { textAlign: textAlignment },
                 ])}
               </View>
             </View>
@@ -1742,14 +1766,14 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const barHeight = 40;
         const beforeLabelY =
           canvasHeight - Math.max(barHeight, estimatedLabelHeight + 8);
-        const maxLabelWidth = canvasWidth / 2 - 20;
+        const maxLabelWidth = actualCanvasWidth / 2 - 20 * labelScaleFactor;
 
         return (
           <>
             {renderTextWithEffects(textBefore, [
               labelStyle,
               {
-                left: 10,
+                left: 10 * labelScaleFactor,
                 top: beforeLabelY,
                 maxWidth: maxLabelWidth,
                 textAlign: 'left' as const,
@@ -1758,7 +1782,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             {renderTextWithEffects(textAfter, [
               labelStyle,
               {
-                right: 10,
+                right: 10 * labelScaleFactor,
                 top: beforeLabelY,
                 maxWidth: maxLabelWidth,
                 textAlign: 'right' as const,
@@ -1768,7 +1792,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         );
       } else if (layout === 'diagonal') {
         // Labels for diagonal layout - Before in top-left, After in bottom-right
-        const margin = composition.labels.margin;
+        const scaledMargin = composition.labels.margin * labelScaleFactor;
 
         return (
           <>
@@ -1776,8 +1800,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               labelStyle,
               {
                 position: 'absolute' as const,
-                top: margin,
-                left: margin,
+                top: scaledMargin,
+                left: scaledMargin,
                 textAlign: 'left' as const,
               },
             ])}
@@ -1785,8 +1809,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
               labelStyle,
               {
                 position: 'absolute' as const,
-                bottom: margin,
-                right: margin,
+                bottom: scaledMargin,
+                right: scaledMargin,
                 textAlign: 'right' as const,
               },
             ])}
@@ -1795,14 +1819,14 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       } else if (layout === 'diagonalStacked') {
         // Labels for diagonal stacked layout - position relative to each photo
         // Use same calculations as the image rendering
-        const aspectRatio = canvasHeight / canvasWidth;
+        const aspectRatio = canvasHeight / actualCanvasWidth;
         const isTallCanvas = aspectRatio > 1.2;
         const photoSizePercent = isTallCanvas ? 0.55 : 0.65;
-        const photoWidth = canvasWidth * photoSizePercent;
+        const photoWidth = actualCanvasWidth * photoSizePercent;
         const photoHeight = canvasHeight * photoSizePercent;
-        const beforeX = canvasWidth * 0.02;
+        const beforeX = actualCanvasWidth * 0.02;
         const beforeY = canvasHeight * 0.02;
-        const afterX = canvasWidth * (isTallCanvas ? 0.43 : 0.33);
+        const afterX = actualCanvasWidth * (isTallCanvas ? 0.43 : 0.33);
         const afterY = canvasHeight * (isTallCanvas ? 0.43 : 0.33);
 
         // Calculate label positions based on position setting
@@ -1824,7 +1848,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             baseStyle.textAlign = 'left';
           } else {
             // For right positions, place at the right edge of the visible area (before After photo starts)
-            baseStyle.right = canvasWidth - afterX + containerPadding;
+            baseStyle.right = actualCanvasWidth - afterX + containerPadding;
             baseStyle.textAlign = 'right';
           }
 
@@ -1848,7 +1872,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             baseStyle.textAlign = 'left';
           } else {
             baseStyle.right =
-              canvasWidth - (afterX + photoWidth) + containerPadding;
+              actualCanvasWidth - (afterX + photoWidth) + containerPadding;
             baseStyle.textAlign = 'right';
           }
 
@@ -1865,61 +1889,38 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           </>
         );
       } else if (layout === 'slider') {
-        // Labels for slider reveal layout - Before on right side, After on left side
-        const sliderPos = composition.sliderPosition ?? 0.5;
-        const sliderX = canvasWidth * sliderPos;
-
+        // Labels for slider reveal layout - After on left, Before on right
         return (
           <>
-            {/* After label (left side of slider) */}
+            {/* After label (left side) */}
             <View
               pointerEvents="none"
               style={{
-                position: 'absolute' as const,
-                top: 0,
-                left: 0,
-                width: sliderX,
-                height: canvasHeight,
+                position: 'absolute',
+                [isTop ? 'top' : 'bottom']: containerPadding,
+                left: containerPadding,
+                zIndex: 100,
               }}
             >
-              <View
-                pointerEvents="none"
-                style={{
-                  position: 'absolute',
-                  [isTop ? 'top' : 'bottom']: containerPadding,
-                  left: containerPadding,
-                }}
-              >
-                {renderTextWithEffects(textAfter, [
-                  labelStyle,
-                  { textAlign: 'left' as const },
-                ])}
-              </View>
+              {renderTextWithEffects(textAfter, [
+                labelStyle,
+                { textAlign: 'left' as const },
+              ])}
             </View>
-            {/* Before label (right side of slider) */}
+            {/* Before label (right side) */}
             <View
               pointerEvents="none"
               style={{
-                position: 'absolute' as const,
-                top: 0,
-                left: sliderX,
-                width: canvasWidth - sliderX,
-                height: canvasHeight,
+                position: 'absolute',
+                [isTop ? 'top' : 'bottom']: containerPadding,
+                right: containerPadding,
+                zIndex: 100,
               }}
             >
-              <View
-                pointerEvents="none"
-                style={{
-                  position: 'absolute',
-                  [isTop ? 'top' : 'bottom']: containerPadding,
-                  right: containerPadding,
-                }}
-              >
-                {renderTextWithEffects(textBefore, [
-                  labelStyle,
-                  { textAlign: 'right' as const },
-                ])}
-              </View>
+              {renderTextWithEffects(textBefore, [
+                labelStyle,
+                { textAlign: 'right' as const },
+              ])}
             </View>
           </>
         );
@@ -1942,11 +1943,11 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         switch (direction) {
           case 'horizontal':
             start = vec(0, 0);
-            end = vec(canvasWidth, 0);
+            end = vec(actualCanvasWidth, 0);
             break;
           case 'diagonal':
             start = vec(0, 0);
-            end = vec(canvasWidth, canvasHeight);
+            end = vec(actualCanvasWidth, canvasHeight);
             break;
           case 'vertical':
           default:
@@ -1959,7 +1960,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           <RoundedRect
             x={0}
             y={0}
-            width={canvasWidth}
+            width={actualCanvasWidth}
             height={canvasHeight}
             r={canvasCornerRadius}
           >
@@ -1972,7 +1973,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         <RoundedRect
           x={0}
           y={0}
-          width={canvasWidth}
+          width={actualCanvasWidth}
           height={canvasHeight}
           r={canvasCornerRadius}
           color={
@@ -1993,7 +1994,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         <RoundedRect
           x={strokeOffset}
           y={strokeOffset}
-          width={canvasWidth - composition.frame.thickness}
+          width={actualCanvasWidth - composition.frame.thickness}
           height={canvasHeight - composition.frame.thickness}
           r={composition.cornerRadius}
           style="stroke"
@@ -2010,7 +2011,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       return (
         <Group key="watermark">
           <RoundedRect
-            x={canvasWidth - 120}
+            x={actualCanvasWidth - 120}
             y={12}
             width={110}
             height={24}
@@ -2019,7 +2020,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
             opacity={0.3}
           />
           <RoundedRect
-            x={canvasWidth - 115}
+            x={actualCanvasWidth - 115}
             y={16}
             width={100}
             height={16}
@@ -2034,7 +2035,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
     return (
       <View
         style={{
-          width: canvasWidth,
+          width: actualCanvasWidth,
           height: canvasHeight,
           position: 'relative',
           overflow: 'visible',
@@ -2042,7 +2043,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
       >
         <Canvas
           ref={ref}
-          style={{ width: canvasWidth, height: canvasHeight }}
+          style={{ width: actualCanvasWidth, height: canvasHeight }}
           pointerEvents="none"
         >
           <Group clip={clipRect}>

@@ -360,9 +360,13 @@ const HomeScreen: React.FC = () => {
                 isTablet && { width: 100, height: 100, borderRadius: 24 },
               ]}
             >
-              <Text style={[styles.cameraIcon, isTablet && { fontSize: 50 }]}>
-                📷
-              </Text>
+              <Image
+                source={require('../assets/icons/pick2photos.png')}
+                style={[
+                  styles.mainCardIcon,
+                  isTablet && { width: 50, height: 50 },
+                ]}
+              />
             </View>
 
             <Text style={[styles.mainTitle, { fontSize: fontSize.xlarge }]}>
@@ -398,11 +402,13 @@ const HomeScreen: React.FC = () => {
                   isTablet && { width: 60, height: 60, borderRadius: 30 },
                 ]}
               >
-                <Text
-                  style={[styles.actionIconText, isTablet && { fontSize: 22 }]}
-                >
-                  📷
-                </Text>
+                <Image
+                  source={require('../assets/icons/camera.png')}
+                  style={[
+                    styles.actionIconImage,
+                    isTablet && { width: 28, height: 28 },
+                  ]}
+                />
               </View>
               <Text style={[styles.actionLabel, { fontSize: fontSize.small }]}>
                 {t('from_camera')}
@@ -420,11 +426,13 @@ const HomeScreen: React.FC = () => {
                   isTablet && { width: 60, height: 60, borderRadius: 30 },
                 ]}
               >
-                <Text
-                  style={[styles.actionIconText, isTablet && { fontSize: 22 }]}
-                >
-                  📁
-                </Text>
+                <Image
+                  source={require('../assets/icons/gallery.png')}
+                  style={[
+                    styles.actionIconImage,
+                    isTablet && { width: 28, height: 28 },
+                  ]}
+                />
               </View>
               <Text style={[styles.actionLabel, { fontSize: fontSize.small }]}>
                 {t('gallery')}
@@ -442,11 +450,13 @@ const HomeScreen: React.FC = () => {
                   isTablet && { width: 60, height: 60, borderRadius: 30 },
                 ]}
               >
-                <Text
-                  style={[styles.actionIconText, isTablet && { fontSize: 22 }]}
-                >
-                  📄
-                </Text>
+                <Image
+                  source={require('../assets/icons/files.png')}
+                  style={[
+                    styles.actionIconImage,
+                    isTablet && { width: 28, height: 28 },
+                  ]}
+                />
               </View>
               <Text style={[styles.actionLabel, { fontSize: fontSize.small }]}>
                 {t('from_files')}
@@ -700,6 +710,11 @@ const styles = StyleSheet.create({
   cameraIcon: {
     fontSize: 40,
   },
+  mainCardIcon: {
+    width: 40,
+    height: 40,
+    tintColor: '#666666',
+  },
   mainTitle: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -736,6 +751,11 @@ const styles = StyleSheet.create({
   actionIconText: {
     fontSize: 18,
     color: 'white',
+  },
+  actionIconImage: {
+    width: 22,
+    height: 22,
+    tintColor: 'white',
   },
   actionLabel: {
     fontSize: 12,
