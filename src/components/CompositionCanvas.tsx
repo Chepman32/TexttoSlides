@@ -1633,14 +1633,19 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           color: '#E9EEFF',
         };
 
+        // Scale notch size based on font size
+        const fontSizeRatio = deviceMockupFontSize / (19 * labelScaleFactor);
+        const scaledNotchHeight = Math.max(notch.height, notch.height * fontSizeRatio);
+        const scaledNotchWidth = Math.max(notch.width, notch.width * fontSizeRatio);
+
         const dynamicIslandStyle = {
-          width: notch.width,
-          height: notch.height,
-          borderRadius: notch.radius,
+          width: scaledNotchWidth,
+          height: scaledNotchHeight,
+          borderRadius: scaledNotchHeight / 2,
           backgroundColor: 'rgba(12, 15, 21, 0.94)',
           justifyContent: 'center' as const,
           alignItems: 'center' as const,
-          paddingHorizontal: Math.max(6 * labelScaleFactor, notch.width * 0.12),
+          paddingHorizontal: Math.max(6 * labelScaleFactor, scaledNotchWidth * 0.12),
         };
 
         const labelOffsetX = -8 * labelScaleFactor; // shift labels left
