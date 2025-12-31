@@ -1638,16 +1638,6 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         const scaledNotchHeight = Math.max(notch.height, notch.height * fontSizeRatio);
         const scaledNotchWidth = Math.max(notch.width, notch.width * fontSizeRatio);
 
-        const dynamicIslandStyle = {
-          width: scaledNotchWidth,
-          height: scaledNotchHeight,
-          borderRadius: scaledNotchHeight / 2,
-          backgroundColor: 'rgba(12, 15, 21, 0.94)',
-          justifyContent: 'center' as const,
-          alignItems: 'center' as const,
-          paddingHorizontal: Math.max(6 * labelScaleFactor, scaledNotchWidth * 0.12),
-        };
-
         const labelOffsetX = -8 * labelScaleFactor; // shift labels left
         const beforeLabelOffsetX = 8 * labelScaleFactor; // shift before label right
         const labelOffsetY = 6 * labelScaleFactor; // shift labels down
@@ -1681,6 +1671,20 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 ? -22 * labelScaleFactor
                 : 16 * labelScaleFactor;
 
+              // Calculate device-specific notch width (wider for "before")
+              const widthMultiplier = config.isLeft ? 1.2 : 1.0;
+              const deviceScaledNotchWidth = scaledNotchWidth * widthMultiplier;
+
+              const dynamicIslandStyle = {
+                width: deviceScaledNotchWidth,
+                height: scaledNotchHeight,
+                borderRadius: scaledNotchHeight / 2,
+                backgroundColor: 'rgba(12, 15, 21, 0.94)',
+                justifyContent: 'center' as const,
+                alignItems: 'center' as const,
+                paddingHorizontal: Math.max(6 * labelScaleFactor, deviceScaledNotchWidth * 0.12),
+              };
+
               return (
                 <View
                   key={config.key}
@@ -1712,7 +1716,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                         deviceLabelStyle,
                         {
                           maxWidth:
-                            notch.width - Math.max(12, notch.width * 0.24),
+                            deviceScaledNotchWidth - Math.max(12, deviceScaledNotchWidth * 0.24),
                         },
                       ])}
                     </View>
