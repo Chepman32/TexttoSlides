@@ -1671,8 +1671,8 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                 ? -22 * labelScaleFactor
                 : 16 * labelScaleFactor;
 
-              // Calculate device-specific notch width (wider for "before")
-              const widthMultiplier = config.isLeft ? 1.2 : 1.0;
+              // Calculate device-specific notch width (wider for both to prevent text cropping)
+              const widthMultiplier = config.isLeft ? 1.3 : 1.15;
               const deviceScaledNotchWidth = scaledNotchWidth * widthMultiplier;
 
               const dynamicIslandStyle = {
