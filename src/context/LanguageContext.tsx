@@ -29,6 +29,9 @@ i18n.use(initReactI18next).init({
   },
 });
 
+// Export i18n instance for use in navigation and other non-component contexts
+export { i18n };
+
 interface LanguageContextType {
   currentLanguage: Language;
   setLanguage: (language: Language) => void;

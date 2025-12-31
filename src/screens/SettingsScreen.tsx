@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
-    maxHeight: '70%',
+    maxHeight: '84%',
   },
   modalTitle: {
     fontSize: 20,
@@ -716,7 +716,7 @@ const styles = StyleSheet.create({
   },
   flagIcon: {
     width: 28,
-    height: 20,
+    height: 28,
     marginRight: 12,
     borderRadius: 2,
   },

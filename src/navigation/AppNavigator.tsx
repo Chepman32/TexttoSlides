@@ -9,6 +9,7 @@ import PreviewScreen from '../screens/PreviewScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import UpgradeScreen from '../screens/UpgradeScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
+import { i18n, useLanguage } from '../context/LanguageContext';
 
 import { CompositionState } from '../types/composer';
 import { Template } from '../constants/templates';
@@ -36,6 +37,9 @@ export type RootStackParamList = {
 const Stack = createStackNavigator<RootStackParamList>();
 
 const AppNavigator: React.FC = () => {
+  // Subscribe to language changes to trigger re-render of navigation options
+  const { currentLanguage } = useLanguage();
+
   useEffect(() => {
     // Initialize storage on app start
     StorageService.loadCurrentProject();
@@ -69,41 +73,41 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen
           name="Templates"
           component={PreviewScreen}
-          options={{
+          options={() => ({
             presentation: 'modal',
             headerShown: true,
-            title: 'Templates',
-            headerBackTitle: 'Cancel',
-          }}
+            title: i18n.t('templates_title'),
+            headerBackTitle: i18n.t('cancel'),
+          })}
         />
         <Stack.Screen
           name="ExportResult"
           component={PreviewScreen}
-          options={{
+          options={() => ({
             presentation: 'modal',
             headerShown: true,
-            title: 'Export',
-            headerBackTitle: 'Back',
-          }}
+            title: i18n.t('export_title'),
+            headerBackTitle: i18n.t('back'),
+          })}
         />
         <Stack.Screen
           name="Settings"
           component={SettingsScreen}
-          options={{
+          options={() => ({
             headerShown: true,
-            title: 'Settings',
-            headerBackTitle: 'Back',
-          }}
+            title: i18n.t('settings'),
+            headerBackTitle: i18n.t('back'),
+          })}
         />
         <Stack.Screen
           name="Paywall"
           component={UpgradeScreen}
-          options={{
+          options={() => ({
             presentation: 'modal',
             headerShown: true,
-            title: 'Pro',
-            headerBackTitle: 'Cancel',
-          }}
+            title: i18n.t('pro'),
+            headerBackTitle: i18n.t('cancel'),
+          })}
         />
         <Stack.Screen
           name="Onboarding"
@@ -116,11 +120,11 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen
           name="Legal"
           component={SettingsScreen}
-          options={{
+          options={() => ({
             headerShown: true,
-            title: 'Legal',
-            headerBackTitle: 'Back',
-          }}
+            title: i18n.t('legal'),
+            headerBackTitle: i18n.t('back'),
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>
