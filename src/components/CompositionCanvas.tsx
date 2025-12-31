@@ -478,7 +478,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           const originY = deviceY + deviceHeight / 2;
 
           // Adjust notch position - left device gets centered and lowered, right stays original
-          const leftNotchY = bezelY + screenHeight * 0.28;
+          const leftNotchY = bezelY + screenHeight * 0.15;
           const rightNotchY = bezelY + screenHeight * 0.18;
           const adjustedNotchY = isLeft ? leftNotchY : rightNotchY;
 
@@ -1644,13 +1644,14 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
         };
 
         const labelOffsetX = -8 * labelScaleFactor; // shift labels left
+        const beforeLabelOffsetX = 8 * labelScaleFactor; // shift before label right
         const labelOffsetY = 6 * labelScaleFactor; // shift labels down
 
         const deviceLabelConfigs = [
           {
             key: 'before',
             text: textBefore,
-            left: leftX + labelOffsetX,
+            left: leftX + beforeLabelOffsetX,
             rotation: -6,
             isLeft: true,
           },
@@ -1667,8 +1668,13 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
           <>
             {deviceLabelConfigs.map(config => {
               const adjustedLabelY = config.isLeft
-                ? notch.y - deviceHeight * 0.05 + labelOffsetY
+                ? notch.y - deviceHeight * 0.04 + labelOffsetY
                 : notch.y + labelOffsetY;
+
+              // Horizontal shift for labels (positive = right)
+              const horizontalShift = config.isLeft
+                ? -22 * labelScaleFactor
+                : 16 * labelScaleFactor;
 
               return (
                 <View
@@ -1687,7 +1693,7 @@ const CompositionCanvas = forwardRef<any, CompositionCanvasProps>(
                       },
                       {
                         transform: [
-                          { translateX: deviceWidth / 2 },
+                          { translateX: deviceWidth / 2 + horizontalShift },
                           { translateY: notch.height / 2 },
                           { rotate: `${config.rotation}deg` },
                           { translateX: -deviceWidth / 2 },
