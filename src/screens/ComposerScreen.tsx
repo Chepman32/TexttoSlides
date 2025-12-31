@@ -1255,7 +1255,7 @@ const ComposerScreen: React.FC = () => {
                 key={key}
                 style={[
                   styles.aspectChip,
-                  { backgroundColor: composition.aspect === key ? '#007AFF' : 'transparent' },
+                  { backgroundColor: composition.aspect === key ? themeDefinition.colors.accent : 'transparent' },
                   composition.aspect === key && styles.activeAspectChip,
                   index === 0 && styles.aspectChipFirst,
                   index === arr.length - 1 && styles.aspectChipLast,
@@ -2350,7 +2350,7 @@ const ComposerScreen: React.FC = () => {
               styles.toolTab,
               activePanel === panel && styles.activeToolTab,
               activePanel === panel && {
-                backgroundColor: themeDefinition.colors.accent,
+                backgroundColor: '#007AFF',
               },
             ]}
             onPress={() => {
