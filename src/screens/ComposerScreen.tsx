@@ -2126,7 +2126,7 @@ const ComposerScreen: React.FC = () => {
                 { color: themeDefinition.colors.textPrimary },
               ]}
             >
-              Gallery
+              {t('gallery')}
             </Text>
           </TouchableOpacity>
 
@@ -2144,7 +2144,7 @@ const ComposerScreen: React.FC = () => {
                 { color: themeDefinition.colors.textPrimary },
               ]}
             >
-              Share
+              {t('share')}
             </Text>
           </TouchableOpacity>
         </View>
